@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset='utf-8'>
     <meta http-equiv='X-UA-Compatible' content='IE=edge'>
     <title>Index</title>
     <meta name='viewport' content='width=device-width, initial-scale=1'>
-    <link type="text/css" rel="stylesheet" href='{{ static "css/materialize.min.css" }}'  media="screen,projection"/>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link type="text/css" rel="stylesheet" href='{{ static "css/materialize.min.css" }}' media="screen,projection" />
+    <link type="text/css" rel="stylesheet" href='{{ static "css/custom.css" }}' />
+    
 </head>
+
 <body>
-    <h1>Hello World!</h1>
-    <p>Message: {{ .message }}</p>
-    <a class="waves-effect waves-light btn red">button</a>
+    {{ template "sidebar.html" }}
+    <main>
+        <div class="container">
+            <div class="row">
+                <div class="col s12">
+                    <p>Hello</p>
+                    <p>Message: {{ .message }}</p>
+                    <a class="waves-effect waves-light btn red">button</a>
+                </div>
+            </div>
+        </div>
+    </main>
     <script type="text/javascript" src='{{ static "js/materialize.min.js" }}'></script>
 </body>
+
 </html>

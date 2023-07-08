@@ -1,0 +1,46 @@
+header,
+main,
+footer {
+    padding-left: 200px;
+}
+
+@media only screen and (max-width : 992px) {
+
+    header,
+    main,
+    footer {
+        padding-left: 0;
+    }
+}
+
+.background {
+    background-color: black;
+}
+
+.header {
+    margin: 0;
+    padding-top: 22px;
+    font-weight: 300;
+    color: #222020
+}
+
+nav {
+    background-color: transparent;
+    height: 110px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+a.top-nav.sidenav-trigger {
+    position: absolute;
+    text-align: center;
+    height: 48px;
+    width: 48px;
+    top: 28px;
+    color: #f3989b;
+}
+
+a.top-nav.sidenav-trigger i {
+    line-height: 48px;
+    font-size: 40px;
+
+}
