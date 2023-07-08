@@ -1,30 +1,44 @@
 package main
 
 import (
-	"brewday/internal/notifications"
+	"brewday/internal/app"
+	"brewday/internal/render"
+	"context"
+	"embed"
 	"log"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 )
 
-type Click struct {
-	Url string `json:"url"`
-}
-
-type ClientNot struct {
-	Click       Click  `json:"click"`
-	BigImageURL string `json:"bigImageUrl"`
-}
+//go:embed web
+var staticFS embed.FS
 
 func main() {
-	app_token := "Aopj09R0IeCqD6r"
-	gotify_url := "http://localhost:8080"
-	n := notifications.NewNotifier(app_token, gotify_url)
-	err := n.Send("**Click me!**\n- List1\n- List 2", "Test")
+	r := render.NewTemplateRenderer()
+	app, err := app.NewApp(staticFS, r)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// a, err := json.MarshalIndent(extras, "", "  ")
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// fmt.Println(string(a))
+
+	go func() {
+		if err := app.Run(":8080"); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+	// Graceful shutdown with 10 seconds timeout
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+	log.Println("Gracefully shutting down server...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	if err := app.Stop(ctx); err != nil {
+		log.Fatalf("Error while shutting down the server. Error %s", err.Error())
+	}
+	log.Printf("Server shutdown complete")
+	os.Exit(0)
+
 }
