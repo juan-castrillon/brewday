@@ -236,7 +236,74 @@ func getMashInstructions(r *MMUMRecipe) (*recipe.MashInstructions, error) {
 
 // getHopInstructions returns the hop instructions for a MMUMRecipe
 func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
-	return nil, nil
+	v := reflect.ValueOf(r).Elem()
+	var hops []recipe.Hops
+	var additions []recipe.AdditionalIngredient
+	for i := 1; i <= 3; i++ {
+		h := recipe.Hops{}
+		h.DryHop = false
+		nameValue := v.FieldByName(fmt.Sprintf("HopBefore%dName", i)).String()
+		if nameValue == "" {
+			continue
+		}
+		h.Name = nameValue + " (VW)"
+		amountValue := v.FieldByName(fmt.Sprintf("HopBefore%dAmount", i)).Float()
+		alphaValue := v.FieldByName(fmt.Sprintf("HopBefore%dAlpha", i)).Float()
+		h.Amount = float32(amountValue)
+		h.Alpha = float32(alphaValue)
+		h.Duration = r.CookingTime
+		hops = append(hops, h)
+	}
+	for i := 1; i <= 7; i++ {
+		h := recipe.Hops{}
+		h.DryHop = false
+		nameValue := v.FieldByName(fmt.Sprintf("Hop%dName", i)).String()
+		if nameValue == "" {
+			continue
+		}
+		h.Name = nameValue
+		amountValue := v.FieldByName(fmt.Sprintf("Hop%dAmount", i)).Float()
+		alphaValue := v.FieldByName(fmt.Sprintf("Hop%dAlpha", i)).Float()
+		durationValue := v.FieldByName(fmt.Sprintf("Hop%dTime", i)).Float()
+		h.Amount = float32(amountValue)
+		h.Alpha = float32(alphaValue)
+		h.Duration = float32(durationValue)
+		hops = append(hops, h)
+	}
+	for i := 1; i <= 3; i++ {
+		h := recipe.Hops{}
+		h.DryHop = true
+		nameValue := v.FieldByName(fmt.Sprintf("DryHop%dName", i)).String()
+		if nameValue == "" {
+			continue
+		}
+		h.Name = nameValue
+		amountValue := v.FieldByName(fmt.Sprintf("DryHop%dAmount", i)).Float()
+		h.Amount = float32(amountValue)
+		hops = append(hops, h)
+	}
+	for i := 1; i <= 5; i++ {
+		a := recipe.AdditionalIngredient{}
+		nameValue := v.FieldByName(fmt.Sprintf("OtherSpice%dName", i)).String()
+		if nameValue == "" {
+			continue
+		}
+		a.Name = nameValue
+		amountValue := v.FieldByName(fmt.Sprintf("OtherSpice%dAmount", i)).Float()
+		unitValue := v.FieldByName(fmt.Sprintf("OtherSpice%dUnit", i)).String()
+		if unitValue == "kg" {
+			a.Amount = float32(amountValue * 1000)
+		} else {
+			a.Amount = float32(amountValue)
+		}
+		timeValue := v.FieldByName(fmt.Sprintf("OtherSpice%dTime", i)).Float()
+		a.Duration = float32(timeValue)
+		additions = append(additions, a)
+	}
+	return &recipe.HopInstructions{
+		Hops:                  hops,
+		AdditionalIngredients: additions,
+	}, nil
 }
 
 // getFermentationInstructions returns the fermentation instructions for a MMUMRecipe

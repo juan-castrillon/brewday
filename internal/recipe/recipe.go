@@ -56,7 +56,8 @@ type Malt struct {
 }
 
 type HopInstructions struct {
-	Hops []Hops
+	Hops                  []Hops
+	AdditionalIngredients []AdditionalIngredient
 }
 
 type Hops struct {
@@ -67,10 +68,17 @@ type Hops struct {
 	DryHop   bool
 }
 
+type AdditionalIngredient struct {
+	Name     string
+	Amount   float32
+	Duration float32
+}
+
 type FermentationInstructions struct {
-	Yeast       Yeast
-	Temperature float32
-	Carbonation float32
+	Yeast                 Yeast
+	Temperature           float32
+	AdditionalIngredients []AdditionalIngredient
+	Carbonation           float32
 }
 
 type Yeast struct {
