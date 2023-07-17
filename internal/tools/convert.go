@@ -2,7 +2,11 @@ package tools
 
 // SGToPlato converts a specific gravity to a plato value
 func SGToPlato(sg float32) float32 {
-	return (135.997 * sg * sg * sg) - (630.272 * sg * sg) + (1111.14 * sg) - 616.868
+	if sg > 1.000 {
+		return (135.997 * sg * sg * sg) - (630.272 * sg * sg) + (1111.14 * sg) - 616.868
+	} else {
+		return 0.0
+	}
 }
 
 // PlatoToSG converts a plato value to a specific gravity
