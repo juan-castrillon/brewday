@@ -159,3 +159,63 @@ func TestGetHopInstructions(t *testing.T) {
 		})
 	}
 }
+
+func TestGetFermentationInstructions(t *testing.T) {
+	require := require.New(t)
+	basePath := "../../../test/recipe/mmum/"
+	type testCase struct {
+		Name     string
+		FileName string
+		Expected recipe.FermentationInstructions
+	}
+	testCases := []testCase{
+		{
+			Name:     "Hula Hula IPA",
+			FileName: "Hula_Hula_IPA.json",
+			Expected: recipe.FermentationInstructions{
+				Yeast:       recipe.Yeast{Name: "WY 1007"},
+				Temperature: "18-20",
+				AdditionalIngredients: []recipe.AdditionalIngredient{
+					{Name: "Cryo Citra", Amount: 60, Duration: 0},
+					{Name: "Cryo Simcoe", Amount: 60, Duration: 0},
+					{Name: "Motueka", Amount: 40, Duration: 0},
+				},
+				Carbonation: 5.5,
+			},
+		},
+		{
+			Name:     "Callippo Mango",
+			FileName: "Callippo_Mango.json",
+			Expected: recipe.FermentationInstructions{
+				Yeast:       recipe.Yeast{Name: "Philly Sour"},
+				Temperature: "24",
+				AdditionalIngredients: []recipe.AdditionalIngredient{
+					{Name: "TK Mango", Amount: 3000, Duration: 0},
+				},
+				Carbonation: 4.5,
+			},
+		},
+		{
+			Name:     "4S Saison",
+			FileName: "4S_Saison.json",
+			Expected: recipe.FermentationInstructions{
+				Yeast:                 recipe.Yeast{Name: "Mangrove Jacks M29 French Saison"},
+				Temperature:           "21",
+				AdditionalIngredients: nil,
+				Carbonation:           6,
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			bytes, err := os.ReadFile(basePath + tc.FileName)
+			require.NoError(err)
+			var r MMUMRecipe
+			err = json.Unmarshal(bytes, &r)
+			require.NoError(err)
+			actual, err := getFermentationInstructions(&r)
+			require.NoError(err)
+			require.Equal(tc.Expected, *actual)
+		})
+	}
+}

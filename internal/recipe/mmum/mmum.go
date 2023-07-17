@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 // MMUMParser is a RecipeParser implementation that parses recipes in Maische Malz und Mehr format (json)
@@ -192,7 +193,7 @@ func getMashInstructions(r *MMUMRecipe) (*recipe.MashInstructions, error) {
 		if nameValue == "" {
 			continue
 		}
-		m.Name = nameValue
+		m.Name = strings.TrimSpace(nameValue)
 		amountValue := v.FieldByName(fmt.Sprintf("Malt%dAmount", i)).Float()
 		unitValue := v.FieldByName(fmt.Sprintf("Malt%dUnit", i)).String()
 		if unitValue == "kg" {
@@ -246,7 +247,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 		if nameValue == "" {
 			continue
 		}
-		h.Name = nameValue + " (VW)"
+		h.Name = strings.TrimSpace(nameValue) + " (VW)"
 		amountValue := v.FieldByName(fmt.Sprintf("HopBefore%dAmount", i)).Float()
 		alphaValue := v.FieldByName(fmt.Sprintf("HopBefore%dAlpha", i)).Float()
 		h.Amount = float32(amountValue)
@@ -261,7 +262,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 		if nameValue == "" {
 			continue
 		}
-		h.Name = nameValue
+		h.Name = strings.TrimSpace(nameValue)
 		amountValue := v.FieldByName(fmt.Sprintf("Hop%dAmount", i)).Float()
 		alphaValue := v.FieldByName(fmt.Sprintf("Hop%dAlpha", i)).Float()
 		durationValue := v.FieldByName(fmt.Sprintf("Hop%dTime", i)).Float()
@@ -277,7 +278,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 		if nameValue == "" {
 			continue
 		}
-		h.Name = nameValue
+		h.Name = strings.TrimSpace(nameValue)
 		amountValue := v.FieldByName(fmt.Sprintf("DryHop%dAmount", i)).Float()
 		h.Amount = float32(amountValue)
 		hops = append(hops, h)
@@ -288,7 +289,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 		if nameValue == "" {
 			continue
 		}
-		a.Name = nameValue
+		a.Name = strings.TrimSpace(nameValue)
 		amountValue := v.FieldByName(fmt.Sprintf("OtherSpice%dAmount", i)).Float()
 		unitValue := v.FieldByName(fmt.Sprintf("OtherSpice%dUnit", i)).String()
 		if unitValue == "kg" {
@@ -308,5 +309,34 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 
 // getFermentationInstructions returns the fermentation instructions for a MMUMRecipe
 func getFermentationInstructions(r *MMUMRecipe) (*recipe.FermentationInstructions, error) {
-	return nil, nil
+	carbonationValue, err := strconv.ParseFloat(r.Carbonation, 32)
+	if err != nil {
+		return nil, err
+	}
+	v := reflect.ValueOf(r).Elem()
+	var additions []recipe.AdditionalIngredient
+	for i := 1; i <= 3; i++ {
+		a := recipe.AdditionalIngredient{}
+		nameValue := v.FieldByName(fmt.Sprintf("OtherFerment%dName", i)).String()
+		if nameValue == "" {
+			continue
+		}
+		a.Name = strings.TrimSpace(nameValue)
+		amountValue := v.FieldByName(fmt.Sprintf("OtherFerment%dAmount", i)).Float()
+		unitValue := v.FieldByName(fmt.Sprintf("OtherFerment%dUnit", i)).String()
+		if unitValue == "kg" {
+			a.Amount = float32(amountValue * 1000)
+		} else {
+			a.Amount = float32(amountValue)
+		}
+		additions = append(additions, a)
+	}
+	return &recipe.FermentationInstructions{
+		Yeast: recipe.Yeast{
+			Name: r.Yeast,
+		},
+		Temperature:           r.FermentationTemp,
+		AdditionalIngredients: additions,
+		Carbonation:           float32(carbonationValue),
+	}, nil
 }
