@@ -1,5 +1,12 @@
 {{ template "header" . }}
 {{ template "sidebar" . }}
+<style>
+    .square {
+        height: 50px;
+        width: 50px;
+        background-color: {{ .SquareColor }};
+    }
+</style>
 <main>
     <div class="container">
         <div class="row">
@@ -30,7 +37,7 @@
                         <p><b>Batch Size:</b> {{ .Recipe.BatchSize }} l</p>
                         <p><b>Initial SG:</b> {{ .Recipe.InitialSG }}</p>
                         <p><b>IBU:</b> {{ .Recipe.Bitterness }}</p>
-                        <p><b>Color:</b> {{ .Recipe.ColorEBC }} (EBC)</p>
+                        <p><b>Color:</b> {{ .Recipe.ColorEBC }} (EBC)  <div class="square"></div></p>
                     </div>
                 </li>
                 <li>

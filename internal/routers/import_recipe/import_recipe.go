@@ -2,6 +2,7 @@ package import_recipe
 
 import (
 	"brewday/internal/recipe"
+	"brewday/internal/tools"
 	"io"
 
 	"github.com/labstack/echo/v4"
@@ -22,8 +23,9 @@ func (r *ImportRouter) getImportHandler(c echo.Context) error {
 	re, ok := c.Get("recipe").(*recipe.Recipe)
 	if !ok || re == nil {
 		return c.Render(200, "import.html", map[string]interface{}{
-			"Title":  "Import Recipe",
-			"Recipe": nil,
+			"Title":       "Import Recipe",
+			"Recipe":      nil,
+			"SquareColor": "#000000",
 		})
 	}
 	id, err := r.Store.Store(re)
@@ -31,9 +33,10 @@ func (r *ImportRouter) getImportHandler(c echo.Context) error {
 		return err
 	}
 	return c.Render(200, "import.html", map[string]interface{}{
-		"Title":    "Import Recipe",
-		"Recipe":   re,
-		"RecipeID": id,
+		"Title":       "Import Recipe",
+		"Recipe":      re,
+		"RecipeID":    id,
+		"SquareColor": tools.EBCtoHex(re.ColorEBC),
 	})
 }
 

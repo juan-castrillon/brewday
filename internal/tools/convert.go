@@ -13,3 +13,13 @@ func SGToPlato(sg float32) float32 {
 func PlatoToSG(plato float32) float32 {
 	return 1 + (plato / (258.6 - ((plato / 258.2) * 227.1)))
 }
+
+// EBCtoSRM converts EBC to SRM
+func EBCtoSRM(ebc float32) float32 {
+	return ebc / 1.97
+}
+
+// SRMtoEBC converts SRM to EBC
+func SRMtoEBC(srm float32) float32 {
+	return srm * 1.97
+}
