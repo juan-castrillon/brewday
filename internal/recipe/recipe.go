@@ -29,6 +29,8 @@ type MashInstructions struct {
 	Malts []Malt
 	// MainWaterVolume is the main water volume in liters
 	MainWaterVolume float32
+	// Nachguss is the nachguss volume in liters
+	Nachguss float32
 	// MashTemperature is the mash temperature in °C
 	MashTemperature float32
 	// MashOutTemperature is the mash out temperature in °C

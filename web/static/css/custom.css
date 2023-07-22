@@ -42,5 +42,9 @@ a.top-nav.sidenav-trigger {
 a.top-nav.sidenav-trigger i {
     line-height: 48px;
     font-size: 40px;
+}
 
+li.logo {
+    text-align: center;
+    margin-top: 20px;
 }

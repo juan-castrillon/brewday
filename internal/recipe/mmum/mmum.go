@@ -229,6 +229,7 @@ func getMashInstructions(r *MMUMRecipe) (*recipe.MashInstructions, error) {
 	return &recipe.MashInstructions{
 		Malts:              malts,
 		MainWaterVolume:    r.MainWater,
+		Nachguss:           r.ExtraWater,
 		MashTemperature:    r.MashTemp,
 		MashOutTemperature: float32(mashOutValue),
 		Rasts:              rasts,

@@ -1,12 +1,16 @@
 package app
 
 import (
+	"brewday/internal/recipe/mmum"
 	"brewday/internal/routers/common"
-	"brewday/internal/routers/index"
+	"brewday/internal/routers/import_recipe"
+	"brewday/internal/routers/mash"
+	"brewday/internal/store/memory"
 	"context"
 	"io/fs"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 const (
@@ -39,14 +43,23 @@ func NewApp(staticFS fs.FS, renderer Renderer) (*App, error) {
 // Initialize initializes the application
 func (a *App) Initialize() error {
 	a.server = echo.New()
+	parser := mmum.MMUMParser{}
+	store := memory.NewMemoryStore()
 	a.routers = []common.Router{
-		&index.IndexRouter{},
+		&import_recipe.ImportRouter{
+			Parser: &parser,
+			Store:  store,
+		},
+		&mash.MashRouter{
+			Store: store,
+		},
 	}
 	a.RegisterStaticFiles()
 	err := a.RegisterTemplates()
 	if err != nil {
 		return err
 	}
+	a.server.Pre(middleware.RemoveTrailingSlash())
 	a.RegisterRoutes()
 	return nil
 }
@@ -62,6 +75,7 @@ func (a *App) RegisterTemplates() error {
 	a.renderer.AddFunc("static", func(path string) string {
 		return StaticFilesPath + "/" + path
 	})
+	a.renderer.AddFunc("reverse", a.server.Reverse)
 
 	fs := echo.MustSubFS(a.staticFs, "web/template")
 	err := a.renderer.RegisterTemplates(fs)
@@ -74,9 +88,13 @@ func (a *App) RegisterTemplates() error {
 
 // RegisterRoutes registers the routes of the application
 func (a *App) RegisterRoutes() {
+	group := a.server.Group("")
 	for _, router := range a.routers {
-		router.RegisterRoutes(a.server, nil)
+		router.RegisterRoutes(a.server, group)
 	}
+	a.server.GET("/", func(c echo.Context) error {
+		return c.Redirect(302, a.server.Reverse("getImport"))
+	})
 }
 
 // Run starts the application
