@@ -1,0 +1,85 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s6">
+                <h4 class="center-align"><i class="material-icons">thermostat</i>Temp: {{.Rast.Temperature}} °C</h4>
+            </div>
+            <div class="col s6">
+                <h4 class="center-align"><i class="material-icons">timer</i> Duration: {{.Rast.Duration}} min </h4>
+            </div>
+            <br>
+            <div class="col s12">
+                <div class="center-align">
+                    <h5>Don't forget to prepare {{.Nachguss}} l of water at 78°C for the nachguss!</h5>
+                </div>
+            </div>
+            <div class="col s12">
+                <div class="center-align">After this, {{.MissingRast}} rasts missing</div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s4">
+                <div class="center-align">
+                    <a class="waves-effect waves-light btn-large" id="start_timer">Start {{.Rast.Duration}} minutes</a>
+                </div>
+            </div>
+            <div class="col s4">
+                <div class="center-align">
+                    <a class="waves-effect waves-light btn-large" id="stop_timer">Stop</a>
+                </div>
+            </div>
+            <div class="col s4">
+                <h5 class="center-align" id="time">00:00</h5>
+            </div>
+        </div>
+        <div class="row">
+            <form action='{{ reverse "postRasts" .RecipeID .NextRast }}' method="post" class="col s12"
+                enctype="multipart/form-data">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">thermostat</i>
+                        <input type="text" value="{{.Rast.Temperature}}" id="real_temp" name="real_temp">
+                        <label for="real_temp">Real Temperature</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">timer</i>
+                        <input type="text" value="{{.Rast.Duration}}" id="real_duration" name="real_duration">
+                        <label for="real_duration">Real Duration</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">edit_note</i>
+                        <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
+                        <label for="notes1">Notes</label>
+                    </div>
+                </div>
+                <button class="btn waves-effect waves-light" type="submit" name="action" style="display: none;"
+                    id="send_rast">Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+<script>
+    document.getElementById("start_timer").onclick = function () {
+        startTimer('{{.Rast.Duration}}', 'time', function () {
+            show("send_rast");
+        });
+    };
+    document.getElementById("stop_timer").onclick = function () {
+        stopTimer(function () {
+            realDuration = document.getElementById("real_duration");
+            realDuration.value = (Date.now() - startTime) / 1000 / 60;
+            show("send_rast");
+        });
+    };
+</script>
+{{ template "footer" . }}

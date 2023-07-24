@@ -3,6 +3,7 @@ package memory
 import (
 	"brewday/internal/recipe"
 	"encoding/hex"
+	"errors"
 )
 
 // MemoryStore is a store that stores data in memory
@@ -34,5 +35,9 @@ func (s *MemoryStore) Store(recipe *recipe.Recipe) (string, error) {
 
 // Retrieve retrieves a recipe based on an identifier
 func (s *MemoryStore) Retrieve(id string) (*recipe.Recipe, error) {
-	return s.recipes[id], nil
+	re, ok := s.recipes[id]
+	if !ok {
+		return nil, errors.New("recipe not found")
+	}
+	return re, nil
 }

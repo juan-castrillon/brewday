@@ -4,6 +4,7 @@ import (
 	"brewday/internal/recipe/mmum"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/import_recipe"
+	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
 	"brewday/internal/store/memory"
 	"context"
@@ -25,6 +26,7 @@ type App struct {
 	staticFs fs.FS
 	routers  []common.Router
 	renderer Renderer
+	TL       Timeline
 }
 
 // NewApp creates a new App
@@ -52,6 +54,11 @@ func (a *App) Initialize() error {
 		},
 		&mash.MashRouter{
 			Store: store,
+			TL:    a.TL,
+		},
+		&lautern.LauternRouter{
+			Store: store,
+			TL:    a.TL,
 		},
 	}
 	a.RegisterStaticFiles()
@@ -95,6 +102,7 @@ func (a *App) RegisterRoutes() {
 	a.server.GET("/", func(c echo.Context) error {
 		return c.Redirect(302, a.server.Reverse("getImport"))
 	})
+	a.server.POST("/timeline", a.postTimelineEvent).Name = "postTimelineEvent"
 }
 
 // Run starts the application
@@ -105,4 +113,22 @@ func (a *App) Run(address string) error {
 // Stop stops the application
 func (a *App) Stop(ctx context.Context) error {
 	return a.server.Shutdown(ctx)
+}
+
+// addTimelineEvent adds an event to the timeline
+func (a *App) addTimelineEvent(message string) {
+	if a.TL != nil {
+		a.TL.AddEvent(message)
+	}
+}
+
+// postTimelineEvent is the handler for sent timeline events
+func (a *App) postTimelineEvent(c echo.Context) error {
+	var req ReqPostTimelineEvent
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	a.addTimelineEvent(req.Message)
+	return c.NoContent(200)
 }

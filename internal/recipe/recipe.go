@@ -79,6 +79,8 @@ type Hops struct {
 	Duration float32
 	// DryHop is true if this hop is for dry hopping
 	DryHop bool
+	// Vorderwürze is true if this hop is for vorderwürze hopping
+	Vorderwuerze bool
 }
 
 // AdditionalIngredient is the struct for an additional ingredient

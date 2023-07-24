@@ -33,6 +33,7 @@ func TestGetMashInstructions(t *testing.T) {
 				},
 				MainWaterVolume:    41,
 				MashTemperature:    69,
+				Nachguss:           19,
 				MashOutTemperature: 77,
 				Rasts: []recipe.Rast{
 					{Temperature: 67.5, Duration: 45},
@@ -53,6 +54,7 @@ func TestGetMashInstructions(t *testing.T) {
 				},
 				MainWaterVolume:    22,
 				MashTemperature:    65,
+				Nachguss:           18,
 				MashOutTemperature: 72,
 				Rasts: []recipe.Rast{
 					{Temperature: 65, Duration: 40},
@@ -74,6 +76,7 @@ func TestGetMashInstructions(t *testing.T) {
 				},
 				MainWaterVolume:    14,
 				MashTemperature:    50,
+				Nachguss:           10,
 				MashOutTemperature: 73,
 				Rasts: []recipe.Rast{
 					{Temperature: 67, Duration: 60},
@@ -109,7 +112,7 @@ func TestGetHopInstructions(t *testing.T) {
 			FileName: "Hula_Hula_IPA.json",
 			Expected: recipe.HopInstructions{
 				Hops: []recipe.Hops{
-					{Name: "Simcoe (VW)", Amount: 34, Alpha: 12.5, Duration: 75, DryHop: false},
+					{Name: "Simcoe (VW)", Amount: 34, Alpha: 12.5, Duration: 75, DryHop: false, Vorderwuerze: true},
 					{Name: "Simcoe", Amount: 180, Alpha: 12.5, Duration: 0, DryHop: false},
 					{Name: "Simcoe", Amount: 75, Alpha: 0, Duration: 0, DryHop: true},
 					{Name: "Citra", Amount: 100, Alpha: 0, Duration: 0, DryHop: true},

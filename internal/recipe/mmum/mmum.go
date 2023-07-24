@@ -244,6 +244,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 	for i := 1; i <= 3; i++ {
 		h := recipe.Hops{}
 		h.DryHop = false
+		h.Vorderwuerze = true
 		nameValue := v.FieldByName(fmt.Sprintf("HopBefore%dName", i)).String()
 		if nameValue == "" {
 			continue
@@ -259,6 +260,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 	for i := 1; i <= 7; i++ {
 		h := recipe.Hops{}
 		h.DryHop = false
+		h.Vorderwuerze = false
 		nameValue := v.FieldByName(fmt.Sprintf("Hop%dName", i)).String()
 		if nameValue == "" {
 			continue
@@ -275,6 +277,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 	for i := 1; i <= 3; i++ {
 		h := recipe.Hops{}
 		h.DryHop = true
+		h.Vorderwuerze = false
 		nameValue := v.FieldByName(fmt.Sprintf("DryHop%dName", i)).String()
 		if nameValue == "" {
 			continue

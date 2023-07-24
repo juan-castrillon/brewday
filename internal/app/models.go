@@ -17,3 +17,14 @@ type Renderer interface {
 	// AddFunc adds a function to the template
 	AddFunc(name string, fn any)
 }
+
+// Timeline represents a timeline of events
+type Timeline interface {
+	// AddEvent adds an event to the timeline
+	AddEvent(message string)
+}
+
+// ReqPostTimelineEvent represents the request body for the postTimelineEvent
+type ReqPostTimelineEvent struct {
+	Message string `json:"message" form:"message"`
+}

@@ -3,10 +3,32 @@
 <main>
     <div class="container">
         <div class="row">
-            <div class="col s12">
-                <p>Hello</p>
-                <p>Recipe: {{ .Recipe }}</p>
-            </div>
+            <div class="col s12"><h2>1. Einmaischen</h2></div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s6"><h4 class="center-align"><i class="material-icons">water_drop</i> Water: {{.MainWater}} l </h4></div>
+            <div class="col s6"><h4 class="center-align"><i class="material-icons">thermostat</i>Temp: {{.MashTemp}} °C</h4></div>
+            <div class="col s12"><div class="center-align">Next rast expected at {{.NextRastTemp}} °C</div></div>
+        </div>
+        <div class="row">
+            <form action='{{ reverse "postRasts" .RecipeID 0 }}' method="post" class="col s12" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">thermostat</i>
+                        <input type="text" value="{{.MashTemp}}" id="real_temp" name="real_mash_temp">
+                        <label for="real_temp">Real Temperature</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">edit_note</i>
+                        <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
+                        <label for="notes1">Notes</label>
+                    </div>
+                </div>
+                <button class="btn waves-effect waves-light" type="submit" name="action">Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
         </div>
     </div>
 </main>
