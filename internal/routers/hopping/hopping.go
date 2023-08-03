@@ -43,6 +43,7 @@ func (r *HoppingRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	hopping := parent.Group("/hopping")
 	hopping.GET("/start/:recipe_id", r.getStartHoppingHandler).Name = "getStartHopping"
 	hopping.POST("/start/:recipe_id", r.postStartHoppingHandler).Name = "postStartHopping"
+	hopping.POST("/end/:recipe_id", r.postEndHoppingHandler).Name = "postEndHopping"
 	hopping.GET("/hop/:recipe_id/:ingr_num", r.getHoppingHandler).Name = "getHopping"
 	hopping.POST("/hop/:recipe_id/:ingr_num", r.postHoppingHandler).Name = "postHopping"
 }
@@ -138,6 +139,25 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 		"RecipeID":    id,
 		"Ingredients": r.ingredients,
 	})
+}
+
+// postEndHoppingHandler returns the handler for the end hopping route
+func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return errors.New("no recipe id provided")
+	}
+	if r.recipe == nil {
+		return errors.New("no recipe loaded")
+	}
+	r.addTimelineEvent("Start heating up")
+	var req ReqPostEndHopping
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	r.addSummaryMeasuredVolume("Measured volume after boiling", req.FinalVolume, req.Notes)
+	return c.String(http.StatusOK, "Boil finished")
 }
 
 // getHoppingHandler returns the handler for the hopping route
