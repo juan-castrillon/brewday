@@ -60,6 +60,8 @@ type Malt struct {
 // HopInstructions is the struct for the hopping instructions
 // It contains the hops and the additional ingredients (like spices)
 type HopInstructions struct {
+	// TotalCookingTime is the total cooking time in minutes
+	TotalCookingTime float32
 	// Hops is the list of hops to use
 	Hops []Hops
 	// AdditionalIngredients is the list of additional ingredients to use in the boil

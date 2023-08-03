@@ -1,0 +1,50 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h4>Now, bring it to a boil</h4>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h5>Here is an overview of the ingredients to add:</h5>
+                <table class="striped">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Amount (g)</th>
+                            <th>Duration (minutes cooked)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range $i := .Ingredients }}
+                        <tr>
+                            <td>{{ $i.Name }}</td>
+                            <td>{{ $i.Amount }}</td>
+                            <td>{{ $i.Duration }}</td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <a class="waves-effect waves-light btn-large" id="boiling" onclick="isBoiling()">Its boiling</a>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+    function isBoiling() {
+        url = '{{ reverse "getHopping" .RecipeID 0 }}'
+        window.location = url
+    }
+</script>
+{{ template "footer" . }}

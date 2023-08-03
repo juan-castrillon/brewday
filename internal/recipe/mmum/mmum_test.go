@@ -111,6 +111,7 @@ func TestGetHopInstructions(t *testing.T) {
 			Name:     "Hula Hula IPA",
 			FileName: "Hula_Hula_IPA.json",
 			Expected: recipe.HopInstructions{
+				TotalCookingTime: 75,
 				Hops: []recipe.Hops{
 					{Name: "Simcoe (VW)", Amount: 34, Alpha: 12.5, Duration: 75, DryHop: false, Vorderwuerze: true},
 					{Name: "Simcoe", Amount: 180, Alpha: 12.5, Duration: 0, DryHop: false},
@@ -125,6 +126,7 @@ func TestGetHopInstructions(t *testing.T) {
 			Name:     "Callippo Mango",
 			FileName: "Callippo_Mango.json",
 			Expected: recipe.HopInstructions{
+				TotalCookingTime: 60,
 				Hops: []recipe.Hops{
 					{Name: "Callista Nectar", Amount: 20, Alpha: 6.5, Duration: 60, DryHop: false},
 					{Name: "Callista Nectar", Amount: 30, Alpha: 6.5, Duration: 0, DryHop: false},
@@ -137,6 +139,7 @@ func TestGetHopInstructions(t *testing.T) {
 			Name:     "4S Saison",
 			FileName: "4S_Saison.json",
 			Expected: recipe.HopInstructions{
+				TotalCookingTime: 60,
 				Hops: []recipe.Hops{
 					{Name: "Saphir", Amount: 40, Alpha: 4.3, Duration: 30, DryHop: false},
 					{Name: "Styrian Celeia", Amount: 25, Alpha: 3.4, Duration: 5, DryHop: false},

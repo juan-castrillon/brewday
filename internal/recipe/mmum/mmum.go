@@ -306,6 +306,7 @@ func getHopInstructions(r *MMUMRecipe) (*recipe.HopInstructions, error) {
 		additions = append(additions, a)
 	}
 	return &recipe.HopInstructions{
+		TotalCookingTime:      r.CookingTime,
 		Hops:                  hops,
 		AdditionalIngredients: additions,
 	}, nil

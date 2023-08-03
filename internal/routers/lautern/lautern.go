@@ -108,6 +108,10 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	id := c.Param("recipe_id")
+	if id == "" {
+		return errors.New("no recipe id provided")
+	}
 	r.addSummaryLauternNotes(req.Notes)
-	return c.String(200, "OK")
+	return c.Redirect(302, c.Echo().Reverse("getStartHopping", id))
 }

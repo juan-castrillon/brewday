@@ -3,6 +3,7 @@ package app
 import (
 	"brewday/internal/recipe/mmum"
 	"brewday/internal/routers/common"
+	"brewday/internal/routers/hopping"
 	"brewday/internal/routers/import_recipe"
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
@@ -57,6 +58,10 @@ func (a *App) Initialize() error {
 			TL:    a.TL,
 		},
 		&lautern.LauternRouter{
+			Store: store,
+			TL:    a.TL,
+		},
+		&hopping.HoppingRouter{
 			Store: store,
 			TL:    a.TL,
 		},
