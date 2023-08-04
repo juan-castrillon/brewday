@@ -1,0 +1,78 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h5 class="center-align" id="time" style="display: none;">00:00</h5>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s6">
+                <div class="center-align">
+                    <a class="waves-effect waves-light btn-large" id="start_timer">Start</a>
+                </div>
+            </div>
+            <div class="col s6">
+                <div class="center-align">
+                    <a class="waves-effect waves-light btn-large red" id="stop_timer">Stop</a>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h5 class="center-align" id="message" style="display: none;">Now cooling...</h5>
+            </div>
+        </div>
+        <div class="row">
+            <form action='{{ reverse "postCooling" .RecipeID }}' method="post" class="col s12" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">thermostat</i>
+                        <input type="text" id="final_temp" name="final_temp" value="20">
+                        <label for="final_temp">Final Temperature</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">timer</i>
+                        <input type="text" id="cooling_time" name="cooling_time" value="20">
+                        <label for="cooling_time">Cooling TIme</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">edit_note</i>
+                        <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
+                        <label for="notes1">Notes</label>
+                    </div>
+                </div>
+                <button class="btn waves-effect waves-light" type="submit" name="action" style="display: none;"
+                id="send_form">Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+<script>
+    document.getElementById("start_timer").onclick = function () {
+        show("stop_timer");
+        show("message");
+        startTimer(2000, 'time', function () { // Timer extra long for simulating a timer not a countdown
+            show("send_form");
+        });
+        time = document.getElementById("time");
+        time.style.display = "none";
+    };
+    document.getElementById("stop_timer").onclick = function () {
+        stopTimer(function () {
+            realDuration = document.getElementById("cooling_time");
+            realDuration.value = (Date.now() - startTime) / 1000 / 60;
+            show("send_form");
+        });
+        msg = document.getElementById("message");
+        msg.textContent = "Cooling stopped";
+    };
+</script>
+{{ template "footer" . }}

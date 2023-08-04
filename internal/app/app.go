@@ -3,6 +3,7 @@ package app
 import (
 	"brewday/internal/recipe/mmum"
 	"brewday/internal/routers/common"
+	"brewday/internal/routers/cooling"
 	"brewday/internal/routers/hopping"
 	"brewday/internal/routers/import_recipe"
 	"brewday/internal/routers/lautern"
@@ -64,6 +65,9 @@ func (a *App) Initialize() error {
 		&hopping.HoppingRouter{
 			Store: store,
 			TL:    a.TL,
+		},
+		&cooling.CoolingRouter{
+			TL: a.TL,
 		},
 	}
 	a.RegisterStaticFiles()

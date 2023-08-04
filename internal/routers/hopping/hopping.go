@@ -43,6 +43,7 @@ func (r *HoppingRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	hopping := parent.Group("/hopping")
 	hopping.GET("/start/:recipe_id", r.getStartHoppingHandler).Name = "getStartHopping"
 	hopping.POST("/start/:recipe_id", r.postStartHoppingHandler).Name = "postStartHopping"
+	hopping.GET("/end/:recipe_id", r.getEndHoppingHandler).Name = "getEndHopping"
 	hopping.POST("/end/:recipe_id", r.postEndHoppingHandler).Name = "postEndHopping"
 	hopping.GET("/hop/:recipe_id/:ingr_num", r.getHoppingHandler).Name = "getHopping"
 	hopping.POST("/hop/:recipe_id/:ingr_num", r.postHoppingHandler).Name = "postHopping"
@@ -141,6 +142,20 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	})
 }
 
+// getEndHoppingHandler returns the handler for the end hopping route
+func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return errors.New("no recipe id provided")
+	}
+	r.addTimelineEvent("Finished Hopping")
+	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
+		"Title":    "Hopping " + r.recipe.Name,
+		"Subtitle": "4. Measure volume after boiling",
+		"RecipeID": id,
+	})
+}
+
 // postEndHoppingHandler returns the handler for the end hopping route
 func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
@@ -157,7 +172,7 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 		return err
 	}
 	r.addSummaryMeasuredVolume("Measured volume after boiling", req.FinalVolume, req.Notes)
-	return c.String(http.StatusOK, "Boil finished")
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getCooling", id))
 }
 
 // getHoppingHandler returns the handler for the hopping route
@@ -180,7 +195,7 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 	var cookingTime float32
 	if ingrNum >= len(r.recipe.Hopping.Hops) {
 		r.addTimelineEvent("Boil finished")
-		return c.String(http.StatusOK, "Boil finished")
+		return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndHopping", id))
 	}
 	if ingrNum == 0 {
 		r.addTimelineEvent("Boil started")
