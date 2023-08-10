@@ -120,3 +120,12 @@ type Yeast struct {
 	// Amount in grams
 	Amount float32
 }
+
+// GetTotalMaltWeight returns the total weight of the malts in g
+func (mash MashInstructions) GetTotalMaltWeight() float32 {
+	var total float32
+	for _, malt := range mash.Malts {
+		total += malt.Amount
+	}
+	return total
+}

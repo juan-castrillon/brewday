@@ -58,9 +58,5 @@ func (r *CoolingRouter) postCoolingHandler(c echo.Context) error {
 	}
 	r.addSummaryCooling(req.FinalTemp, req.CoolingTime, req.Notes)
 	r.addTimelineEvent("Finished Cooling")
-	return c.JSON(http.StatusOK, map[string]interface{}{
-		"temp":  req.FinalTemp,
-		"time":  req.CoolingTime,
-		"notes": req.Notes,
-	})
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getPreFermentation", id))
 }

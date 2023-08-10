@@ -4,13 +4,16 @@ import (
 	"brewday/internal/recipe/mmum"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/cooling"
+	"brewday/internal/routers/fermentation"
 	"brewday/internal/routers/hopping"
 	"brewday/internal/routers/import_recipe"
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
 	"brewday/internal/store/memory"
 	"context"
+	"fmt"
 	"io/fs"
+	"math"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -69,6 +72,9 @@ func (a *App) Initialize() error {
 		&cooling.CoolingRouter{
 			TL: a.TL,
 		},
+		&fermentation.FermentationRouter{
+			TL: a.TL,
+		},
 	}
 	a.RegisterStaticFiles()
 	err := a.RegisterTemplates()
@@ -76,6 +82,7 @@ func (a *App) Initialize() error {
 		return err
 	}
 	a.server.Pre(middleware.RemoveTrailingSlash())
+	a.server.HTTPErrorHandler = a.customErrorHandler
 	a.RegisterRoutes()
 	return nil
 }
@@ -92,6 +99,10 @@ func (a *App) RegisterTemplates() error {
 		return StaticFilesPath + "/" + path
 	})
 	a.renderer.AddFunc("reverse", a.server.Reverse)
+	a.renderer.AddFunc("truncateFloat", func(f float32, decimals int) float64 {
+		f64 := float64(f)
+		return math.Round(f64*(math.Pow10(decimals))) / math.Pow10(decimals)
+	})
 
 	fs := echo.MustSubFS(a.staticFs, "web/template")
 	err := a.renderer.RegisterTemplates(fs)
@@ -140,4 +151,9 @@ func (a *App) postTimelineEvent(c echo.Context) error {
 	}
 	a.addTimelineEvent(req.Message)
 	return c.NoContent(200)
+}
+
+// customErrorHandler is a custom error handler
+func (a *App) customErrorHandler(err error, c echo.Context) {
+	fmt.Println(c.Request().RequestURI, err)
 }
