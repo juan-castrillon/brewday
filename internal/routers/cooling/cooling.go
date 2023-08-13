@@ -41,7 +41,8 @@ func (r *CoolingRouter) getCoolingHandler(c echo.Context) error {
 	}
 	r.addTimelineEvent("Started Cooling")
 	return c.Render(http.StatusOK, "cooling.html", map[string]interface{}{
-		"Title": "Cooling",
+		"Title":    "Cooling",
+		"RecipeID": id,
 	})
 }
 
