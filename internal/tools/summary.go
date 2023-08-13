@@ -17,3 +17,10 @@ func CalculateEfficiencySG(measuredGravity, measuredVolume, totalMalt float32) f
 	gPlato := SGToPlato(measuredGravity)
 	return CalculateEfficiencyPlato(gPlato, measuredVolume, totalMalt)
 }
+
+// CalculateEvaporation returns the evaporation rate of a brew in %/h
+// It takes volume before and after boiling, as well as the time it took to boil
+// The volume is in liters, the time in minutes
+func CalculateEvaporation(volumeBefore, volumeAfter, time float32) float32 {
+	return (volumeBefore - volumeAfter) / time * 60
+}

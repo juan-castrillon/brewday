@@ -2,6 +2,7 @@ package hopping
 
 import (
 	"brewday/internal/recipe"
+	"brewday/internal/tools"
 	"errors"
 	"net/http"
 	"strconv"
@@ -15,6 +16,7 @@ type HoppingRouter struct {
 	Summary     SummaryRecorder
 	recipe      *recipe.Recipe
 	ingredients ingredientList
+	initialVol  float32
 }
 
 // addTimelineEvent adds an event to the timeline
@@ -35,6 +37,13 @@ func (r *HoppingRouter) addSummaryHopping(name string, amount float32, alpha flo
 func (r *HoppingRouter) addSummaryMeasuredVolume(name string, amount float32, notes string) {
 	if r.Summary != nil {
 		r.Summary.AddMeasuredVolume(name, amount, notes)
+	}
+}
+
+// addSummaryEvaporation adds an evaporation to the summary
+func (r *HoppingRouter) addSummaryEvaporation(amount float32) {
+	if r.Summary != nil {
+		r.Summary.AddEvaporation(amount)
 	}
 }
 
@@ -134,6 +143,7 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 		return err
 	}
 	r.addSummaryMeasuredVolume("Measured volume before boiling", req.InitialVolume, req.Notes)
+	r.initialVol = req.InitialVolume
 	return c.Render(http.StatusOK, "hopping_boiling.html", map[string]interface{}{
 		"Title":       "Hopping " + r.recipe.Name,
 		"Subtitle":    "2. Boil",
@@ -172,6 +182,8 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 		return err
 	}
 	r.addSummaryMeasuredVolume("Measured volume after boiling", req.FinalVolume, req.Notes)
+	evap := tools.CalculateEvaporation(r.initialVol, req.FinalVolume, r.recipe.Hopping.TotalCookingTime)
+	r.addSummaryEvaporation(evap)
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getCooling", id))
 }
 

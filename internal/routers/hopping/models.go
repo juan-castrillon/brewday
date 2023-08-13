@@ -20,6 +20,8 @@ type SummaryRecorder interface {
 	AddHopping(name string, amount float32, alpha float32, notes string)
 	// AddMeasuredVolume adds a measured volume to the summary
 	AddMeasuredVolume(name string, amount float32, notes string)
+	// AddEvaporation adds an evaporation to the summary
+	AddEvaporation(amount float32)
 }
 
 // ReqPostStartHopping is the request for the start hopping route
