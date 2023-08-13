@@ -57,7 +57,7 @@
     document.getElementById("done").onclick = function() {
         sendTimelineEvent("Mash transferred to bucket");
         show("ruhe");
-        startTimer(1, 'time', function () {
+        startTimer('{{.RestTime}}', 'time', function () {
             sendTimelineEvent("Mash rested for 15 minutes");
             show("instructions");
             show("notes_form");

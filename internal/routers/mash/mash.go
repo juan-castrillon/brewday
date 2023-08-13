@@ -78,6 +78,7 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 				{Temperature: 67.5, Duration: 45},
 				{Temperature: 72, Duration: 15},
 			},
+			Nachguss: 5,
 		},
 		Hopping: recipe.HopInstructions{
 			Hops: []recipe.Hops{
