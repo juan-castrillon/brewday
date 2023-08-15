@@ -9,7 +9,9 @@ import (
 	"brewday/internal/routers/import_recipe"
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
+	summary "brewday/internal/routers/summary"
 	"brewday/internal/store/memory"
+	"brewday/internal/summary_recorder/markdown"
 	"context"
 	"fmt"
 	"io/fs"
@@ -52,28 +54,37 @@ func (a *App) Initialize() error {
 	a.server = echo.New()
 	parser := mmum.MMUMParser{}
 	store := memory.NewMemoryStore()
+	summ := markdown.NewMarkdownSummaryRecorder()
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
 			Parser: &parser,
 			Store:  store,
 		},
 		&mash.MashRouter{
-			Store: store,
-			TL:    a.TL,
+			Store:   store,
+			TL:      a.TL,
+			Summary: summ,
 		},
 		&lautern.LauternRouter{
-			Store: store,
-			TL:    a.TL,
+			Store:   store,
+			TL:      a.TL,
+			Summary: summ,
 		},
 		&hopping.HoppingRouter{
-			Store: store,
-			TL:    a.TL,
+			Store:   store,
+			TL:      a.TL,
+			Summary: summ,
 		},
 		&cooling.CoolingRouter{
-			TL: a.TL,
+			TL:      a.TL,
+			Summary: summ,
 		},
 		&fermentation.FermentationRouter{
-			TL: a.TL,
+			TL:      a.TL,
+			Summary: summ,
+		},
+		&summary.SummaryRouter{
+			Summary: summ,
 		},
 	}
 	a.RegisterStaticFiles()

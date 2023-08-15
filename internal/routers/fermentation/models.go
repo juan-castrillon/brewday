@@ -10,8 +10,11 @@ type Timeline interface {
 
 // SummaryRecorder represents a component that records a summary
 type SummaryRecorder interface {
+	// AddSummaryPreFermentation adds a summary of the pre fermentation
 	AddSummaryPreFermentation(volume float32, sg float32, notes string)
+	// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
 	AddEfficiency(efficiencyPercentage float32)
+	// AddYeastStart adds the yeast start to the summary
 	AddYeastStart(temperature, notes string)
 	// Close closes the summary recorder
 	Close()
