@@ -9,6 +9,7 @@ import (
 
 type SummaryRouter struct {
 	Summary SummaryRecorder
+	TL      Timeline
 }
 
 // getSummary returns the summary
@@ -27,6 +28,28 @@ func (r *SummaryRouter) getExtention() string {
 	return ""
 }
 
+// addTimeline adds a timeline
+func (r *SummaryRouter) addTimeline(tl []string) {
+	if r.Summary != nil {
+		r.Summary.AddTimeline(tl)
+	}
+}
+
+// closeSummary closes the summary
+func (r *SummaryRouter) closeSummary() {
+	if r.Summary != nil {
+		r.Summary.Close()
+	}
+}
+
+// getTimeline returns the timeline
+func (r *SummaryRouter) getTimeline() []string {
+	if r.TL != nil {
+		return r.TL.GetTimeline()
+	}
+	return []string{}
+}
+
 // RegisterRoutes registers the routes for the summary router
 func (r *SummaryRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	summary := parent.Group("/summary")
@@ -39,6 +62,11 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	if id == "" {
 		return errors.New("no recipe id provided")
 	}
+	tl := r.getTimeline()
+	if len(tl) > 0 {
+		r.addTimeline(tl)
+	}
+	r.closeSummary()
 	summ := r.getSummary()
 	ext := r.getExtention()
 	fileName := id + "." + ext

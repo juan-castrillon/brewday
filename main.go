@@ -3,6 +3,7 @@ package main
 import (
 	"brewday/internal/app"
 	"brewday/internal/render"
+	"brewday/internal/timeline/basic"
 	"context"
 	"embed"
 	"log"
@@ -18,7 +19,8 @@ var staticFS embed.FS
 
 func main() {
 	r := render.NewTemplateRenderer()
-	app, err := app.NewApp(staticFS, r)
+	tl := basic.NewBasicTimeline()
+	app, err := app.NewApp(staticFS, r, tl)
 	if err != nil {
 		log.Fatal(err)
 	}

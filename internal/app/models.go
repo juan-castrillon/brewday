@@ -22,6 +22,8 @@ type Renderer interface {
 type Timeline interface {
 	// AddEvent adds an event to the timeline
 	AddEvent(message string)
+	// GetTimeline returns a timeline of events
+	GetTimeline() []string
 }
 
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent

@@ -16,8 +16,6 @@ type SummaryRecorder interface {
 	AddEfficiency(efficiencyPercentage float32)
 	// AddYeastStart adds the yeast start to the summary
 	AddYeastStart(temperature, notes string)
-	// Close closes the summary recorder
-	Close()
 }
 
 // RecipeStore represents a component that stores recipes

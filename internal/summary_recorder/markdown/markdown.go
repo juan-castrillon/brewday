@@ -14,6 +14,7 @@ type MarkdownSummaryRecorder struct {
 	summary     string
 	evaporation float32
 	efficiency  float32
+	timeline    string
 }
 
 // NewMarkdownSummaryRecorder creates a new MarkdownSummaryRecorder
@@ -107,6 +108,11 @@ func (r *MarkdownSummaryRecorder) Close() {
 	r.addNewLine("## Calculations")
 	r.addNewLine(fmt.Sprintf("- **Evaporation**: %.2f%%/h", r.evaporation))
 	r.addNewLine(fmt.Sprintf("- **Efficiency**: %.2f%%", r.efficiency))
+	r.addNewLine("")
+	r.addNewLine("## Timeline")
+	r.addNewLine("Timestamp | Event")
+	r.addNewLine("--- | ---")
+	r.addNewLine(r.timeline)
 	r.summary = r.summaryRaw.String()
 }
 
@@ -118,4 +124,9 @@ func (r *MarkdownSummaryRecorder) GetSummary() string {
 // GetExtention returns the extention of the summary
 func (r *MarkdownSummaryRecorder) GetExtention() string {
 	return "md"
+}
+
+// AddTimeline adds a timeline to the summary
+func (r *MarkdownSummaryRecorder) AddTimeline(timeline []string) {
+	r.timeline = strings.Join(timeline, "\n")
 }

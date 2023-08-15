@@ -46,13 +46,6 @@ func (r *FermentationRouter) addSummaryYeastStart(temperature, notes string) {
 	}
 }
 
-// closeSummary closes the summary
-func (r *FermentationRouter) closeSummary() {
-	if r.Summary != nil {
-		r.Summary.Close()
-	}
-}
-
 // registerRoutes registers the routes for the fermentation router
 func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	fermentation := parent.Group("/fermentation")
@@ -235,7 +228,6 @@ func (r *FermentationRouter) getEndFermentationHandler(c echo.Context) error {
 		}
 	}
 	r.addTimelineEvent("Finished Day")
-	r.closeSummary()
 	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
 		"Title":     "End Fermentation",
 		"RecipeID":  id,

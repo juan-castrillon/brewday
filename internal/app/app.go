@@ -37,10 +37,11 @@ type App struct {
 }
 
 // NewApp creates a new App
-func NewApp(staticFS fs.FS, renderer Renderer) (*App, error) {
+func NewApp(staticFS fs.FS, renderer Renderer, timeline Timeline) (*App, error) {
 	app := &App{
 		staticFs: staticFS,
 		renderer: renderer,
+		TL:       timeline,
 	}
 	err := app.Initialize()
 	if err != nil {
@@ -86,6 +87,7 @@ func (a *App) Initialize() error {
 		},
 		&summary.SummaryRouter{
 			Summary: summ,
+			TL:      a.TL,
 		},
 	}
 	a.RegisterStaticFiles()
