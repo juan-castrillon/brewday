@@ -21,9 +21,12 @@
             </div>
             <br>
         </div>
-        <div class="row" id="timer">
-            <div class="column s12">
-                <h4 class="center-align">Put it in: <span id="time"></span> minutes </h4>
+        <div class="row">
+            <div class="col s6">
+                <h4 class="center-align" id="timer">Put it in: <span id="time"></span> minutes </h4>
+            </div>
+            <div class="col s6">
+                <a class="waves-effect waves-light btn-large red" id="stop_timer">Stop</a>
             </div>
         </div>
         <div class="row" id="hop_form" style="display: none;">
@@ -65,5 +68,10 @@
         });
     }
     window.onload = countdown;
+    document.getElementById("stop_timer").onclick = function () {
+        stopTimer(function() {
+            show("hop_form");
+        })
+    }
 </script>
 {{ template "footer" . }}

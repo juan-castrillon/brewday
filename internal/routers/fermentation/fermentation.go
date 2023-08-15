@@ -71,61 +71,9 @@ func (r *FermentationRouter) getPreFermentationHandler(c echo.Context) error {
 	if id == "" {
 		return errors.New("no recipe id provided")
 	}
-	// re, err := r.Store.Retrieve(id)
-	// if err != nil {
-	// 	return err
-	// }
-	// http://localhost:8080/mash/start/48756c612048756c6120495041
-	re := &recipe.Recipe{
-		Name:       "Hula Hula IPA",
-		Style:      "IPA",
-		BatchSize:  40,
-		InitialSG:  1.073,
-		Bitterness: 25,
-		ColorEBC:   11,
-		Mashing: recipe.MashInstructions{
-			Malts: []recipe.Malt{
-				{Name: "Golden Promise PA", Amount: 5600},
-				{Name: "Barke Pilsner", Amount: 5000},
-				{Name: "Haferflocken", Amount: 500},
-				{Name: "Gerstenflocken", Amount: 500},
-				{Name: "Carapils", Amount: 500},
-				{Name: "Sauermalz", Amount: 300},
-				{Name: "Cara Red", Amount: 300},
-			},
-			MainWaterVolume:    41,
-			MashTemperature:    69,
-			MashOutTemperature: 77,
-			Rasts: []recipe.Rast{
-				{Temperature: 67.5, Duration: 45},
-				{Temperature: 72, Duration: 15},
-			},
-		},
-		Hopping: recipe.HopInstructions{
-			TotalCookingTime: 3,
-			Hops: []recipe.Hops{
-				{Name: "Saphir", Amount: 40, Alpha: 4.3, Duration: 2, DryHop: false},
-				{Name: "Styrian Celeia", Amount: 25, Alpha: 3.4, Duration: 1, DryHop: false},
-				{Name: "Sorachi Ace", Amount: 20, Alpha: 9, Duration: 0, DryHop: false},
-				{Name: "Simcoe", Amount: 60, Alpha: 12.9, Duration: 0, DryHop: false},
-			},
-			AdditionalIngredients: []recipe.AdditionalIngredient{
-				{Name: "Demerara Zucker", Amount: 360, Duration: 2},
-			},
-		},
-		Fermentation: recipe.FermentationInstructions{
-			Yeast: recipe.Yeast{
-				Name:   "WY 1007",
-				Amount: 11,
-			},
-			Temperature: "18-20",
-			AdditionalIngredients: []recipe.AdditionalIngredient{
-				{Name: "Cryo Citra", Amount: 60, Duration: 0},
-				{Name: "Cryo Simcoe", Amount: 60, Duration: 0},
-				{Name: "Motueka", Amount: 40, Duration: 0},
-			},
-			Carbonation: 5.5,
-		},
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	r.recipe = re
 	r.addTimelineEvent("Started Pre Fermentation")

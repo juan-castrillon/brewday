@@ -4,10 +4,12 @@ import (
 	"brewday/internal/recipe"
 	"encoding/hex"
 	"errors"
+	"sync"
 )
 
 // MemoryStore is a store that stores data in memory
 type MemoryStore struct {
+	lock    sync.Mutex
 	recipes map[string]*recipe.Recipe
 }
 
@@ -28,6 +30,8 @@ func (s *MemoryStore) CreateID(recipeName string) string {
 
 // Store stores a recipe and returns an identifier that can be used to retrieve it
 func (s *MemoryStore) Store(recipe *recipe.Recipe) (string, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	id := s.CreateID(recipe.Name)
 	s.recipes[id] = recipe
 	return id, nil
@@ -35,6 +39,8 @@ func (s *MemoryStore) Store(recipe *recipe.Recipe) (string, error) {
 
 // Retrieve retrieves a recipe based on an identifier
 func (s *MemoryStore) Retrieve(id string) (*recipe.Recipe, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
 	re, ok := s.recipes[id]
 	if !ok {
 		return nil, errors.New("recipe not found")

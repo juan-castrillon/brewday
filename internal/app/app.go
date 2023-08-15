@@ -82,6 +82,7 @@ func (a *App) Initialize() error {
 		&fermentation.FermentationRouter{
 			TL:      a.TL,
 			Summary: summ,
+			Store:   store,
 		},
 		&summary.SummaryRouter{
 			Summary: summ,
