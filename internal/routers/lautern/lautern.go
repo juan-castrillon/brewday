@@ -65,6 +65,7 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 	if id == "" {
 		return errors.New("no recipe id provided")
 	}
+	r.addTimelineEvent("Finished Läutern")
 	r.addSummaryLauternNotes(req.Notes)
 	return c.Redirect(302, c.Echo().Reverse("getStartHopping", id))
 }

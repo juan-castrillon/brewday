@@ -43,6 +43,7 @@
 </main>
 <script>
     function isBoiling() {
+        sendTimelineEvent("Started Boiling")
         url = '{{ reverse "getHopping" .RecipeID 0 }}'
         window.location = url
     }

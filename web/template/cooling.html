@@ -57,6 +57,7 @@
 </main>
 <script>
     document.getElementById("start_timer").onclick = function () {
+        sendTimelineEvent("Cooling started");
         show("stop_timer");
         show("message");
         startTimer(2000, 'time', function () { // Timer extra long for simulating a timer not a countdown
@@ -66,6 +67,7 @@
         time.style.display = "none";
     };
     document.getElementById("stop_timer").onclick = function () {
+        sendTimelineEvent("Cooling stopped");
         stopTimer(function () {
             realDuration = document.getElementById("cooling_time");
             realDuration.value = (Date.now() - startTime) / 1000 / 60;

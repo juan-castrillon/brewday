@@ -12,13 +12,6 @@ type CoolingRouter struct {
 	Summary SummaryRecorder
 }
 
-// addTimelineEvent adds an event to the timeline
-func (r *CoolingRouter) addTimelineEvent(message string) {
-	if r.TL != nil {
-		r.TL.AddEvent(message)
-	}
-}
-
 // addSummaryCooling adds a cooling to the summary and notes related to it
 func (r *CoolingRouter) addSummaryCooling(finalTemp, coolingTime float32, notes string) {
 	if r.Summary != nil {
@@ -39,7 +32,6 @@ func (r *CoolingRouter) getCoolingHandler(c echo.Context) error {
 	if id == "" {
 		return errors.New("no recipe id provided")
 	}
-	r.addTimelineEvent("Started Cooling")
 	return c.Render(http.StatusOK, "cooling.html", map[string]interface{}{
 		"Title":    "Cooling",
 		"RecipeID": id,
@@ -58,6 +50,5 @@ func (r *CoolingRouter) postCoolingHandler(c echo.Context) error {
 		return err
 	}
 	r.addSummaryCooling(req.FinalTemp, req.CoolingTime, req.Notes)
-	r.addTimelineEvent("Finished Cooling")
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getPreFermentation", id))
 }

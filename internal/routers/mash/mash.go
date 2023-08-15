@@ -3,7 +3,6 @@ package mash
 import (
 	"brewday/internal/recipe"
 	"errors"
-	"fmt"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -66,7 +65,6 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 
 // postRastsHandler is the handler for the mash rasts page
 func (r *MashRouter) postRastsHandler(c echo.Context) error {
-	r.addTimelineEvent("Finished einmaischen")
 	id := c.Param("recipe_id")
 	if id == "" {
 		return errors.New("no recipe id provided")
@@ -85,7 +83,7 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	var nextRastNum int
 	switch rastNum {
 	case 0:
-		r.addTimelineEvent(fmt.Sprintf("Starting rast %d", rastNum))
+		r.addTimelineEvent("Finished Einmaischen")
 		var req ReqPostFirstRast
 		err := c.Bind(&req)
 		if err != nil {
@@ -97,7 +95,6 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		r.addTimelineEvent("Finished mashing")
 		return c.Redirect(302, c.Echo().Reverse("getLautern", id))
 	default:
-		r.addTimelineEvent(fmt.Sprintf("Starting rast %d", rastNum))
 		var req ReqPostRasts
 		err := c.Bind(&req)
 		if err != nil {
@@ -109,6 +106,7 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	return c.Render(200, "mash_rasts.html", map[string]interface{}{
 		"Title":       "Mash " + r.recipe.Name,
 		"Rast":        r.recipe.Mashing.Rasts[rastNum],
+		"RastNumber":  rastNum,
 		"NextRast":    nextRastNum,
 		"MissingRast": len(r.recipe.Mashing.Rasts) - rastNum - 1,
 		"Nachguss":    r.recipe.Mashing.Nachguss,

@@ -126,7 +126,7 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if r.recipe == nil {
 		return errors.New("no recipe loaded")
 	}
-	r.addTimelineEvent("Start heating up")
+	r.addTimelineEvent("Boil finished")
 	var req ReqPostEndHopping
 	err := c.Bind(&req)
 	if err != nil {
@@ -157,11 +157,9 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 	}
 	var cookingTime float32
 	if ingrNum >= len(r.ingredients) {
-		r.addTimelineEvent("Boil finished")
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndHopping", id))
 	}
 	if ingrNum == 0 {
-		r.addTimelineEvent("Boil started")
 		cookingTime = r.recipe.Hopping.TotalCookingTime
 	} else {
 		cookingTime = r.ingredients[ingrNum-1].Duration
@@ -203,6 +201,7 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 		if err != nil {
 			return err
 		}
+		r.addTimelineEvent("Added " + ingredient.Name)
 		r.addSummaryHopping(ingredient.Name, req.RealAmount, req.RealAlpha, "")
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getHopping", id, ingrNum+1))

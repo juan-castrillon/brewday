@@ -70,11 +70,13 @@
 </main>
 <script>
     document.getElementById("start_timer").onclick = function () {
+        sendTimelineEvent("Started Rast {{.RastNumber }}")
         startTimer('{{.Rast.Duration}}', 'time', function () {
             show("send_rast");
         });
     };
     document.getElementById("stop_timer").onclick = function () {
+        sendTimelineEvent("Stopped Rast {{.RastNumber }}")
         stopTimer(function () {
             realDuration = document.getElementById("real_duration");
             realDuration.value = (Date.now() - startTime) / 1000 / 60;

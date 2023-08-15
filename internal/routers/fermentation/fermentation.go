@@ -90,13 +90,13 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent("Finished Pre Fermentation")
 	r.addSummaryPreFermentation(req.Volume, req.SG, req.Notes)
 	volumeDiff := req.Volume - (r.recipe.BatchSize + 1) // +1 for the 1l of yeast
 	sgDiff := r.recipe.InitialSG - req.SG
 	if volumeDiff >= 0 && sgDiff >= 0 {
 		eff := tools.CalculateEfficiencySG(req.SG, req.Volume, r.recipe.Mashing.GetTotalMaltWeight())
 		r.addSummaryEfficiency(eff)
+		r.addTimelineEvent("Finished Pre Fermentation")
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentation", id))
 	}
 	redirect := "getPreFermentationWater"
@@ -172,6 +172,7 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	r.addSummaryPreFermentation(req.FinalVolume, req.FinalSG, req.Notes)
 	eff := tools.CalculateEfficiencySG(req.FinalSG, req.FinalVolume, r.recipe.Mashing.GetTotalMaltWeight())
 	r.addSummaryEfficiency(eff)
+	r.addTimelineEvent("Finished Pre Fermentation")
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentation", id))
 }
 
