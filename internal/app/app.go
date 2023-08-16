@@ -1,7 +1,6 @@
 package app
 
 import (
-	"brewday/internal/recipe/mmum"
 	"brewday/internal/render"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/cooling"
@@ -57,7 +56,6 @@ func (a *App) Initialize() error {
 	// Register global middlewares
 	a.server.Use(middleware.Recover())
 	// Initialize internal components
-	parser := mmum.MMUMParser{}
 	store := memory.NewMemoryStore()
 	summ := markdown.NewMarkdownSummaryRecorder()
 	r := render.NewTemplateRenderer()
@@ -67,8 +65,7 @@ func (a *App) Initialize() error {
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
-			Parser: &parser,
-			Store:  store,
+			Store: store,
 		},
 		&mash.MashRouter{
 			Store:   store,

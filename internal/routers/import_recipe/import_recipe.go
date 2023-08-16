@@ -2,15 +2,21 @@ package import_recipe
 
 import (
 	"brewday/internal/recipe"
+	"brewday/internal/recipe/braureka_json"
+	"brewday/internal/recipe/mmum"
 	"brewday/internal/tools"
 	"io"
 
 	"github.com/labstack/echo/v4"
 )
 
+var parsers = map[string]RecipeParser{
+	"braureka_json": &braureka_json.BraurekaJSONParser{},
+	"mmum":          &mmum.MMUMParser{},
+}
+
 type ImportRouter struct {
-	Parser RecipeParser
-	Store  RecipeStore
+	Store RecipeStore
 }
 
 func (r *ImportRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
@@ -55,7 +61,12 @@ func (r *ImportRouter) postImportHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	recipe, err := r.Parser.Parse(string(bytes))
+	parserType := c.FormValue("parser_type")
+	parser, ok := parsers[parserType]
+	if !ok {
+		return r.getImportHandler(c)
+	}
+	recipe, err := parser.Parse(string(bytes))
 	if err != nil {
 		return err
 	}
