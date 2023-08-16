@@ -2,6 +2,7 @@ package hopping
 
 import (
 	"brewday/internal/recipe"
+	"brewday/internal/routers/common"
 	"brewday/internal/tools"
 	"errors"
 	"net/http"
@@ -62,7 +63,7 @@ func (r *HoppingRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 func (r *HoppingRouter) getStartHoppingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	r.addTimelineEvent("Started Hopping")
 	re, err := r.Store.Retrieve(id)
@@ -82,10 +83,10 @@ func (r *HoppingRouter) getStartHoppingHandler(c echo.Context) error {
 func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	r.addTimelineEvent("Start heating up")
 	var req ReqPostStartHopping
@@ -107,7 +108,7 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	r.addTimelineEvent("Finished Hopping")
 	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
@@ -121,10 +122,10 @@ func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	r.addTimelineEvent("Boil finished")
 	var req ReqPostEndHopping
@@ -142,10 +143,10 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	ingrNumStr := c.Param("ingr_num")
 	if ingrNumStr == "" {
@@ -179,10 +180,10 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	ingrNumStr := c.Param("ingr_num")
 	if ingrNumStr == "" {

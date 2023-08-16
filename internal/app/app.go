@@ -13,12 +13,13 @@ import (
 	"brewday/internal/store/memory"
 	"brewday/internal/summary_recorder/markdown"
 	"context"
-	"fmt"
 	"io/fs"
 	"math"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -53,6 +54,8 @@ func NewApp(staticFS fs.FS, renderer Renderer, timeline Timeline) (*App, error) 
 // Initialize initializes the application
 func (a *App) Initialize() error {
 	a.server = echo.New()
+	// Register global middlewares
+	a.server.Use(middleware.Recover())
 	parser := mmum.MMUMParser{}
 	store := memory.NewMemoryStore()
 	summ := markdown.NewMarkdownSummaryRecorder()
@@ -169,5 +172,14 @@ func (a *App) postTimelineEvent(c echo.Context) error {
 
 // customErrorHandler is a custom error handler
 func (a *App) customErrorHandler(err error, c echo.Context) {
-	fmt.Println(c.Request().RequestURI, err)
+	log.Error().Err(err).Msg(c.Request().RequestURI)
+	notFound := strings.Contains(strings.ToLower(err.Error()), "not found")
+	if err == common.ErrNoRecipeLoaded || err == common.ErrNoRecipeIDProvided || notFound {
+		err2 := c.Render(404, "error_no_recipe_loaded.html", map[string]interface{}{
+			"Title": "Error in recipe",
+		})
+		if err2 != nil {
+			log.Error().Err(err2).Msg("error while rendering error page")
+		}
+	}
 }

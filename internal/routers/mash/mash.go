@@ -2,6 +2,7 @@ package mash
 
 import (
 	"brewday/internal/recipe"
+	"brewday/internal/routers/common"
 	"errors"
 	"strconv"
 
@@ -46,7 +47,7 @@ func (r *MashRouter) addSummaryRast(temp float64, duration float64, notes string
 func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	re, err := r.Store.Retrieve(id)
 	if err != nil {
@@ -67,10 +68,10 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	rastNumStr := c.Param("rast_num")
 	if rastNumStr == "" {

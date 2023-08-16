@@ -1,7 +1,7 @@
 package summary
 
 import (
-	"errors"
+	"brewday/internal/routers/common"
 	"fmt"
 
 	"github.com/labstack/echo/v4"
@@ -60,7 +60,7 @@ func (r *SummaryRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	tl := r.getTimeline()
 	if len(tl) > 0 {

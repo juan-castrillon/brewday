@@ -1,7 +1,7 @@
 package cooling
 
 import (
-	"errors"
+	"brewday/internal/routers/common"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -30,7 +30,7 @@ func (r *CoolingRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 func (r *CoolingRouter) getCoolingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	return c.Render(http.StatusOK, "cooling.html", map[string]interface{}{
 		"Title":    "Cooling",
@@ -42,7 +42,7 @@ func (r *CoolingRouter) getCoolingHandler(c echo.Context) error {
 func (r *CoolingRouter) postCoolingHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	var req ReqPostCooling
 	err := c.Bind(&req)

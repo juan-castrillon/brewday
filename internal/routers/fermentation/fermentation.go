@@ -2,8 +2,8 @@ package fermentation
 
 import (
 	"brewday/internal/recipe"
+	"brewday/internal/routers/common"
 	"brewday/internal/tools"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -62,7 +62,7 @@ func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group)
 func (r *FermentationRouter) getPreFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	re, err := r.Store.Retrieve(id)
 	if err != nil {
@@ -80,10 +80,10 @@ func (r *FermentationRouter) getPreFermentationHandler(c echo.Context) error {
 func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	var req ReqPostPreFermentation
 	err := c.Bind(&req)
@@ -108,7 +108,7 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	r.addTimelineEvent("Started Pre Fermentation Water")
 	volumeDiffRaw := c.QueryParam("volumeDiff")
@@ -158,10 +158,10 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	var req ReqPostPreFermentationWater
 	err := c.Bind(&req)
@@ -180,10 +180,10 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 func (r *FermentationRouter) getFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	r.addTimelineEvent("Started Fermentation")
 	return c.Render(http.StatusOK, "fermentation.html", map[string]interface{}{
@@ -198,10 +198,10 @@ func (r *FermentationRouter) getFermentationHandler(c echo.Context) error {
 func (r *FermentationRouter) postFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	var req ReqPostFermentation
 	err := c.Bind(&req)
@@ -217,10 +217,10 @@ func (r *FermentationRouter) postFermentationHandler(c echo.Context) error {
 func (r *FermentationRouter) getEndFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	if r.recipe == nil {
-		return errors.New("no recipe loaded")
+		return common.ErrNoRecipeLoaded
 	}
 	var hops []recipe.Hops
 	for _, h := range r.recipe.Hopping.Hops {

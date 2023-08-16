@@ -1,7 +1,7 @@
 package lautern
 
 import (
-	"errors"
+	"brewday/internal/routers/common"
 
 	"github.com/labstack/echo/v4"
 )
@@ -37,7 +37,7 @@ func (r *LauternRouter) addSummaryLauternNotes(notes string) {
 func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	r.addTimelineEvent("Started Läutern")
 	re, err := r.Store.Retrieve(id)
@@ -63,7 +63,7 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 	}
 	id := c.Param("recipe_id")
 	if id == "" {
-		return errors.New("no recipe id provided")
+		return common.ErrNoRecipeIDProvided
 	}
 	r.addTimelineEvent("Finished Läutern")
 	r.addSummaryLauternNotes(req.Notes)
