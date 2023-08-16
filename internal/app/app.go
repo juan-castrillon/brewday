@@ -2,6 +2,7 @@ package app
 
 import (
 	"brewday/internal/recipe/mmum"
+	"brewday/internal/render"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/cooling"
 	"brewday/internal/routers/fermentation"
@@ -12,6 +13,7 @@ import (
 	summary "brewday/internal/routers/summary"
 	"brewday/internal/store/memory"
 	"brewday/internal/summary_recorder/markdown"
+	"brewday/internal/timeline/basic"
 	"context"
 	"io/fs"
 	"math"
@@ -38,11 +40,9 @@ type App struct {
 }
 
 // NewApp creates a new App
-func NewApp(staticFS fs.FS, renderer Renderer, timeline Timeline) (*App, error) {
+func NewApp(staticFS fs.FS) (*App, error) {
 	app := &App{
 		staticFs: staticFS,
-		renderer: renderer,
-		TL:       timeline,
 	}
 	err := app.Initialize()
 	if err != nil {
@@ -56,9 +56,15 @@ func (a *App) Initialize() error {
 	a.server = echo.New()
 	// Register global middlewares
 	a.server.Use(middleware.Recover())
+	// Initialize internal components
 	parser := mmum.MMUMParser{}
 	store := memory.NewMemoryStore()
 	summ := markdown.NewMarkdownSummaryRecorder()
+	r := render.NewTemplateRenderer()
+	tl := basic.NewBasicTimeline()
+	a.renderer = r
+	a.TL = tl
+	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
 			Parser: &parser,
