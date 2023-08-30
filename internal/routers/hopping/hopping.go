@@ -157,8 +157,21 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 		return err
 	}
 	var cookingTime float32
-	if ingrNum >= len(r.ingredients) {
+	if ingrNum > len(r.ingredients) {
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndHopping", id))
+	}
+	if ingrNum == len(r.ingredients) {
+		if r.ingredients[ingrNum-1].Duration != 0 {
+			return c.Render(http.StatusOK, "hopping_last_boil.html", map[string]interface{}{
+				"Title":       "Hopping " + r.recipe.Name,
+				"Subtitle":    "3. Add hops",
+				"RecipeID":    id,
+				"BoilingTime": r.ingredients[ingrNum-1].Duration,
+				"IngrNum":     ingrNum,
+			})
+		} else {
+			return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndHopping", id))
+		}
 	}
 	if ingrNum == 0 {
 		cookingTime = r.recipe.Hopping.TotalCookingTime
@@ -195,15 +208,19 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 	}
 	if ingrNum < 0 || ingrNum > len(r.ingredients) {
 		return errors.New("invalid hop number")
-	} else if ingrNum < len(r.recipe.Hopping.Hops) {
-		ingredient := r.ingredients[ingrNum]
+	} else if ingrNum <= len(r.ingredients) {
 		var req ReqPostHopping
 		err = c.Bind(&req)
 		if err != nil {
 			return err
 		}
-		r.addTimelineEvent("Added " + ingredient.Name)
-		r.addSummaryHopping(ingredient.Name, req.RealAmount, req.RealAlpha, "")
+		if ingrNum == len(r.ingredients) {
+			r.addTimelineEvent("Finished hopping boiling time")
+		} else {
+			ingredient := r.ingredients[ingrNum]
+			r.addTimelineEvent("Added " + ingredient.Name)
+			r.addSummaryHopping(ingredient.Name, req.RealAmount, req.RealAlpha, "")
+		}
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getHopping", id, ingrNum+1))
 }
