@@ -22,5 +22,8 @@ func CalculateEfficiencySG(measuredGravity, measuredVolume, totalMalt float32) f
 // It takes volume before and after boiling, as well as the time it took to boil
 // The volume is in liters, the time in minutes
 func CalculateEvaporation(volumeBefore, volumeAfter, time float32) float32 {
-	return (volumeBefore - volumeAfter) / time * 60
+	lost := volumeBefore - volumeAfter
+	perc := lost * 100 / volumeBefore
+	hours := time / 60
+	return perc / hours
 }
