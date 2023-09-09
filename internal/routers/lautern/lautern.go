@@ -50,7 +50,7 @@ func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 		"RecipeID":    id,
 		"MashOutTemp": re.Mashing.MashOutTemperature,
 		"Hops":        re.Hopping.Hops,
-		"RestTime":    1,
+		"RestTime":    15,
 	})
 }
 
