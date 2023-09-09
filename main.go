@@ -16,12 +16,10 @@ import (
 var staticFS embed.FS
 
 func main() {
-
 	app, err := app.NewApp(staticFS)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	go func() {
 		if err := app.Run(":8080"); err != nil && err != http.ErrServerClosed {
 			log.Fatal(err)
