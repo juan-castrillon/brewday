@@ -39,5 +39,4 @@ func main() {
 	}
 	log.Printf("Server shutdown complete")
 	os.Exit(0)
-
 }
