@@ -1,5 +1,8 @@
 # BrewDay
 
+
+![logo](https://github.com/juan-castrillon/brewday/assets/64461123/5c7ad1bd-34d9-4b3f-8621-0c97e55d77a5)
+
 BrewDay is a self-contained web application aimed at helping homebrewers with their brewing process. 
 
 It is intended to be used the day of the brew, and it is designed to be used on all devices, from desktop to mobile.
