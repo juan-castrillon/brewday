@@ -27,5 +27,6 @@ jobs:
         with:
           push: true
           file: ./Dockerfile
+          build-args: VERSION=$GITHUB_REF_NAME
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
