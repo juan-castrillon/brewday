@@ -28,9 +28,9 @@ func (r *HoppingRouter) addTimelineEvent(message string) {
 }
 
 // addSummaryHopping adds a hopping to the summary and notes related to it
-func (r *HoppingRouter) addSummaryHopping(name string, amount float32, alpha float32, notes string) {
+func (r *HoppingRouter) addSummaryHopping(name string, amount float32, alpha float32, duration float32, notes string) {
 	if r.Summary != nil {
-		r.Summary.AddHopping(name, amount, alpha, notes)
+		r.Summary.AddHopping(name, amount, alpha, duration, notes)
 	}
 }
 
@@ -219,7 +219,7 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 		} else {
 			ingredient := r.ingredients[ingrNum]
 			r.addTimelineEvent("Added " + ingredient.Name)
-			r.addSummaryHopping(ingredient.Name, req.RealAmount, req.RealAlpha, "")
+			r.addSummaryHopping(ingredient.Name, req.RealAmount, req.RealAlpha, req.RealDuration, "")
 		}
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getHopping", id, ingrNum+1))
