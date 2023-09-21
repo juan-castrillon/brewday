@@ -56,8 +56,8 @@ func (r *MarkdownSummaryRecorder) AddLaunternNotes(notes string) {
 }
 
 // AddHopping adds a hopping to the summary and notes related to it
-func (r *MarkdownSummaryRecorder) AddHopping(name string, amount float32, alpha float32, notes string) {
-	line := fmt.Sprintf("- **%s**: %.2fg (%.2f%% alpha) (%s)", name, amount, alpha, notes)
+func (r *MarkdownSummaryRecorder) AddHopping(name string, amount float32, alpha float32, duration float32, notes string) {
+	line := fmt.Sprintf("- **%s**: %.2fg (%.2f%% alpha) [%.2f minutes] (%s)", name, amount, alpha, duration, notes)
 	r.addNewLine(line)
 }
 

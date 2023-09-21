@@ -17,7 +17,7 @@ type Timeline interface {
 // SummaryRecorder represents a component that records a summary
 type SummaryRecorder interface {
 	// AddHopping adds a hopping to the summary and notes related to it
-	AddHopping(name string, amount float32, alpha float32, notes string)
+	AddHopping(name string, amount float32, alpha float32, duration float32, notes string)
 	// AddMeasuredVolume adds a measured volume to the summary
 	AddMeasuredVolume(name string, amount float32, notes string)
 	// AddEvaporation adds an evaporation to the summary
