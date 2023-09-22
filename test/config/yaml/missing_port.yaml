@@ -1,0 +1,4 @@
+notification:
+  enabled: true
+  app-token: "1234567890"
+  gotify-url: http://localhost:8080

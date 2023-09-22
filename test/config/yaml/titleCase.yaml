@@ -1,0 +1,7 @@
+App:
+  Port: 8080
+
+Notification:
+  Enabled: true
+  App-Token: "1234567890"
+  Gotify-URL: http://localhost:8080
