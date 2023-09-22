@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  gotify:
+    image: gotify/server:2.4.0
+    container_name: gotify
+    restart: unless-stopped
+    ports:
+      - 8000:80
+    volumes:
+      - ./gotify/data:/app/data
+    environment:
+      - GOTIFY_DEFAULTUSER_PASS=yourpassword
+      - GOTIFY_DEFAULTUSER_NAME=yourusername
+      - GOTIFY_SERVER_PORT=80

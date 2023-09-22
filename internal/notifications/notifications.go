@@ -20,8 +20,11 @@ func NewNotifier(appToken, gotifyURL string) *Notifier {
 	}
 }
 
-func getExtras(o Options) Extras {
-	var extras Extras
+func getExtras(o Options) *Extras {
+	extras := &Extras{
+		Display:      &DisplayConfig{},
+		Notification: &NotificationConfig{},
+	}
 	if o.Markdown {
 		extras.Display.ContentType = "text/markdown"
 	}
@@ -35,37 +38,38 @@ func getExtras(o Options) Extras {
 }
 
 func (n *Notifier) Send(message, title string, opts ...Options) error {
-	// var extrasStruct Extras
-	// if len(opts) != 0 {
-	// 	if len(opts) > 1 {
-	// 		return fmt.Errorf("only one extras struct is allowed")
-	// 	}
-	// 	var options Options
-	// 	if len(opts) == 1 {
-	// 		options = opts[0]
-	// 	}
-	// 	extrasStruct = getExtras(options)
-	// }
+	var extrasStruct *Extras
+	if len(opts) != 0 {
+		if len(opts) > 1 {
+			return fmt.Errorf("only one extras struct is allowed")
+		}
+		var options Options
+		if len(opts) == 1 {
+			options = opts[0]
+		}
+		extrasStruct = getExtras(options)
+	}
 	msg := Message{
 		Message:  message,
 		Title:    title,
 		Priority: 8,
-		//Extras:   extrasStruct,
+		Extras:   extrasStruct,
 	}
 	body, err := json.MarshalIndent(msg, "", "  ")
 	if err != nil {
 		return err
 	}
-	// Pretty print the JSON
-	fmt.Println(string(body))
 	req, err := http.NewRequest("POST", n.baseURL, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	_, err = n.httpClient.Do(req)
+	resp, err := n.httpClient.Do(req)
 	if err != nil {
 		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("got status code %d", resp.StatusCode)
 	}
 	return nil
 }
