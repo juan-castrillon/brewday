@@ -73,6 +73,10 @@
         sendTimelineEvent("Started Rast {{.RastNumber }}")
         startTimer('{{.Rast.Duration}}', 'time', function () {
             show("send_rast");
+            sendNotification(
+                "Rast at {{.Rast.Temperature}} °C finished after {{.Rast.Duration}} minutes",
+                "Rast finished"
+            )
         });
     };
     document.getElementById("stop_timer").onclick = function () {

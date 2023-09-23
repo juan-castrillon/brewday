@@ -65,6 +65,10 @@
         startTimer(cookingTime, 'time', function () {
             document.getElementById("timer").style.display = "none";
             show("hop_form")
+            sendNotification(
+                "Time to add {{.Ingredient.Name}} which will cook for {{.Ingredient.Duration}} minutes",
+                "Add {{.Ingredient.Name}}"
+            )
         });
     }
     window.onload = countdown;
