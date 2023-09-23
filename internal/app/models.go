@@ -79,3 +79,10 @@ type SummaryRecorder interface {
 type ReqPostTimelineEvent struct {
 	Message string `json:"message" form:"message"`
 }
+
+// ReqPostNotification represents the request body for the postNotification
+type ReqPostNotification struct {
+	Message string                 `json:"message" form:"message"`
+	Title   string                 `json:"title" form:"title"`
+	Options map[string]interface{} `json:"options" form:"options"`
+}

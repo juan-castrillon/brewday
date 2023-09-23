@@ -12,11 +12,9 @@ import (
 	"context"
 	"io/fs"
 	"math"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -148,6 +146,7 @@ func (a *App) RegisterRoutes() {
 		return c.Redirect(302, a.server.Reverse("getImport"))
 	})
 	a.server.POST("/timeline", a.postTimelineEvent).Name = "postTimelineEvent"
+	a.server.POST("/notification", a.postNotification).Name = "postNotification"
 }
 
 // Run starts the application
@@ -158,36 +157,4 @@ func (a *App) Run(address string) error {
 // Stop stops the application
 func (a *App) Stop(ctx context.Context) error {
 	return a.server.Shutdown(ctx)
-}
-
-// addTimelineEvent adds an event to the timeline
-func (a *App) addTimelineEvent(message string) {
-	if a.TL != nil {
-		a.TL.AddEvent(message)
-	}
-}
-
-// postTimelineEvent is the handler for sent timeline events
-func (a *App) postTimelineEvent(c echo.Context) error {
-	var req ReqPostTimelineEvent
-	err := c.Bind(&req)
-	if err != nil {
-		return err
-	}
-	a.addTimelineEvent(req.Message)
-	return c.NoContent(200)
-}
-
-// customErrorHandler is a custom error handler
-func (a *App) customErrorHandler(err error, c echo.Context) {
-	log.Error().Err(err).Msg(c.Request().RequestURI)
-	notFound := strings.Contains(strings.ToLower(err.Error()), "not found")
-	if err == common.ErrNoRecipeLoaded || err == common.ErrNoRecipeIDProvided || notFound {
-		err2 := c.Render(404, "error_no_recipe_loaded.html", map[string]interface{}{
-			"Title": "Error in recipe",
-		})
-		if err2 != nil {
-			log.Error().Err(err2).Msg("error while rendering error page")
-		}
-	}
 }
