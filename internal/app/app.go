@@ -1,7 +1,6 @@
 package app
 
 import (
-	"brewday/internal/render"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/cooling"
 	"brewday/internal/routers/fermentation"
@@ -10,9 +9,6 @@ import (
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
 	summary "brewday/internal/routers/summary"
-	"brewday/internal/store/memory"
-	"brewday/internal/summary_recorder/markdown"
-	"brewday/internal/timeline/basic"
 	"context"
 	"io/fs"
 	"math"
@@ -36,14 +32,24 @@ type App struct {
 	routers  []common.Router
 	renderer Renderer
 	TL       Timeline
+	notifier Notifier
+}
+
+// AppComponents is the structure that contains the external components of the application
+type AppComponents struct {
+	Renderer Renderer
+	TL       Timeline
+	Notifier Notifier
+	Store    RecipeStore
+	Summary  SummaryRecorder
 }
 
 // NewApp creates a new App
-func NewApp(staticFS fs.FS) (*App, error) {
+func NewApp(staticFS fs.FS, components *AppComponents) (*App, error) {
 	app := &App{
 		staticFs: staticFS,
 	}
-	err := app.Initialize()
+	err := app.Initialize(components)
 	if err != nil {
 		return nil, err
 	}
@@ -51,17 +57,16 @@ func NewApp(staticFS fs.FS) (*App, error) {
 }
 
 // Initialize initializes the application
-func (a *App) Initialize() error {
+func (a *App) Initialize(components *AppComponents) error {
 	a.server = echo.New()
 	// Register global middlewares
 	a.server.Use(middleware.Recover())
 	// Initialize internal components
-	store := memory.NewMemoryStore()
-	summ := markdown.NewMarkdownSummaryRecorder()
-	r := render.NewTemplateRenderer()
-	tl := basic.NewBasicTimeline()
-	a.renderer = r
-	a.TL = tl
+	store := components.Store
+	summ := components.Summary
+	a.renderer = components.Renderer
+	a.TL = components.TL
+	a.notifier = components.Notifier
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{

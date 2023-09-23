@@ -11,10 +11,10 @@ import (
 )
 
 // setupMockServer sets up a mock http server for testing and a notifier connected to it.
-func setupMockServer() (*http.ServeMux, *httptest.Server, *Notifier) {
+func setupMockServer() (*http.ServeMux, *httptest.Server, *GotifyNotifier) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	n := NewNotifier("test-token", server.URL)
+	n := NewGotifyNotifier("test-token", server.URL)
 	return mux, server, n
 }
 
@@ -132,7 +132,7 @@ func TestSend(t *testing.T) {
 				require.Equal(tc.Options.BigImageURL, msg.Extras.Notification.BigImageURL)
 				w.Write([]byte("ok"))
 			})
-			err := n.Send(tc.Message, tc.Title, tc.Options)
+			err := n.SendGotify(tc.Message, tc.Title, tc.Options)
 			if tc.Error {
 				require.Error(err)
 			} else {
