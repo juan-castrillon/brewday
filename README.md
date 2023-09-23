@@ -27,3 +27,41 @@ The app supports the following recipe formats:
 
 The app supports the following summary formats:
 - [Markdown](https://www.markdownguide.org/basic-syntax/): Markdown summary will create a summary of the brew day in Markdown format. This is useful to copy and paste the summary in a blog post, or to share it with other people. The timeline is just a list of timestamps. 
+
+
+# Installation
+
+## Configuration
+
+The app can be configured via a YAML file, or via environment variables. Environment variables take precedence over the YAML file and can complete or override the configuration.
+
+The application port is required and the app will not start if it is not provided. If notifications via gotify are enabled, the gotify server URL and token are required.
+
+The following is an example of a YAML configuration file:
+
+```yaml
+app:
+  port: 8080
+
+notification:
+  enabled: true
+  app-token: "1234567890"
+  gotify-url: http://localhost:8080
+```
+
+The following is an example of the same configuration via environment variables:
+
+```bash
+export BREWDAY_APP_PORT=8080
+export BREWDAY_NOTIFICATION_ENABLED=true
+export BREWDAY_NOTIFICATION_APP-TOKEN=1234567890
+export BREWDAY_NOTIFICATION_GOTIFY-URL=http://localhost:8080
+```
+
+## Deployment
+
+The app can be deployed as a Docker container, or as a standalone binary. In order for the notification to work, a [Gotify](https://gotify.net/) server must be available.
+
+The recommended way to deploy the app is via Docker. In the `deployments` folder there is a `docker-compose.yml` file that can be used to deploy the app. The file can be used as is, or it can be used as a template to create a custom deployment.
+
+It also includes deployment of a [Gotify](https://gotify.net/) server, which is required for notifications to work. The Gotify server is deployed with a volume for the data, so it can be restarted without losing the data.
