@@ -26,21 +26,12 @@ var staticFS embed.FS
 
 var version = "" // This is set by the build process
 
-const (
-	defaultConfigPath = "/etc/brewday/config.yaml"
-)
-
 func main() {
 	// Parse configuration
 	var configPath string
-	flag.StringVar(&configPath, "config", defaultConfigPath, "Path to the config file")
+	flag.StringVar(&configPath, "config", "", "Path to the config file")
 	flag.Parse()
-	if configPath == defaultConfigPath {
-		log.Warn().Msgf("Using default config path %s", defaultConfigPath)
-	} else {
-		log.Info().Msgf("Using config path %s", configPath)
-	}
-	config, err := config.LoadConfig(configPath)
+	config, err := config.LoadConfig(configPath) // If config path is empty, it will attempt to load from the environment
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error while loading config")
 	}
