@@ -37,6 +37,9 @@ The app can be configured via a YAML file, or via environment variables. Environ
 
 The application port is required and the app will not start if it is not provided. If notifications via gotify are enabled, the gotify server URL and token are required.
 
+To pass a configuration file, the application must be run with the `--config` flag, followed by the path to the configuration file. If no configuration file is provided, the app will attempt to read the configuration from environment variables.
+
+
 The following is an example of a YAML configuration file:
 
 ```yaml
