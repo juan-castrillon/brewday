@@ -20,8 +20,14 @@ func setupMockServer() (*http.ServeMux, *httptest.Server, *GotifyNotifier, error
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(`{"token":"test-token"}`))
+		if r.Method == "GET" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte("[]"))
+		}
+		if r.Method == "POST" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Write([]byte(`{"token":"test-token"}`))
+		}
 	})
 	n, err := NewGotifyNotifier(server.URL, "admin", "admin")
 	return mux, server, n, err
