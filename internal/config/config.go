@@ -14,6 +14,8 @@ import (
 // EnvPrefix is the prefix to use for environment variables.
 const EnvPrefix = "BREWDAY_"
 
+// LoadConfig loads the configuration from the given path.
+// If the path is empty, it will attempt to load from the environment.
 func LoadConfig(path string) (*Config, error) {
 	k := koanf.New(".") // New creates a new instance of Koanf.
 	if path != "" {

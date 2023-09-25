@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/rs/zerolog/log"
 )
 
 type GotifyNotifier struct {
@@ -26,9 +28,11 @@ func NewGotifyNotifier(gotifyURL, username, password string) (*GotifyNotifier, e
 }
 
 // InitializeApp initializes a gotify app and fills the app token
+// It will first check if the app already exists, if not it will create it. The search is done by app name.
 func (n *GotifyNotifier) initializeApp(username, password string) error {
 	appPath := fmt.Sprintf("%s/application", n.baseURL)
 	appName := "brewday"
+	log.Info().Msgf("Initializing gotify app %s", appName)
 	// See if the app already exists
 	req, err := http.NewRequest("GET", appPath, nil)
 	if err != nil {
@@ -49,11 +53,13 @@ func (n *GotifyNotifier) initializeApp(username, password string) error {
 	}
 	for _, app := range appListResp {
 		if app.Name == appName {
+			log.Info().Msgf("Gotify app %s already exists, fetching token", appName)
 			n.token = app.Token
 			return nil
 		}
 	}
 	// Create the app
+	log.Info().Msgf("Gotify app %s does not exist, creating it", appName)
 	appReq := ApplicationRequest{
 		Name: appName,
 	}
@@ -80,9 +86,12 @@ func (n *GotifyNotifier) initializeApp(username, password string) error {
 		return err
 	}
 	n.token = appResp.Token
+	log.Info().Msgf("Gotify app %s created", appName)
 	return nil
 }
 
+// getExtras returns the extras struct for the given options
+// This struct is used to configure the notification in the gotify api
 func getExtras(o Options) *Extras {
 	extras := &Extras{
 		Display:      &DisplayConfig{},
@@ -100,6 +109,8 @@ func getExtras(o Options) *Extras {
 	return extras
 }
 
+// SendGotify sends a message to gotify with the given message and title
+// It will use the options to configure the notification
 func (n *GotifyNotifier) SendGotify(message, title string, opts ...Options) error {
 	var extrasStruct *Extras
 	if len(opts) != 0 {
@@ -138,6 +149,12 @@ func (n *GotifyNotifier) SendGotify(message, title string, opts ...Options) erro
 	return nil
 }
 
+// Send sends a message to gotify with the given message and title
+// It will use the options to configure the notification
+// Supported options are:
+// - markdown: bool
+// - onClickURL: string
+// - bigImageURL: string
 func (n *GotifyNotifier) Send(message, title string, opts map[string]any) error {
 	options := new(Options)
 	if opts != nil {
