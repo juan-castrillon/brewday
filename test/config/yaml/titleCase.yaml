@@ -3,5 +3,6 @@ App:
 
 Notification:
   Enabled: true
-  App-Token: "1234567890"
   Gotify-URL: http://localhost:8080
+  Username: "gotify"
+  Password: "gotify"

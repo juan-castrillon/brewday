@@ -3,5 +3,5 @@ app:
 
 notification:
   enabled: true
-  username: "gotify"
+  gotify-url: http://localhost:8080
   password: "gotify"

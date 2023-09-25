@@ -34,8 +34,9 @@ func TestConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   true,
-					AppToken:  "1234567890",
 					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
@@ -45,7 +46,8 @@ func TestConfig(t *testing.T) {
 			Path: "",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED":    "true",
-				"BREWDAY_NOTIFICATION_APP-TOKEN":  "1234567890",
+				"BREWDAY_NOTIFICATION_USERNAME":   "gotify",
+				"BREWDAY_NOTIFICATION_PASSWORD":   "gotify",
 				"BREWDAY_NOTIFICATION_GOTIFY-URL": "http://localhost:8080",
 				"BREWDAY_APP_PORT":                "8080",
 			},
@@ -53,8 +55,9 @@ func TestConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   true,
-					AppToken:  "1234567890",
 					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
@@ -69,8 +72,9 @@ func TestConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   false,
-					AppToken:  "1234567890",
 					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
@@ -79,14 +83,17 @@ func TestConfig(t *testing.T) {
 			Name: "Incomplete file and env variables",
 			Path: "yaml/incomplete.yml",
 			Env: map[string]string{
-				"BREWDAY_NOTIFICATION_ENABLED": "true",
+				"BREWDAY_NOTIFICATION_ENABLED":  "true",
+				"BREWDAY_NOTIFICATION_USERNAME": "gotify",
+				"BREWDAY_NOTIFICATION_PASSWORD": "gotify",
 			},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   true,
-					AppToken:  "1234567890",
 					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
@@ -103,15 +110,21 @@ func TestConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   true,
-					AppToken:  "1234567890",
 					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
 		},
 		{
-			Name:  "Missing Token",
-			Path:  "yaml/missing_token.yaml",
+			Name:  "Missing User",
+			Path:  "yaml/missing_user.yaml",
+			Error: true,
+		},
+		{
+			Name:  "Missing Password",
+			Path:  "yaml/missing_password.yaml",
 			Error: true,
 		},
 		{
@@ -131,8 +144,9 @@ func TestConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   false,
-					AppToken:  "",
 					GotifyURL: "",
+					Username:  "",
+					Password:  "",
 				},
 			},
 			Error: false,
@@ -230,8 +244,9 @@ func TestValidateConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   true,
-					AppToken:  "1234567890",
 					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
@@ -244,25 +259,49 @@ func TestValidateConfig(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name: "Missing Token notification disabled",
+			Name: "Missing User notification disabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   false,
-					AppToken:  "",
 					GotifyURL: "http://localhost:8080",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
 		},
 		{
-			Name: "Missing Token notification enabled",
+			Name: "Missing User notification enabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   true,
-					AppToken:  "",
 					GotifyURL: "http://localhost:8080",
+					Password:  "gotify",
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "Missing Password notification disabled",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   false,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Missing Password notification enabled",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   true,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
 				},
 			},
 			Error: true,
@@ -273,8 +312,9 @@ func TestValidateConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   false,
-					AppToken:  "1234567890",
 					GotifyURL: "",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: false,
@@ -285,8 +325,9 @@ func TestValidateConfig(t *testing.T) {
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
 					Enabled:   true,
-					AppToken:  "1234567890",
 					GotifyURL: "",
+					Username:  "gotify",
+					Password:  "gotify",
 				},
 			},
 			Error: true,

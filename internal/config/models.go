@@ -7,8 +7,9 @@ type Config struct {
 
 type NotificationConfig struct {
 	Enabled   bool   `koanf:"enabled"`
-	AppToken  string `koanf:"app-token"`
 	GotifyURL string `koanf:"gotify-url"` // Note the - instead of _ to avoid conflicts with env variables
+	Username  string `koanf:"username"`
+	Password  string `koanf:"password"`
 }
 
 type AppConfig struct {

@@ -70,8 +70,11 @@ func validateConfig(config *Config) error {
 		return fmt.Errorf("port is missing")
 	}
 	if config.Notification.Enabled {
-		if config.Notification.AppToken == "" {
-			return fmt.Errorf("notification is enabled but app-token is missing")
+		if config.Notification.Username == "" {
+			return fmt.Errorf("notification is enabled but username is missing")
+		}
+		if config.Notification.Password == "" {
+			return fmt.Errorf("notification is enabled but password is missing")
 		}
 		if config.Notification.GotifyURL == "" {
 			return fmt.Errorf("notification is enabled but gotify-url is missing")
