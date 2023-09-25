@@ -28,20 +28,46 @@ func NewGotifyNotifier(gotifyURL, username, password string) (*GotifyNotifier, e
 // InitializeApp initializes a gotify app and fills the app token
 func (n *GotifyNotifier) initializeApp(username, password string) error {
 	appPath := fmt.Sprintf("%s/application", n.baseURL)
+	appName := "brewday"
+	// See if the app already exists
+	req, err := http.NewRequest("GET", appPath, nil)
+	if err != nil {
+		return err
+	}
+	req.SetBasicAuth(username, password)
+	resp, err := n.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("got status code %d while getting gotify app", resp.StatusCode)
+	}
+	var appListResp []ApplicationResponse
+	err = json.NewDecoder(resp.Body).Decode(&appListResp)
+	if err != nil {
+		return err
+	}
+	for _, app := range appListResp {
+		if app.Name == appName {
+			n.token = app.Token
+			return nil
+		}
+	}
+	// Create the app
 	appReq := ApplicationRequest{
-		Name: "brewday",
+		Name: appName,
 	}
 	appReqBody, err := json.Marshal(appReq)
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", appPath, bytes.NewReader(appReqBody))
+	req, err = http.NewRequest("POST", appPath, bytes.NewReader(appReqBody))
 	if err != nil {
 		return err
 	}
 	req.SetBasicAuth(username, password)
 	req.Header.Set("Content-Type", "application/json")
-	resp, err := n.httpClient.Do(req)
+	resp, err = n.httpClient.Do(req)
 	if err != nil {
 		return err
 	}
