@@ -44,7 +44,11 @@ func main() {
 	components.Store = memory.NewMemoryStore()
 	components.Summary = markdown.NewMarkdownSummaryRecorder()
 	if config.Notification.Enabled {
-		components.Notifier = notifications.NewGotifyNotifier(config.Notification.AppToken, config.Notification.GotifyURL)
+		n, err := notifications.NewGotifyNotifier(config.Notification.GotifyURL, "admin", "admin")
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while initializing notifier")
+		}
+		components.Notifier = n
 	}
 	app, err := app.NewApp(staticFS, components)
 	if err != nil {

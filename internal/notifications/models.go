@@ -30,3 +30,15 @@ type Message struct {
 	Priority int     `json:"priority"`
 	Extras   *Extras `json:"extras,omitempty"`
 }
+
+type ApplicationRequest struct {
+	Name            string `json:"name"`
+	Description     string `json:"description,omitempty"`
+	DefaultPriority int    `json:"defaultPriority,omitempty"`
+}
+
+type ApplicationResponse struct {
+	ID    int    `json:"id"`
+	Name  string `json:"name"`
+	Token string `json:"token"`
+}

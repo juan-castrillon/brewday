@@ -11,11 +11,20 @@ import (
 )
 
 // setupMockServer sets up a mock http server for testing and a notifier connected to it.
-func setupMockServer() (*http.ServeMux, *httptest.Server, *GotifyNotifier) {
+func setupMockServer() (*http.ServeMux, *httptest.Server, *GotifyNotifier, error) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	n := NewGotifyNotifier("test-token", server.URL)
-	return mux, server, n
+	mux.HandleFunc("/application", func(w http.ResponseWriter, r *http.Request) {
+		user, pass, ok := r.BasicAuth()
+		if !ok || user != "admin" || pass != "admin" {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"token":"test-token"}`))
+	})
+	n, err := NewGotifyNotifier(server.URL, "admin", "admin")
+	return mux, server, n, err
 }
 
 // teardownMock closes the mock server and removes the client.
@@ -106,7 +115,8 @@ func TestSend(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			mux, server, n := setupMockServer()
+			mux, server, n, err := setupMockServer()
+			require.NoError(err)
 			defer teardownMock(server)
 			mux.HandleFunc("/message", func(w http.ResponseWriter, r *http.Request) {
 				token, ok := r.URL.Query()["token"]
@@ -132,7 +142,7 @@ func TestSend(t *testing.T) {
 				require.Equal(tc.Options.BigImageURL, msg.Extras.Notification.BigImageURL)
 				w.Write([]byte("ok"))
 			})
-			err := n.SendGotify(tc.Message, tc.Title, tc.Options)
+			err = n.SendGotify(tc.Message, tc.Title, tc.Options)
 			if tc.Error {
 				require.Error(err)
 			} else {

@@ -10,14 +10,51 @@ import (
 type GotifyNotifier struct {
 	httpClient *http.Client
 	baseURL    string
+	token      string
 }
 
-func NewGotifyNotifier(appToken, gotifyURL string) *GotifyNotifier {
-	baseURL := fmt.Sprintf("%s/message?token=%s", gotifyURL, appToken)
-	return &GotifyNotifier{
+func NewGotifyNotifier(gotifyURL, username, password string) (*GotifyNotifier, error) {
+	n := &GotifyNotifier{
 		httpClient: &http.Client{},
-		baseURL:    baseURL,
+		baseURL:    gotifyURL,
 	}
+	err := n.initializeApp(username, password)
+	if err != nil {
+		return nil, err
+	}
+	return n, nil
+}
+
+// InitializeApp initializes a gotify app and fills the app token
+func (n *GotifyNotifier) initializeApp(username, password string) error {
+	appPath := fmt.Sprintf("%s/application", n.baseURL)
+	appReq := ApplicationRequest{
+		Name: "brewday",
+	}
+	appReqBody, err := json.Marshal(appReq)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequest("POST", appPath, bytes.NewReader(appReqBody))
+	if err != nil {
+		return err
+	}
+	req.SetBasicAuth(username, password)
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := n.httpClient.Do(req)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("got status code %d while creating gotify app", resp.StatusCode)
+	}
+	var appResp ApplicationResponse
+	err = json.NewDecoder(resp.Body).Decode(&appResp)
+	if err != nil {
+		return err
+	}
+	n.token = appResp.Token
+	return nil
 }
 
 func getExtras(o Options) *Extras {
@@ -59,7 +96,8 @@ func (n *GotifyNotifier) SendGotify(message, title string, opts ...Options) erro
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", n.baseURL, bytes.NewReader(body))
+	messageURL := fmt.Sprintf("%s/message?token=%s", n.baseURL, n.token)
+	req, err := http.NewRequest("POST", messageURL, bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
