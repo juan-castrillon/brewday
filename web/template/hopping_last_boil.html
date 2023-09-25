@@ -40,6 +40,10 @@
         startTimer(cookingTime, 'time', function () {
             document.getElementById("timer").style.display = "none";
             show("hop_form")
+            sendNotification(
+                "The boil is finished!",
+                "Stop boiling"
+            )
         });
     }
     window.onload = countdown;

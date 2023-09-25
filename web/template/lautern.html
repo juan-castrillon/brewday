@@ -61,6 +61,10 @@
             sendTimelineEvent("Mash rested for 15 minutes");
             show("instructions");
             show("notes_form");
+            sendNotification(
+                "Lauterruhe finished after {{.RestTime}} minutes",
+                "Lauterruhe Finished"
+            )
         });
         this.style.display = "none";
     };

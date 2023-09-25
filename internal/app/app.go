@@ -1,7 +1,6 @@
 package app
 
 import (
-	"brewday/internal/render"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/cooling"
 	"brewday/internal/routers/fermentation"
@@ -10,17 +9,12 @@ import (
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
 	summary "brewday/internal/routers/summary"
-	"brewday/internal/store/memory"
-	"brewday/internal/summary_recorder/markdown"
-	"brewday/internal/timeline/basic"
 	"context"
 	"io/fs"
 	"math"
-	"strings"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"github.com/rs/zerolog/log"
 )
 
 const (
@@ -36,14 +30,24 @@ type App struct {
 	routers  []common.Router
 	renderer Renderer
 	TL       Timeline
+	notifier Notifier
+}
+
+// AppComponents is the structure that contains the external components of the application
+type AppComponents struct {
+	Renderer Renderer
+	TL       Timeline
+	Notifier Notifier
+	Store    RecipeStore
+	Summary  SummaryRecorder
 }
 
 // NewApp creates a new App
-func NewApp(staticFS fs.FS) (*App, error) {
+func NewApp(staticFS fs.FS, components *AppComponents) (*App, error) {
 	app := &App{
 		staticFs: staticFS,
 	}
-	err := app.Initialize()
+	err := app.Initialize(components)
 	if err != nil {
 		return nil, err
 	}
@@ -51,17 +55,16 @@ func NewApp(staticFS fs.FS) (*App, error) {
 }
 
 // Initialize initializes the application
-func (a *App) Initialize() error {
+func (a *App) Initialize(components *AppComponents) error {
 	a.server = echo.New()
 	// Register global middlewares
 	a.server.Use(middleware.Recover())
 	// Initialize internal components
-	store := memory.NewMemoryStore()
-	summ := markdown.NewMarkdownSummaryRecorder()
-	r := render.NewTemplateRenderer()
-	tl := basic.NewBasicTimeline()
-	a.renderer = r
-	a.TL = tl
+	store := components.Store
+	summ := components.Summary
+	a.renderer = components.Renderer
+	a.TL = components.TL
+	a.notifier = components.Notifier
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
@@ -143,6 +146,7 @@ func (a *App) RegisterRoutes() {
 		return c.Redirect(302, a.server.Reverse("getImport"))
 	})
 	a.server.POST("/timeline", a.postTimelineEvent).Name = "postTimelineEvent"
+	a.server.POST("/notification", a.postNotification).Name = "postNotification"
 }
 
 // Run starts the application
@@ -153,36 +157,4 @@ func (a *App) Run(address string) error {
 // Stop stops the application
 func (a *App) Stop(ctx context.Context) error {
 	return a.server.Shutdown(ctx)
-}
-
-// addTimelineEvent adds an event to the timeline
-func (a *App) addTimelineEvent(message string) {
-	if a.TL != nil {
-		a.TL.AddEvent(message)
-	}
-}
-
-// postTimelineEvent is the handler for sent timeline events
-func (a *App) postTimelineEvent(c echo.Context) error {
-	var req ReqPostTimelineEvent
-	err := c.Bind(&req)
-	if err != nil {
-		return err
-	}
-	a.addTimelineEvent(req.Message)
-	return c.NoContent(200)
-}
-
-// customErrorHandler is a custom error handler
-func (a *App) customErrorHandler(err error, c echo.Context) {
-	log.Error().Err(err).Msg(c.Request().RequestURI)
-	notFound := strings.Contains(strings.ToLower(err.Error()), "not found")
-	if err == common.ErrNoRecipeLoaded || err == common.ErrNoRecipeIDProvided || notFound {
-		err2 := c.Render(404, "error_no_recipe_loaded.html", map[string]interface{}{
-			"Title": "Error in recipe",
-		})
-		if err2 != nil {
-			log.Error().Err(err2).Msg("error while rendering error page")
-		}
-	}
 }

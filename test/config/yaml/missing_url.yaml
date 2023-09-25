@@ -1,0 +1,7 @@
+app:
+  port: 8080
+
+notification:
+  enabled: true
+  username: "gotify"
+  password: "gotify"
