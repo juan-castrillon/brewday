@@ -174,6 +174,7 @@ func TestBJsonRecipeToRecipe(t *testing.T) {
 			require.NoError(err)
 			actual, err := bJsonRecipeToRecipe(&r)
 			require.NoError(err)
+			tc.Expected.SetStatus(recipe.RecipeStatusCreated)
 			require.Equal(tc.Expected, *actual)
 		})
 	}

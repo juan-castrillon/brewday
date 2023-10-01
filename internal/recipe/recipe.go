@@ -1,5 +1,21 @@
 package recipe
 
+import "sync"
+
+type RecipeStatus int
+
+const (
+	RecipeStatusUnknown RecipeStatus = iota
+	RecipeStatusCreated
+	RecipeStatusMashing
+	RecipeStatusLautering
+	RecipeStatusBoiling
+	RecipeStatusFermenting
+	RecipeStatusBottled
+	RecipeStatusFridge
+	RecipeStatusFinished
+)
+
 // Recipe is the main struct for a recipe
 type Recipe struct {
 	// Name is the name of the recipe
@@ -20,6 +36,13 @@ type Recipe struct {
 	Hopping HopInstructions
 	// Fermentation is the fermentation instructions
 	Fermentation FermentationInstructions
+	// status is the status of the recipe
+	status RecipeStatus
+	// statusParams is the parameters for the status
+	// This is particular for each status, and it can be empty or things like rast number, hop number, ...
+	statusParams []any
+	// statusLock is the lock for the status
+	statusLock sync.Mutex
 }
 
 // MashInstructions is the struct for the mashing instructions
@@ -128,4 +151,19 @@ func (mash MashInstructions) GetTotalMaltWeight() float32 {
 		total += malt.Amount
 	}
 	return total
+}
+
+// GetStatus returns the status of the recipe
+func (r *Recipe) GetStatus() (RecipeStatus, []any) {
+	r.statusLock.Lock()
+	defer r.statusLock.Unlock()
+	return r.status, r.statusParams
+}
+
+// SetStatus sets the status of the recipe together with optional parameters
+func (r *Recipe) SetStatus(status RecipeStatus, params ...interface{}) {
+	r.statusLock.Lock()
+	defer r.statusLock.Unlock()
+	r.status = status
+	r.statusParams = params
 }

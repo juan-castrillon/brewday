@@ -169,7 +169,7 @@ func mmumRecipeToRecipe(r *MMUMRecipe) (*recipe.Recipe, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &recipe.Recipe{
+	rec := &recipe.Recipe{
 		Name:         r.Name,
 		Style:        r.Style,
 		BatchSize:    float32(r.Volume),
@@ -179,7 +179,9 @@ func mmumRecipeToRecipe(r *MMUMRecipe) (*recipe.Recipe, error) {
 		Mashing:      *mashInst,
 		Hopping:      *hopInst,
 		Fermentation: *fermInst,
-	}, nil
+	}
+	rec.SetStatus(recipe.RecipeStatusCreated)
+	return rec, nil
 }
 
 // getMashInstructions returns the mash instructions for a MMUMRecipe
