@@ -104,13 +104,21 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		r.addSummaryRast(req.RealTemperature, req.RealDuration, req.Notes)
 		nextRastNum = rastNum + 1
 	}
+	missing := r.recipe.Mashing.Rasts[rastNum+1:]
+	missingDuration := float32(0.0)
+	if len(missing) > 0 {
+		for _, rast := range missing {
+			missingDuration += rast.Duration
+		}
+	}
 	return c.Render(200, "mash_rasts.html", map[string]interface{}{
-		"Title":       "Mash " + r.recipe.Name,
-		"Rast":        r.recipe.Mashing.Rasts[rastNum],
-		"RastNumber":  rastNum,
-		"NextRast":    nextRastNum,
-		"MissingRast": len(r.recipe.Mashing.Rasts) - rastNum - 1,
-		"Nachguss":    r.recipe.Mashing.Nachguss,
-		"RecipeID":    id,
+		"Title":                "Mash " + r.recipe.Name,
+		"Rast":                 r.recipe.Mashing.Rasts[rastNum],
+		"RastNumber":           rastNum,
+		"NextRast":             nextRastNum,
+		"MissingRasts":         missing,
+		"MissingRastsDuration": missingDuration,
+		"Nachguss":             r.recipe.Mashing.Nachguss,
+		"RecipeID":             id,
 	})
 }

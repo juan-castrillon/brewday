@@ -22,7 +22,10 @@
                 </div>
             </div>
             <div class="col s12">
-                <div class="center-align">After this, {{.MissingRast}} rasts missing</div>
+                <div class="center-align">
+                    After this, {{ len .MissingRasts }} rasts missing:
+                    <a class="modal-trigger" href="#modal1">More info <i class="material-icons">info</i></a>
+                </div>
             </div>
         </div>
         <div class="row">
@@ -66,6 +69,31 @@
                 </button>
             </form>
         </div>
+        <div id="modal1" class="modal bottom-sheet">
+            <div class="modal-content">
+                {{ if eq (len .MissingRasts) 0 }}
+                <h4>No more rasts missing!</h4>
+                {{ else }}
+                <h4>Missing Rasts:</h4>
+                <p>There are {{ len .MissingRasts }} rasts missing, which in total will take minimum
+                    {{.MissingRastsDuration}} minutes.</p>
+                <br>
+                <ul class="collection">
+                    {{ range $i, $rast := .MissingRasts }}
+                    <li class="collection-item">
+                        <div>
+                            <h6><b>Rast {{$i}}: {{$rast.Temperature}} °C</b></h6>
+                            <p>Duration: {{$rast.Duration}} minutes</p>
+                        </div>
+                    </li>
+                    {{ end }}
+                </ul>
+                {{ end }}
+            </div>
+            <div class="modal-footer">
+                <a href="#!" class="modal-close waves-effect waves-green btn-flat">Close</a>
+            </div>
+        </div>
     </div>
 </main>
 <script>
@@ -87,5 +115,9 @@
             show("send_rast");
         });
     };
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.modal');
+        var instances = M.Modal.init(elems, {});
+    });
 </script>
 {{ template "footer" . }}
