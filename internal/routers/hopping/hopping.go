@@ -108,6 +108,7 @@ func (r *HoppingRouter) getStartHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	re.SetStatus(recipe.RecipeStatusBoiling, "initialVol")
 	return c.Render(http.StatusOK, "hopping_start.html", map[string]interface{}{
 		"Title":    "Hopping " + re.Name,
 		"Subtitle": "1. Measure volume before boiling",
@@ -134,6 +135,7 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	r.addSummaryMeasuredVolume("Measured volume before boiling", req.InitialVolume, req.Notes)
 	r.storeInitialVolume(id, req.InitialVolume)
 	ings := r.getIngredients(id, re)
+	re.SetStatus(recipe.RecipeStatusBoiling, "beforeBoil")
 	return c.Render(http.StatusOK, "hopping_boiling.html", map[string]interface{}{
 		"Title":       "Hopping " + re.Name,
 		"Subtitle":    "2. Boil",
@@ -156,6 +158,7 @@ func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	re.SetStatus(recipe.RecipeStatusBoiling, "finalVol")
 	r.addTimelineEvent("Finished Hopping")
 	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
 		"Title":    "Hopping " + re.Name,
@@ -215,6 +218,7 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 	}
 	if ingrNum == len(ings) {
 		if ings[ingrNum-1].Duration != 0 {
+			re.SetStatus(recipe.RecipeStatusBoiling, "lastBoil", ingrNum)
 			return c.Render(http.StatusOK, "hopping_last_boil.html", map[string]interface{}{
 				"Title":       "Hopping " + re.Name,
 				"Subtitle":    "3. Add hops",
@@ -232,6 +236,7 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 		cookingTime = ings[ingrNum-1].Duration
 	}
 	ingredient := ings[ingrNum]
+	re.SetStatus(recipe.RecipeStatusBoiling, "hop", ingrNum)
 	return c.Render(http.StatusOK, "hopping_hop.html", map[string]interface{}{
 		"Title":            "Hopping " + re.Name,
 		"Subtitle":         "3. Add hops",
