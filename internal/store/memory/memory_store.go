@@ -47,3 +47,14 @@ func (s *MemoryStore) Retrieve(id string) (*recipe.Recipe, error) {
 	}
 	return re, nil
 }
+
+// List lists all the recipes
+func (s *MemoryStore) List() ([]*recipe.Recipe, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	var recipes []*recipe.Recipe
+	for _, re := range s.recipes {
+		recipes = append(recipes, re)
+	}
+	return recipes, nil
+}

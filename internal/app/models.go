@@ -40,6 +40,8 @@ type RecipeStore interface {
 	Store(recipe *recipe.Recipe) (string, error)
 	// Retrieve retrieves a recipe based on an identifier
 	Retrieve(id string) (*recipe.Recipe, error)
+	// List lists all the recipes
+	List() ([]*recipe.Recipe, error)
 }
 
 // SummaryRecorder is the interface that helps decouple the summary recorder from the application
