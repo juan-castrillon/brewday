@@ -10,6 +10,7 @@ const (
 	RecipeStatusMashing
 	RecipeStatusLautering
 	RecipeStatusBoiling
+	RecipeStatusCooling
 	RecipeStatusFermenting
 	RecipeStatusBottled
 	RecipeStatusFridge
@@ -180,6 +181,8 @@ func (r *Recipe) GetStatusString() string {
 		return "Lautering"
 	case RecipeStatusBoiling:
 		return "Boiling"
+	case RecipeStatusCooling:
+		return "Cooling"
 	case RecipeStatusFermenting:
 		return "Fermenting"
 	case RecipeStatusBottled:

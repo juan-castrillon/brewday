@@ -88,6 +88,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			Summary: summ,
 		},
 		&cooling.CoolingRouter{
+			Store:   store,
 			TL:      a.TL,
 			Summary: summ,
 		},
