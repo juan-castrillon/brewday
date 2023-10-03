@@ -167,3 +167,28 @@ func (r *Recipe) SetStatus(status RecipeStatus, params ...interface{}) {
 	r.status = status
 	r.statusParams = params
 }
+
+// GetStatusString returns the status of the recipe as a string
+func (r *Recipe) GetStatusString() string {
+	status, _ := r.GetStatus()
+	switch status {
+	case RecipeStatusCreated:
+		return "Created"
+	case RecipeStatusMashing:
+		return "Mashing"
+	case RecipeStatusLautering:
+		return "Lautering"
+	case RecipeStatusBoiling:
+		return "Boiling"
+	case RecipeStatusFermenting:
+		return "Fermenting"
+	case RecipeStatusBottled:
+		return "Bottled"
+	case RecipeStatusFridge:
+		return "Fridge"
+	case RecipeStatusFinished:
+		return "Finished"
+	default:
+		return "Unknown"
+	}
+}
