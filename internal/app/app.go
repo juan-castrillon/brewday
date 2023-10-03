@@ -1,6 +1,7 @@
 package app
 
 import (
+	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/cooling"
 	"brewday/internal/routers/fermentation"
@@ -8,6 +9,7 @@ import (
 	"brewday/internal/routers/import_recipe"
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
+	"brewday/internal/routers/recipes"
 	summary "brewday/internal/routers/summary"
 	"context"
 	"io/fs"
@@ -98,6 +100,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			Summary: summ,
 			TL:      a.TL,
 		},
+		&recipes.RecipesRouter{
+			Store: store,
+		},
 	}
 	a.RegisterStaticFiles()
 	err := a.RegisterTemplates()
@@ -125,6 +130,9 @@ func (a *App) RegisterTemplates() error {
 	a.renderer.AddFunc("truncateFloat", func(f float32, decimals int) float64 {
 		f64 := float64(f)
 		return math.Round(f64*(math.Pow10(decimals))) / math.Pow10(decimals)
+	})
+	a.renderer.AddFunc("recipeStatus", func(r *recipe.Recipe) string {
+		return r.GetStatusString()
 	})
 
 	fs := echo.MustSubFS(a.staticFs, "web/template")
