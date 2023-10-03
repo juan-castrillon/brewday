@@ -13,7 +13,6 @@ type MashRouter struct {
 	Store   RecipeStore
 	TL      Timeline
 	Summary SummaryRecorder
-	recipe  *recipe.Recipe
 }
 
 func (r *MashRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
@@ -53,7 +52,7 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.recipe = re
+	re.SetStatus(recipe.RecipeStatusMashing, "start")
 	r.addTimelineEvent("Started mashing")
 	return c.Render(200, "mash_start.html", map[string]interface{}{
 		"Title":        "Mash " + re.Name,
@@ -70,8 +69,9 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	if r.recipe == nil {
-		return common.ErrNoRecipeLoaded
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	rastNumStr := c.Param("rast_num")
 	if rastNumStr == "" {
@@ -92,7 +92,7 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		}
 		r.addSummaryMashTemp(req.RealMashTemperature, req.Notes)
 		nextRastNum = 1
-	case len(r.recipe.Mashing.Rasts):
+	case len(re.Mashing.Rasts):
 		r.addTimelineEvent("Finished mashing")
 		return c.Redirect(302, c.Echo().Reverse("getLautern", id))
 	default:
@@ -104,21 +104,22 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		r.addSummaryRast(req.RealTemperature, req.RealDuration, req.Notes)
 		nextRastNum = rastNum + 1
 	}
-	missing := r.recipe.Mashing.Rasts[rastNum+1:]
+	missing := re.Mashing.Rasts[rastNum+1:]
 	missingDuration := float32(0.0)
 	if len(missing) > 0 {
 		for _, rast := range missing {
 			missingDuration += rast.Duration
 		}
 	}
+	re.SetStatus(recipe.RecipeStatusMashing, "rast", rastNum)
 	return c.Render(200, "mash_rasts.html", map[string]interface{}{
-		"Title":                "Mash " + r.recipe.Name,
-		"Rast":                 r.recipe.Mashing.Rasts[rastNum],
+		"Title":                "Mash " + re.Name,
+		"Rast":                 re.Mashing.Rasts[rastNum],
 		"RastNumber":           rastNum,
 		"NextRast":             nextRastNum,
 		"MissingRasts":         missing,
 		"MissingRastsDuration": missingDuration,
-		"Nachguss":             r.recipe.Mashing.Nachguss,
+		"Nachguss":             re.Mashing.Nachguss,
 		"RecipeID":             id,
 	})
 }
