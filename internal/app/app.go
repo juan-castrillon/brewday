@@ -14,6 +14,7 @@ import (
 	"context"
 	"io/fs"
 	"math"
+	"net/url"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -134,6 +135,9 @@ func (a *App) RegisterTemplates() error {
 	})
 	a.renderer.AddFunc("recipeStatus", func(r *recipe.Recipe) string {
 		return r.GetStatusString()
+	})
+	a.renderer.AddFunc("urlEncode", func(s string) string {
+		return url.QueryEscape(s)
 	})
 
 	fs := echo.MustSubFS(a.staticFs, "web/template")
