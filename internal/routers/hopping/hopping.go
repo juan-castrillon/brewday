@@ -91,6 +91,7 @@ func (r *HoppingRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	hopping := parent.Group("/hopping")
 	hopping.GET("/start/:recipe_id", r.getStartHoppingHandler).Name = "getStartHopping"
 	hopping.POST("/start/:recipe_id", r.postStartHoppingHandler).Name = "postStartHopping"
+	hopping.GET("/boil/:recipe_id", r.getBoilingHandler).Name = "getBoiling"
 	hopping.GET("/end/:recipe_id", r.getEndHoppingHandler).Name = "getEndHopping"
 	hopping.POST("/end/:recipe_id", r.postEndHoppingHandler).Name = "postEndHopping"
 	hopping.GET("/hop/:recipe_id/:ingr_num", r.getHoppingHandler).Name = "getHopping"
@@ -122,18 +123,27 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
 	r.addTimelineEvent("Start heating up")
 	var req ReqPostStartHopping
-	err = c.Bind(&req)
+	err := c.Bind(&req)
 	if err != nil {
 		return err
 	}
 	r.addSummaryMeasuredVolume("Measured volume before boiling", req.InitialVolume, req.Notes)
 	r.storeInitialVolume(id, req.InitialVolume)
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getBoiling", id))
+}
+
+// getBoilingHandler returns the handler for the start hopping route
+func (r *HoppingRouter) getBoilingHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
 	ings := r.getIngredients(id, re)
 	re.SetStatus(recipe.RecipeStatusBoiling, "beforeBoil")
 	return c.Render(http.StatusOK, "hopping_boiling.html", map[string]interface{}{
@@ -142,55 +152,6 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 		"RecipeID":    id,
 		"Ingredients": ings,
 	})
-}
-
-// getEndHoppingHandler returns the handler for the end hopping route
-func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
-	_, err = r.getInitialVolume(id)
-	if err != nil {
-		return err
-	}
-	re.SetStatus(recipe.RecipeStatusBoiling, "finalVol")
-	r.addTimelineEvent("Finished Hopping")
-	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
-		"Title":    "Hopping " + re.Name,
-		"Subtitle": "4. Measure volume after boiling",
-		"RecipeID": id,
-	})
-}
-
-// postEndHoppingHandler returns the handler for the end hopping route
-func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
-	r.addTimelineEvent("Boil finished")
-	var req ReqPostEndHopping
-	err = c.Bind(&req)
-	if err != nil {
-		return err
-	}
-	initialVol, err := r.getInitialVolume(id)
-	if err != nil {
-		return err
-	}
-	r.addSummaryMeasuredVolume("Measured volume after boiling", req.FinalVolume, req.Notes)
-	evap := tools.CalculateEvaporation(initialVol, req.FinalVolume, re.Hopping.TotalCookingTime)
-	r.addSummaryEvaporation(evap)
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getCooling", id))
 }
 
 // getHoppingHandler returns the handler for the hopping route
@@ -283,4 +244,53 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 		}
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getHopping", id, ingrNum+1))
+}
+
+// getEndHoppingHandler returns the handler for the end hopping route
+func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	_, err = r.getInitialVolume(id)
+	if err != nil {
+		return err
+	}
+	re.SetStatus(recipe.RecipeStatusBoiling, "finalVol")
+	r.addTimelineEvent("Finished Hopping")
+	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
+		"Title":    "Hopping " + re.Name,
+		"Subtitle": "4. Measure volume after boiling",
+		"RecipeID": id,
+	})
+}
+
+// postEndHoppingHandler returns the handler for the end hopping route
+func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	r.addTimelineEvent("Boil finished")
+	var req ReqPostEndHopping
+	err = c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	initialVol, err := r.getInitialVolume(id)
+	if err != nil {
+		return err
+	}
+	r.addSummaryMeasuredVolume("Measured volume after boiling", req.FinalVolume, req.Notes)
+	evap := tools.CalculateEvaporation(initialVol, req.FinalVolume, re.Hopping.TotalCookingTime)
+	r.addSummaryEvaporation(evap)
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getCooling", id))
 }

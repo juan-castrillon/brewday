@@ -4,6 +4,7 @@ import (
 	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 	"errors"
+	"net/http"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -18,6 +19,7 @@ type MashRouter struct {
 func (r *MashRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	mash := parent.Group("/mash")
 	mash.GET("/start/:recipe_id", r.getMashStartHandler).Name = "getMashStart"
+	mash.GET("/rasts/:recipe_id/:rast_num", r.getRastsHandler).Name = "getRasts"
 	mash.POST("/rasts/:recipe_id/:rast_num", r.postRastsHandler).Name = "postRasts"
 }
 
@@ -63,6 +65,45 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 	})
 }
 
+// getRastsHandler is the handler for the mash rasts page
+func (r *MashRouter) getRastsHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	rastNumStr := c.Param("rast_num")
+	if rastNumStr == "" {
+		return errors.New("no rast number provided")
+	}
+	rastNum, err := strconv.Atoi(rastNumStr)
+	if err != nil {
+		return err
+	}
+	missing := re.Mashing.Rasts[rastNum+1:]
+	missingDuration := float32(0.0)
+	if len(missing) > 0 {
+		for _, rast := range missing {
+			missingDuration += rast.Duration
+		}
+	}
+	nextRastNum := rastNum + 1
+	re.SetStatus(recipe.RecipeStatusMashing, "rast", rastNum)
+	return c.Render(200, "mash_rasts.html", map[string]interface{}{
+		"Title":                "Mash " + re.Name,
+		"Rast":                 re.Mashing.Rasts[rastNum],
+		"RastNumber":           rastNum,
+		"NextRast":             nextRastNum,
+		"MissingRasts":         missing,
+		"MissingRastsDuration": missingDuration,
+		"Nachguss":             re.Mashing.Nachguss,
+		"RecipeID":             id,
+	})
+}
+
 // postRastsHandler is the handler for the mash rasts page
 func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
@@ -81,7 +122,6 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	var nextRastNum int
 	switch rastNum {
 	case 0:
 		r.addTimelineEvent("Finished Einmaischen")
@@ -91,7 +131,6 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 			return err
 		}
 		r.addSummaryMashTemp(req.RealMashTemperature, req.Notes)
-		nextRastNum = 1
 	case len(re.Mashing.Rasts):
 		r.addTimelineEvent("Finished mashing")
 		return c.Redirect(302, c.Echo().Reverse("getLautern", id))
@@ -102,24 +141,6 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 			return err
 		}
 		r.addSummaryRast(req.RealTemperature, req.RealDuration, req.Notes)
-		nextRastNum = rastNum + 1
 	}
-	missing := re.Mashing.Rasts[rastNum+1:]
-	missingDuration := float32(0.0)
-	if len(missing) > 0 {
-		for _, rast := range missing {
-			missingDuration += rast.Duration
-		}
-	}
-	re.SetStatus(recipe.RecipeStatusMashing, "rast", rastNum)
-	return c.Render(200, "mash_rasts.html", map[string]interface{}{
-		"Title":                "Mash " + re.Name,
-		"Rast":                 re.Mashing.Rasts[rastNum],
-		"RastNumber":           rastNum,
-		"NextRast":             nextRastNum,
-		"MissingRasts":         missing,
-		"MissingRastsDuration": missingDuration,
-		"Nachguss":             re.Mashing.Nachguss,
-		"RecipeID":             id,
-	})
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getRasts", id, rastNum))
 }
