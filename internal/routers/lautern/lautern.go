@@ -1,6 +1,7 @@
 package lautern
 
 import (
+	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 
 	"github.com/labstack/echo/v4"
@@ -44,6 +45,7 @@ func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	re.SetStatus(recipe.RecipeStatusLautering)
 	return c.Render(200, "lautern.html", map[string]interface{}{
 		"Title":       "Mash " + re.Name,
 		"Subtitle":    "Läutern",
