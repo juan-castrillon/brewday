@@ -15,7 +15,6 @@ type FermentationRouter struct {
 	TL      Timeline
 	Summary SummaryRecorder
 	Store   RecipeStore
-	recipe  *recipe.Recipe
 }
 
 // addTimelineEvent adds an event to the timeline
@@ -68,8 +67,8 @@ func (r *FermentationRouter) getPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.recipe = re
 	r.addTimelineEvent("Started Pre Fermentation")
+	re.SetStatus(recipe.RecipeStatusPreFermentation, "measure")
 	return c.Render(http.StatusOK, "fermentation_pre.html", map[string]interface{}{
 		"Title":    "Pre Fermentation",
 		"RecipeID": id,
@@ -82,23 +81,18 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	if r.recipe == nil {
-		return common.ErrNoRecipeLoaded
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	var req ReqPostPreFermentation
-	err := c.Bind(&req)
+	err = c.Bind(&req)
 	if err != nil {
 		return err
 	}
 	r.addSummaryPreFermentation(req.Volume, req.SG, req.Notes)
-	volumeDiff := req.Volume - (r.recipe.BatchSize + 1) // +1 for the 1l of yeast
-	sgDiff := r.recipe.InitialSG - req.SG
-	if volumeDiff >= 0 && sgDiff >= 0 {
-		eff := tools.CalculateEfficiencySG(req.SG, req.Volume, r.recipe.Mashing.GetTotalMaltWeight())
-		r.addSummaryEfficiency(eff)
-		r.addTimelineEvent("Finished Pre Fermentation")
-		return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentation", id))
-	}
+	volumeDiff := req.Volume - (re.BatchSize + 1) // +1 for the 1l of yeast
+	sgDiff := re.InitialSG - req.SG
 	redirect := "getPreFermentationWater"
 	queryParams := fmt.Sprintf("?volumeDiff=%f&sgDiff=%f", volumeDiff, sgDiff)
 	return c.Redirect(http.StatusFound, c.Echo().Reverse(redirect, id)+queryParams)
@@ -109,6 +103,10 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	r.addTimelineEvent("Started Pre Fermentation Water")
 	volumeDiffRaw := c.QueryParam("volumeDiff")
@@ -122,18 +120,18 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 	if err != nil {
 		return err
 	}
-	currentSG := r.recipe.InitialSG - float32(sgDiff)
-	currentVol := r.recipe.BatchSize + float32(volumeDiff) + 1
+	currentSG := re.InitialSG - float32(sgDiff)
+	currentVol := re.BatchSize + float32(volumeDiff) + 1
 	if sgDiff < 0.0 {
-		toAdd, finalVol := tools.WaterForGravity(currentSG, r.recipe.InitialSG, currentVol)
+		toAdd, finalVol := tools.WaterForGravity(currentSG, re.InitialSG, currentVol)
 		options = append(options, WaterOption{
 			ToAdd:        toAdd,
 			FinalVolume:  finalVol,
-			FinalSG:      r.recipe.InitialSG,
-			FinalSGPlato: tools.SGToPlato(r.recipe.InitialSG),
+			FinalSG:      re.InitialSG,
+			FinalSGPlato: tools.SGToPlato(re.InitialSG),
 		})
 		if volumeDiff < 0.0 {
-			targetVol := r.recipe.BatchSize + 1
+			targetVol := re.BatchSize + 1
 			toAdd, finalSG := tools.WaterForVolume(currentVol, targetVol, currentSG)
 			options = append(options, WaterOption{
 				ToAdd:        toAdd,
@@ -143,11 +141,12 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 			})
 		}
 	}
+	re.SetStatus(recipe.RecipeStatusPreFermentation, "water", volumeDiff, sgDiff)
 	return c.Render(http.StatusOK, "fermentation_pre_water.html", map[string]interface{}{
 		"Title":         "Pre Fermentation Water",
 		"RecipeID":      id,
-		"RecipeVolume":  r.recipe.BatchSize + 1,
-		"RecipeSG":      r.recipe.InitialSG,
+		"RecipeVolume":  re.BatchSize + 1,
+		"RecipeSG":      re.InitialSG,
 		"CurrentSG":     currentSG,
 		"CurrentVolume": currentVol,
 		"Options":       options,
@@ -160,17 +159,18 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	if r.recipe == nil {
-		return common.ErrNoRecipeLoaded
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	var req ReqPostPreFermentationWater
-	err := c.Bind(&req)
+	err = c.Bind(&req)
 	if err != nil {
 		return err
 	}
 	r.addTimelineEvent("Finished Adding Water")
 	r.addSummaryPreFermentation(req.FinalVolume, req.FinalSG, req.Notes)
-	eff := tools.CalculateEfficiencySG(req.FinalSG, req.FinalVolume, r.recipe.Mashing.GetTotalMaltWeight())
+	eff := tools.CalculateEfficiencySG(req.FinalSG, req.FinalVolume, re.Mashing.GetTotalMaltWeight())
 	r.addSummaryEfficiency(eff)
 	r.addTimelineEvent("Finished Pre Fermentation")
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentation", id))
@@ -182,15 +182,17 @@ func (r *FermentationRouter) getFermentationHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	if r.recipe == nil {
-		return common.ErrNoRecipeLoaded
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	r.addTimelineEvent("Started Fermentation")
+	re.SetStatus(recipe.RecipeStatusFermenting, "start")
 	return c.Render(http.StatusOK, "fermentation.html", map[string]interface{}{
 		"Title":       "Fermentation",
 		"RecipeID":    id,
-		"Yeast":       r.recipe.Fermentation.Yeast,
-		"Temperature": r.recipe.Fermentation.Temperature,
+		"Yeast":       re.Fermentation.Yeast,
+		"Temperature": re.Fermentation.Temperature,
 	})
 }
 
@@ -199,9 +201,6 @@ func (r *FermentationRouter) postFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
-	}
-	if r.recipe == nil {
-		return common.ErrNoRecipeLoaded
 	}
 	var req ReqPostFermentation
 	err := c.Bind(&req)
@@ -219,21 +218,23 @@ func (r *FermentationRouter) getEndFermentationHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	if r.recipe == nil {
-		return common.ErrNoRecipeLoaded
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	var hops []recipe.Hops
-	for _, h := range r.recipe.Hopping.Hops {
+	for _, h := range re.Hopping.Hops {
 		if h.DryHop {
 			hops = append(hops, h)
 		}
 	}
 	r.addTimelineEvent("Finished Day")
+	re.SetStatus(recipe.RecipeStatusFinished)
 	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
 		"Title":     "End Fermentation",
 		"RecipeID":  id,
 		"Subtitle":  "Congratulations, you've finished the brew day!",
 		"Hops":      hops,
-		"Additions": r.recipe.Fermentation.AdditionalIngredients,
+		"Additions": re.Fermentation.AdditionalIngredients,
 	})
 }

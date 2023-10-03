@@ -188,6 +188,11 @@ func TestGetStatusString(t *testing.T) {
 			Expected: "Cooling",
 		},
 		{
+			Name:     "Pre-fermentation",
+			Recipe:   &Recipe{status: RecipeStatusPreFermentation},
+			Expected: "Pre-fermentation",
+		},
+		{
 			Name:     "Fermenting",
 			Recipe:   &Recipe{status: RecipeStatusFermenting},
 			Expected: "Fermenting",

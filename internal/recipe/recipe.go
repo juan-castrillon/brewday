@@ -11,6 +11,7 @@ const (
 	RecipeStatusLautering
 	RecipeStatusBoiling
 	RecipeStatusCooling
+	RecipeStatusPreFermentation
 	RecipeStatusFermenting
 	RecipeStatusBottled
 	RecipeStatusFridge
@@ -183,6 +184,8 @@ func (r *Recipe) GetStatusString() string {
 		return "Boiling"
 	case RecipeStatusCooling:
 		return "Cooling"
+	case RecipeStatusPreFermentation:
+		return "Pre-fermentation"
 	case RecipeStatusFermenting:
 		return "Fermenting"
 	case RecipeStatusBottled:
