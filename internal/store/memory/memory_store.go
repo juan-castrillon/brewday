@@ -34,6 +34,7 @@ func (s *MemoryStore) Store(recipe *recipe.Recipe) (string, error) {
 	defer s.lock.Unlock()
 	id := s.CreateID(recipe.Name)
 	s.recipes[id] = recipe
+	recipe.ID = id
 	return id, nil
 }
 

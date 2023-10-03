@@ -12,12 +12,12 @@
                     {{ range $recipe := .Recipes }}
                     <li class="collection-item avatar">
                         <i class="material-icons circle recipe_icon">sports_bar</i>
-                        <span class="title">{{ $recipe.Name }}</span>
+                        <span class="title">{{ $recipe.Name }} ({{ $recipe.ID }})</span>
                         <p>{{ $recipe.Style }}
                             <br>
                             <b>Status: </b>{{ recipeStatus $recipe }}
                         </p>
-                        <a href="#!" class="secondary-content"><i class="medium material-icons">play_arrow</i></a>
+                        <a href='{{ reverse "getContinue" $recipe.ID }}' class="secondary-content"><i class="medium material-icons">play_arrow</i></a>
                     </li>
                     {{ end }}
                 </ul>

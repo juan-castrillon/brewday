@@ -45,6 +45,8 @@ type Recipe struct {
 	statusParams []any
 	// statusLock is the lock for the status
 	statusLock sync.Mutex
+	// ID is the identifier of the recipe. This is populated by the appropriate store and should not be set manually
+	ID string
 }
 
 // MashInstructions is the struct for the mashing instructions
