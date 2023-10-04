@@ -64,6 +64,12 @@ func SRMToHex(srm float64) string {
 	// Round the SRM value to the nearest integer.
 	roundFloat := math.Round(srm)
 	roundInt := int(roundFloat)
+	index := roundInt - 1
+	if index < 0 {
+		return SRMHex[0]
+	} else if index > len(SRMHex)-1 {
+		return SRMHex[len(SRMHex)-1]
+	}
 	return SRMHex[roundInt-1]
 }
 
