@@ -8,12 +8,13 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
 type MashRouter struct {
-	Store   RecipeStore
-	TL      Timeline
-	Summary SummaryRecorder
+	Store        RecipeStore
+	TL           Timeline
+	SummaryStore SummaryRecorderStore
 }
 
 func (r *MashRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
@@ -31,17 +32,19 @@ func (r *MashRouter) addTimelineEvent(message string) {
 }
 
 // addSummaryMashTemp adds a mash temperature to the summary and notes related to it
-func (r *MashRouter) addSummaryMashTemp(temp float64, notes string) {
-	if r.Summary != nil {
-		r.Summary.AddMashTemp(temp, notes)
+func (r *MashRouter) addSummaryMashTemp(id string, temp float64, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddMashTemp(id, temp, notes)
 	}
+	return nil
 }
 
 // addSummaryRast adds a rast to the summary and notes related to it
-func (r *MashRouter) addSummaryRast(temp float64, duration float64, notes string) {
-	if r.Summary != nil {
-		r.Summary.AddRast(temp, duration, notes)
+func (r *MashRouter) addSummaryRast(id string, temp float64, duration float64, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddRast(id, temp, duration, notes)
 	}
+	return nil
 }
 
 // getMashStartHandler is the handler for the mash start page
@@ -130,7 +133,10 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		r.addSummaryMashTemp(req.RealMashTemperature, req.Notes)
+		err = r.addSummaryMashTemp(id, req.RealMashTemperature, req.Notes)
+		if err != nil {
+			log.Error().Str("id", id).Err(err).Msg("could not add mash temp to summary")
+		}
 	case len(re.Mashing.Rasts):
 		r.addTimelineEvent("Finished mashing")
 		return c.Redirect(302, c.Echo().Reverse("getLautern", id))
@@ -140,7 +146,10 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		r.addSummaryRast(req.RealTemperature, req.RealDuration, req.Notes)
+		err = r.addSummaryRast(id, req.RealTemperature, req.RealDuration, req.Notes)
+		if err != nil {
+			log.Error().Str("id", id).Err(err).Msg("could not add rast to summary")
+		}
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getRasts", id, rastNum))
 }

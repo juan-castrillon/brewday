@@ -20,8 +20,9 @@ var parsers = map[string]RecipeParser{
 }
 
 type ImportRouter struct {
-	Store     RecipeStore
-	TempCache map[string]*recipe.Recipe
+	Store                RecipeStore
+	SummaryRecorderStore SummaryRecorderStore
+	TempCache            map[string]*recipe.Recipe
 }
 
 // storeRecipe stores a recipe in the temporary cache
@@ -126,6 +127,8 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	// TODO: make this configurable probably via the UI
+	r.SummaryRecorderStore.AddSummaryRecorder(id, "markdown")
 	switch nextAction {
 	case "start":
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getRecipeStart", id))

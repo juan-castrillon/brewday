@@ -11,6 +11,7 @@ import (
 	"brewday/internal/routers/mash"
 	"brewday/internal/routers/recipes"
 	summary "brewday/internal/routers/summary"
+	summaryrecorder "brewday/internal/summary_recorder"
 	"context"
 	"io/fs"
 	"math"
@@ -68,15 +69,17 @@ func (a *App) Initialize(components *AppComponents) error {
 	a.renderer = components.Renderer
 	a.TL = components.TL
 	a.notifier = components.Notifier
+	ss := summaryrecorder.NewSummaryRecorderStore()
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
-			Store: store,
+			Store:                store,
+			SummaryRecorderStore: ss,
 		},
 		&mash.MashRouter{
-			Store:   store,
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TL:           a.TL,
+			SummaryStore: ss,
 		},
 		&lautern.LauternRouter{
 			Store:   store,
