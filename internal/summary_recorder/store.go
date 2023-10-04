@@ -148,3 +148,41 @@ func (s *SummaryRecorderStore) AddYeastStart(id string, temperature, notes strin
 	rec.AddYeastStart(temperature, notes)
 	return nil
 }
+
+// AddTimeline adds a timeline to the summary
+func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddTimeline(timeline)
+	return nil
+}
+
+// GetSummary returns the summary
+func (s *SummaryRecorderStore) GetSummary(id string) (string, error) {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return "", err
+	}
+	return rec.GetSummary(), nil
+}
+
+// GetExtension returns the extension of the summary
+func (s *SummaryRecorderStore) GetExtension(id string) (string, error) {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return "", err
+	}
+	return rec.GetExtension(), nil
+}
+
+// Close closes the summary recorder
+func (s *SummaryRecorderStore) Close(id string) error {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.Close()
+	return nil
+}

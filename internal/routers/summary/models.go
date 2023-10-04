@@ -1,15 +1,15 @@
 package summary
 
-// SummaryRecorder represents a component that records a summary
-type SummaryRecorder interface {
+// SummaryRecorderStore represents a component that stores summary recorders
+type SummaryRecorderStore interface {
 	// AddTimeline adds a timeline to the summary
-	AddTimeline(timeline []string)
+	AddTimeline(id string, timeline []string) error
 	// GetSummary returns the summary
-	GetSummary() string
-	// GetExtention returns the extension of the summary
-	GetExtention() string
+	GetSummary(id string) (string, error)
+	// GetExtension returns the extension of the summary
+	GetExtension(id string) (string, error)
 	// Close closes the summary recorder
-	Close()
+	Close(id string) error
 }
 
 // Timeline represents a timeline of events

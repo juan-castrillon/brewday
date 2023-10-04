@@ -121,8 +121,8 @@ func (r *MarkdownSummaryRecorder) GetSummary() string {
 	return r.summary
 }
 
-// GetExtention returns the extention of the summary
-func (r *MarkdownSummaryRecorder) GetExtention() string {
+// GetExtension returns the extention of the summary
+func (r *MarkdownSummaryRecorder) GetExtension() string {
 	return "md"
 }
 

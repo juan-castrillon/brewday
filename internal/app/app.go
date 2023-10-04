@@ -11,7 +11,6 @@ import (
 	"brewday/internal/routers/mash"
 	"brewday/internal/routers/recipes"
 	summary "brewday/internal/routers/summary"
-	summaryrecorder "brewday/internal/summary_recorder"
 	"context"
 	"io/fs"
 	"math"
@@ -39,11 +38,11 @@ type App struct {
 
 // AppComponents is the structure that contains the external components of the application
 type AppComponents struct {
-	Renderer Renderer
-	TL       Timeline
-	Notifier Notifier
-	Store    RecipeStore
-	Summary  SummaryRecorder
+	Renderer     Renderer
+	TL           Timeline
+	Notifier     Notifier
+	Store        RecipeStore
+	SummaryStore SummaryRecorderStore
 }
 
 // NewApp creates a new App
@@ -65,11 +64,10 @@ func (a *App) Initialize(components *AppComponents) error {
 	a.server.Use(middleware.Recover())
 	// Initialize internal components
 	store := components.Store
-	summ := components.Summary
 	a.renderer = components.Renderer
 	a.TL = components.TL
 	a.notifier = components.Notifier
-	ss := summaryrecorder.NewSummaryRecorderStore()
+	ss := components.SummaryStore
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
@@ -102,8 +100,8 @@ func (a *App) Initialize(components *AppComponents) error {
 			Store:        store,
 		},
 		&summary.SummaryRouter{
-			Summary: summ,
-			TL:      a.TL,
+			SummaryStore: ss,
+			TL:           a.TL,
 		},
 		&recipes.RecipesRouter{
 			Store: store,
