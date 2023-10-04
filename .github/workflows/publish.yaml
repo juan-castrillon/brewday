@@ -3,8 +3,7 @@ on:
   push:
     tags:
       - "**"
-env:
-  IMAGE_NAME: jpcr3108/brewday
+
 jobs:
   push_docker_hub:
     name: Push to Docker Hub
@@ -14,9 +13,9 @@ jobs:
       matrix:
         include:
           - dockerfile: .Dockerfile
-            image: ${{ env.IMAGE_NAME }}
+            image: jpcr3108/brewday
           - dockerfile: .Dockerfile.arm
-            image: ${{ env.IMAGE_NAME }}-arm
+            image: jpcr3108/brewday-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v3
