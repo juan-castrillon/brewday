@@ -68,3 +68,13 @@ func (s *SummaryRecorderStore) AddRast(id string, temp float64, duration float64
 	rec.AddRast(temp, duration, notes)
 	return nil
 }
+
+// AddLauternNotes adds lautern notes to the summary
+func (s *SummaryRecorderStore) AddLaunternNotes(id, notes string) error {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddLaunternNotes(notes)
+	return nil
+}

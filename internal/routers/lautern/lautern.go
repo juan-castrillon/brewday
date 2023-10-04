@@ -5,12 +5,13 @@ import (
 	"brewday/internal/routers/common"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
 type LauternRouter struct {
-	TL      Timeline
-	Summary SummaryRecorder
-	Store   RecipeStore
+	TL           Timeline
+	SummaryStore SummaryRecorderStore
+	Store        RecipeStore
 }
 
 // RegisterRoutes adds routes to the web server
@@ -28,10 +29,11 @@ func (r *LauternRouter) addTimelineEvent(message string) {
 }
 
 // addSummaryLauternNotes adds lautern notes to the summary
-func (r *LauternRouter) addSummaryLauternNotes(notes string) {
-	if r.Summary != nil {
-		r.Summary.AddLaunternNotes(notes)
+func (r *LauternRouter) addSummaryLauternNotes(id, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddLaunternNotes(id, notes)
 	}
+	return nil
 }
 
 // getLauternHandler is the handler for the lautern page
@@ -68,6 +70,9 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 		return common.ErrNoRecipeIDProvided
 	}
 	r.addTimelineEvent("Finished Läutern")
-	r.addSummaryLauternNotes(req.Notes)
+	err = r.addSummaryLauternNotes(id, req.Notes)
+	if err != nil {
+		log.Error().Err(err).Str("id", id).Msg("Failed to add lautern notes to summary")
+	}
 	return c.Redirect(302, c.Echo().Reverse("getStartHopping", id))
 }

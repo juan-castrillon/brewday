@@ -14,10 +14,10 @@ type Timeline interface {
 	AddEvent(message string)
 }
 
-// SummaryRecorder represents a component that records a summary
-type SummaryRecorder interface {
+// SummaryRecorderStore represents a component that stores summary recorders
+type SummaryRecorderStore interface {
 	// AddLauternNotes adds lautern notes to the summary
-	AddLaunternNotes(notes string)
+	AddLaunternNotes(id, notes string) error
 }
 
 // ReqPostLautern represents the request body for the postLauternHandler

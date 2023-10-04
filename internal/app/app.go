@@ -82,9 +82,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore: ss,
 		},
 		&lautern.LauternRouter{
-			Store:   store,
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TL:           a.TL,
+			SummaryStore: ss,
 		},
 		&hopping.HoppingRouter{
 			Store:   store,
