@@ -1,7 +1,8 @@
 # BrewDay
 
+![logo](https://github.com/juan-castrillon/brewday/assets/64461123/e731b058-5592-46b5-ac2a-6cd0d6416127)
 
-![logo](https://github.com/juan-castrillon/brewday/assets/64461123/5c7ad1bd-34d9-4b3f-8621-0c97e55d77a5)
+
 
 BrewDay is a self-contained web application aimed at helping homebrewers with their brewing process. 
 
