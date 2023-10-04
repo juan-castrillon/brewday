@@ -87,9 +87,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore: ss,
 		},
 		&hopping.HoppingRouter{
-			Store:   store,
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TL:           a.TL,
+			SummaryStore: ss,
 		},
 		&cooling.CoolingRouter{
 			Store:   store,

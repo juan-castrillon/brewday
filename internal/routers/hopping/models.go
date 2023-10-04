@@ -14,14 +14,14 @@ type Timeline interface {
 	AddEvent(message string)
 }
 
-// SummaryRecorder represents a component that records a summary
-type SummaryRecorder interface {
+// SummaryRecorderStore represents a component that stores summary recorders
+type SummaryRecorderStore interface {
 	// AddHopping adds a hopping to the summary and notes related to it
-	AddHopping(name string, amount float32, alpha float32, duration float32, notes string)
+	AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error
 	// AddMeasuredVolume adds a measured volume to the summary
-	AddMeasuredVolume(name string, amount float32, notes string)
+	AddMeasuredVolume(id string, name string, amount float32, notes string) error
 	// AddEvaporation adds an evaporation to the summary
-	AddEvaporation(amount float32)
+	AddEvaporation(id string, amount float32) error
 }
 
 // ReqPostStartHopping is the request for the start hopping route

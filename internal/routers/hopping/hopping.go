@@ -9,12 +9,13 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
 type HoppingRouter struct {
 	Store           RecipeStore
 	TL              Timeline
-	Summary         SummaryRecorder
+	SummaryStore    SummaryRecorderStore
 	ingredientCache map[string]ingredientList
 	initialVolCache map[string]float32
 }
@@ -27,24 +28,27 @@ func (r *HoppingRouter) addTimelineEvent(message string) {
 }
 
 // addSummaryHopping adds a hopping to the summary and notes related to it
-func (r *HoppingRouter) addSummaryHopping(name string, amount float32, alpha float32, duration float32, notes string) {
-	if r.Summary != nil {
-		r.Summary.AddHopping(name, amount, alpha, duration, notes)
+func (r *HoppingRouter) addSummaryHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddHopping(id, name, amount, alpha, duration, notes)
 	}
+	return nil
 }
 
 // addSummaryMeasuredVolume adds a measured volume to the summary
-func (r *HoppingRouter) addSummaryMeasuredVolume(name string, amount float32, notes string) {
-	if r.Summary != nil {
-		r.Summary.AddMeasuredVolume(name, amount, notes)
+func (r *HoppingRouter) addSummaryMeasuredVolume(id string, name string, amount float32, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddMeasuredVolume(id, name, amount, notes)
 	}
+	return nil
 }
 
 // addSummaryEvaporation adds an evaporation to the summary
-func (r *HoppingRouter) addSummaryEvaporation(amount float32) {
-	if r.Summary != nil {
-		r.Summary.AddEvaporation(amount)
+func (r *HoppingRouter) addSummaryEvaporation(id string, amount float32) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddEvaporation(id, amount)
 	}
+	return nil
 }
 
 // storeIngredients stores the ingredients in the router
@@ -129,7 +133,10 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addSummaryMeasuredVolume("Measured volume before boiling", req.InitialVolume, req.Notes)
+	err = r.addSummaryMeasuredVolume(id, "Measured volume before boiling", req.InitialVolume, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
+	}
 	r.storeInitialVolume(id, req.InitialVolume)
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getBoiling", id))
 }
@@ -240,7 +247,10 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 		} else {
 			ingredient := ings[ingrNum]
 			r.addTimelineEvent("Added " + ingredient.Name)
-			r.addSummaryHopping(ingredient.Name, req.RealAmount, req.RealAlpha, req.RealDuration, "")
+			err = r.addSummaryHopping(id, ingredient.Name, req.RealAmount, req.RealAlpha, req.RealDuration, "")
+			if err != nil {
+				log.Error().Str("id", id).Err(err).Msg("could not add hopping to summary")
+			}
 		}
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getHopping", id, ingrNum+1))
@@ -289,8 +299,14 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addSummaryMeasuredVolume("Measured volume after boiling", req.FinalVolume, req.Notes)
+	err = r.addSummaryMeasuredVolume(id, "Measured volume after boiling", req.FinalVolume, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
+	}
 	evap := tools.CalculateEvaporation(initialVol, req.FinalVolume, re.Hopping.TotalCookingTime)
-	r.addSummaryEvaporation(evap)
+	err = r.addSummaryEvaporation(id, evap)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add evaporation to summary")
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getCooling", id))
 }
