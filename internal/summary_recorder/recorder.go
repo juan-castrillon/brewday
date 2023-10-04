@@ -25,8 +25,8 @@ type SummaryRecorder interface {
 	Close()
 	// GetSummary returns the summary
 	GetSummary() string
-	// GetExtention returns the extention of the summary
-	GetExtention() string
+	// GetExtension returns the extention of the summary
+	GetExtension() string
 	// AddTimeline adds a timeline to the summary
 	AddTimeline(timeline []string)
 }
