@@ -118,3 +118,33 @@ func (s *SummaryRecorderStore) AddCooling(id string, finalTemp, coolingTime floa
 	rec.AddCooling(finalTemp, coolingTime, notes)
 	return nil
 }
+
+// AddSummaryPreFermentation adds a summary of the pre fermentation
+func (s *SummaryRecorderStore) AddSummaryPreFermentation(id string, volume float32, sg float32, notes string) error {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddSummaryPreFermentation(volume, sg, notes)
+	return nil
+}
+
+// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
+func (s *SummaryRecorderStore) AddEfficiency(id string, efficiencyPercentage float32) error {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddEfficiency(efficiencyPercentage)
+	return nil
+}
+
+// AddYeastStart adds the yeast start to the summary
+func (s *SummaryRecorderStore) AddYeastStart(id string, temperature, notes string) error {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddYeastStart(temperature, notes)
+	return nil
+}

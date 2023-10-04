@@ -8,14 +8,14 @@ type Timeline interface {
 	AddEvent(message string)
 }
 
-// SummaryRecorder represents a component that records a summary
-type SummaryRecorder interface {
+// SummaryRecorderStore represents a component that stores summary recorders
+type SummaryRecorderStore interface {
 	// AddSummaryPreFermentation adds a summary of the pre fermentation
-	AddSummaryPreFermentation(volume float32, sg float32, notes string)
+	AddSummaryPreFermentation(id string, volume float32, sg float32, notes string) error
 	// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
-	AddEfficiency(efficiencyPercentage float32)
+	AddEfficiency(id string, efficiencyPercentage float32) error
 	// AddYeastStart adds the yeast start to the summary
-	AddYeastStart(temperature, notes string)
+	AddYeastStart(id string, temperature, notes string) error
 }
 
 // RecipeStore represents a component that stores recipes

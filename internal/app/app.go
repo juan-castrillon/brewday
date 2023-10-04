@@ -97,9 +97,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore: ss,
 		},
 		&fermentation.FermentationRouter{
-			TL:      a.TL,
-			Summary: summ,
-			Store:   store,
+			TL:           a.TL,
+			SummaryStore: ss,
+			Store:        store,
 		},
 		&summary.SummaryRouter{
 			Summary: summ,

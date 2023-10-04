@@ -9,12 +9,13 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
 type FermentationRouter struct {
-	TL      Timeline
-	Summary SummaryRecorder
-	Store   RecipeStore
+	TL           Timeline
+	SummaryStore SummaryRecorderStore
+	Store        RecipeStore
 }
 
 // addTimelineEvent adds an event to the timeline
@@ -25,24 +26,27 @@ func (r *FermentationRouter) addTimelineEvent(message string) {
 }
 
 // addSummaryPreFermentation adds a pre fermentation summary
-func (r *FermentationRouter) addSummaryPreFermentation(volume, sg float32, notes string) {
-	if r.Summary != nil {
-		r.Summary.AddSummaryPreFermentation(volume, sg, notes)
+func (r *FermentationRouter) addSummaryPreFermentation(id string, volume, sg float32, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddSummaryPreFermentation(id, volume, sg, notes)
 	}
+	return nil
 }
 
 // addSummaryEfficiency adds an efficiency summary
-func (r *FermentationRouter) addSummaryEfficiency(efficiencyPercentage float32) {
-	if r.Summary != nil {
-		r.Summary.AddEfficiency(efficiencyPercentage)
+func (r *FermentationRouter) addSummaryEfficiency(id string, efficiencyPercentage float32) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddEfficiency(id, efficiencyPercentage)
 	}
+	return nil
 }
 
 // addSummaryYeastStart adds a yeast start summary
-func (r *FermentationRouter) addSummaryYeastStart(temperature, notes string) {
-	if r.Summary != nil {
-		r.Summary.AddYeastStart(temperature, notes)
+func (r *FermentationRouter) addSummaryYeastStart(id string, temperature, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddYeastStart(id, temperature, notes)
 	}
+	return nil
 }
 
 // registerRoutes registers the routes for the fermentation router
@@ -90,7 +94,10 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addSummaryPreFermentation(req.Volume, req.SG, req.Notes)
+	err = r.addSummaryPreFermentation(id, req.Volume, req.SG, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
+	}
 	volumeDiff := req.Volume - (re.BatchSize + 1) // +1 for the 1l of yeast
 	sgDiff := re.InitialSG - req.SG
 	redirect := "getPreFermentationWater"
@@ -169,9 +176,15 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 		return err
 	}
 	r.addTimelineEvent("Finished Adding Water")
-	r.addSummaryPreFermentation(req.FinalVolume, req.FinalSG, req.Notes)
+	err = r.addSummaryPreFermentation(id, req.FinalVolume, req.FinalSG, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
+	}
 	eff := tools.CalculateEfficiencySG(req.FinalSG, req.FinalVolume, re.Mashing.GetTotalMaltWeight())
-	r.addSummaryEfficiency(eff)
+	err = r.addSummaryEfficiency(id, eff)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
+	}
 	r.addTimelineEvent("Finished Pre Fermentation")
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentation", id))
 }
@@ -208,7 +221,10 @@ func (r *FermentationRouter) postFermentationHandler(c echo.Context) error {
 		return err
 	}
 	r.addTimelineEvent("Inserted Yeast")
-	r.addSummaryYeastStart(req.Temperature, req.Notes)
+	err = r.addSummaryYeastStart(id, req.Temperature, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add yeast start to summary")
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndFermentation", id))
 }
 
