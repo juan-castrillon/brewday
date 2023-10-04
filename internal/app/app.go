@@ -92,9 +92,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore: ss,
 		},
 		&cooling.CoolingRouter{
-			Store:   store,
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TL:           a.TL,
+			SummaryStore: ss,
 		},
 		&fermentation.FermentationRouter{
 			TL:      a.TL,

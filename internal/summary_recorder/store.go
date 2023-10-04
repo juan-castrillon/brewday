@@ -108,3 +108,13 @@ func (s *SummaryRecorderStore) AddEvaporation(id string, amount float32) error {
 	rec.AddEvaporation(amount)
 	return nil
 }
+
+// AddCooling adds a cooling to the summary and notes related to it
+func (s *SummaryRecorderStore) AddCooling(id string, finalTemp, coolingTime float32, notes string) error {
+	rec, err := s.GetSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddCooling(finalTemp, coolingTime, notes)
+	return nil
+}
