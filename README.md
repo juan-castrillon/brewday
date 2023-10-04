@@ -69,3 +69,5 @@ The app can be deployed as a Docker container, or as a standalone binary. In ord
 The recommended way to deploy the app is via Docker. In the `deployments` folder there is a `docker-compose.yml` file that can be used to deploy the app. The file can be used as is, or it can be used as a template to create a custom deployment.
 
 It also includes deployment of a [Gotify](https://gotify.net/) server, which is required for notifications to work. The Gotify server is deployed with a volume for the data, so it can be restarted without losing the data.
+
+In the same folder, a `docker-compose-arm.yaml` file is provided, which can be used to deploy the app on a Raspberry Pi. The file can be used as is, or it can be used as a template to create a custom deployment.
