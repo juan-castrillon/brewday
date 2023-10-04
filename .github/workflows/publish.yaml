@@ -12,9 +12,9 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: .Dockerfile
+          - dockerfile: ./Dockerfile
             image: jpcr3108/brewday
-          - dockerfile: .Dockerfile.arm
+          - dockerfile: ./Dockerfile.arm
             image: jpcr3108/brewday-arm
     steps:
       - name: Checkout
