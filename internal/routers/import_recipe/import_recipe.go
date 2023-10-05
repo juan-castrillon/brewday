@@ -22,6 +22,7 @@ var parsers = map[string]RecipeParser{
 type ImportRouter struct {
 	Store                RecipeStore
 	SummaryRecorderStore SummaryRecorderStore
+	TimelineStore        TimelineStore
 	TempCache            map[string]*recipe.Recipe
 }
 
@@ -129,6 +130,7 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	}
 	// TODO: make this configurable probably via the UI
 	r.SummaryRecorderStore.AddSummaryRecorder(id, "markdown")
+	r.TimelineStore.AddTimeline(id, "basic")
 	switch nextAction {
 	case "start":
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getRecipeStart", id))

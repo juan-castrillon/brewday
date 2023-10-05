@@ -19,3 +19,9 @@ type RecipeStore interface {
 type SummaryRecorderStore interface {
 	AddSummaryRecorder(recipeID string, recorderType string)
 }
+
+// TimelineStore represents a component that stores timelines
+// The recipe id is used as key
+type TimelineStore interface {
+	AddTimeline(recipeID string, timelineType string)
+}
