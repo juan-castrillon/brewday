@@ -19,12 +19,12 @@ type Renderer interface {
 	AddFunc(name string, fn any)
 }
 
-// Timeline represents a timeline of events
-type Timeline interface {
+// TimelineStore represents a component that stores timelines
+type TimelineStore interface {
 	// AddEvent adds an event to the timeline
-	AddEvent(message string)
+	AddEvent(id, message string) error
 	// GetTimeline returns a timeline of events
-	GetTimeline() []string
+	GetTimeline(id string) ([]string, error)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application

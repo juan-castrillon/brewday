@@ -41,7 +41,7 @@
         doneCallback();
     };
     function sendTimelineEvent(message) {
-        url = '{{ reverse "postTimelineEvent" }}'
+        url = '{{ reverse "postTimelineEvent" .RecipeID }}'
         axios.post(url, {
             message: message
         })

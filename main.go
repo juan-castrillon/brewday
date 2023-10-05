@@ -7,7 +7,7 @@ import (
 	"brewday/internal/render"
 	"brewday/internal/store/memory"
 	summaryrecorder "brewday/internal/summary_recorder"
-	"brewday/internal/timeline/basic"
+	"brewday/internal/timeline"
 	"context"
 	"embed"
 	"flag"
@@ -40,7 +40,7 @@ func main() {
 	components := &app.AppComponents{}
 	// Initialize components
 	components.Renderer = render.NewTemplateRenderer()
-	components.TL = basic.NewBasicTimeline()
+	components.TL = timeline.NewTimelineStore()
 	components.Store = memory.NewMemoryStore()
 	components.SummaryStore = summaryrecorder.NewSummaryRecorderStore()
 	if config.Notification.Enabled {

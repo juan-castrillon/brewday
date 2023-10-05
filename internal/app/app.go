@@ -32,14 +32,14 @@ type App struct {
 	staticFs fs.FS
 	routers  []common.Router
 	renderer Renderer
-	TL       Timeline
+	TLStore  TimelineStore
 	notifier Notifier
 }
 
 // AppComponents is the structure that contains the external components of the application
 type AppComponents struct {
 	Renderer     Renderer
-	TL           Timeline
+	TL           TimelineStore
 	Notifier     Notifier
 	Store        RecipeStore
 	SummaryStore SummaryRecorderStore
@@ -65,7 +65,7 @@ func (a *App) Initialize(components *AppComponents) error {
 	// Initialize internal components
 	store := components.Store
 	a.renderer = components.Renderer
-	a.TL = components.TL
+	a.TLStore = components.TL
 	a.notifier = components.Notifier
 	ss := components.SummaryStore
 	// Register routers
@@ -76,32 +76,32 @@ func (a *App) Initialize(components *AppComponents) error {
 		},
 		&mash.MashRouter{
 			Store:        store,
-			TL:           a.TL,
+			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
 		&lautern.LauternRouter{
 			Store:        store,
-			TL:           a.TL,
+			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
 		&hopping.HoppingRouter{
 			Store:        store,
-			TL:           a.TL,
+			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
 		&cooling.CoolingRouter{
 			Store:        store,
-			TL:           a.TL,
+			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
 		&fermentation.FermentationRouter{
-			TL:           a.TL,
+			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Store:        store,
 		},
 		&summary.SummaryRouter{
 			SummaryStore: ss,
-			TL:           a.TL,
+			TLStore:      a.TLStore,
 		},
 		&recipes.RecipesRouter{
 			Store: store,
@@ -159,7 +159,7 @@ func (a *App) RegisterRoutes() {
 	a.server.GET("/", func(c echo.Context) error {
 		return c.Redirect(302, a.server.Reverse("getImport"))
 	})
-	a.server.POST("/timeline", a.postTimelineEvent).Name = "postTimelineEvent"
+	a.server.POST("/timeline/:recipe_id", a.postTimelineEvent).Name = "postTimelineEvent"
 	a.server.POST("/notification", a.postNotification).Name = "postNotification"
 }
 

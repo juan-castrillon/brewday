@@ -10,20 +10,28 @@ import (
 )
 
 // addTimelineEvent adds an event to the timeline
-func (a *App) addTimelineEvent(message string) {
-	if a.TL != nil {
-		a.TL.AddEvent(message)
+func (a *App) addTimelineEvent(id, message string) error {
+	if a.TLStore != nil {
+		return a.TLStore.AddEvent(id, message)
 	}
+	return nil
 }
 
 // postTimelineEvent is the handler for sent timeline events
 func (a *App) postTimelineEvent(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
 	var req ReqPostTimelineEvent
 	err := c.Bind(&req)
 	if err != nil {
 		return err
 	}
-	a.addTimelineEvent(req.Message)
+	err = a.addTimelineEvent(id, req.Message)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	return c.NoContent(200)
 }
 
