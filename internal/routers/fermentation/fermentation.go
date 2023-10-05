@@ -53,8 +53,8 @@ func (r *FermentationRouter) addSummaryYeastStart(id string, temperature, notes 
 // registerRoutes registers the routes for the fermentation router
 func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	fermentation := parent.Group("/fermentation")
-	fermentation.GET("/:recipe_id", r.getFermentationHandler).Name = "getFermentation"
-	fermentation.POST("/:recipe_id", r.postFermentationHandler).Name = "postFermentation"
+	fermentation.GET("/start/:recipe_id", r.getFermentationStartHandler).Name = "getFermentationStart"
+	fermentation.POST("/start/:recipe_id", r.postFermentationStartHandler).Name = "postFermentationStart"
 	fermentation.GET("/pre/:recipe_id", r.getPreFermentationHandler).Name = "getPreFermentation"
 	fermentation.POST("/pre/:recipe_id", r.postPreFermentationHandler).Name = "postPreFermentation"
 	fermentation.GET("/pre/water/:recipe_id", r.getPreFermentationWaterHandler).Name = "getPreFermentationWater"
@@ -199,11 +199,11 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentation", id))
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentationStart", id))
 }
 
-// getFermentationHandler returns the handler for the fermentation page
-func (r *FermentationRouter) getFermentationHandler(c echo.Context) error {
+// getFermentationStartHandler returns the handler for the start fermentation page
+func (r *FermentationRouter) getFermentationStartHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
@@ -219,14 +219,15 @@ func (r *FermentationRouter) getFermentationHandler(c echo.Context) error {
 	re.SetStatus(recipe.RecipeStatusFermenting, "start")
 	return c.Render(http.StatusOK, "fermentation.html", map[string]interface{}{
 		"Title":       "Fermentation",
+		"Subtitle":    "Start Fermentation",
 		"RecipeID":    id,
 		"Yeast":       re.Fermentation.Yeast,
 		"Temperature": re.Fermentation.Temperature,
 	})
 }
 
-// postFermentationHandler handles the post request for the fermentation page
-func (r *FermentationRouter) postFermentationHandler(c echo.Context) error {
+// postFermentationStartHandler handles the post request for the start fermentation page
+func (r *FermentationRouter) postFermentationStartHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
