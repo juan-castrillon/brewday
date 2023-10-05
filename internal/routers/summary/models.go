@@ -12,8 +12,8 @@ type SummaryRecorderStore interface {
 	Close(id string) error
 }
 
-// Timeline represents a timeline of events
-type Timeline interface {
+// TimelineStore represents a component that stores timelines
+type TimelineStore interface {
 	// GetTimeline returns a timeline of events
-	GetTimeline() []string
+	GetTimeline(id string) ([]string, error)
 }

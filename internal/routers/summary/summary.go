@@ -9,7 +9,7 @@ import (
 
 type SummaryRouter struct {
 	SummaryStore SummaryRecorderStore
-	TL           Timeline
+	TLStore      TimelineStore
 }
 
 // getSummary returns the summary
@@ -45,11 +45,11 @@ func (r *SummaryRouter) closeSummary(id string) error {
 }
 
 // getTimeline returns the timeline
-func (r *SummaryRouter) getTimeline() []string {
-	if r.TL != nil {
-		return r.TL.GetTimeline()
+func (r *SummaryRouter) getTimeline(id string) ([]string, error) {
+	if r.TLStore != nil {
+		return r.TLStore.GetTimeline(id)
 	}
-	return []string{}
+	return []string{}, nil
 }
 
 // RegisterRoutes registers the routes for the summary router
@@ -64,14 +64,17 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	tl := r.getTimeline()
+	tl, err := r.getTimeline(id)
+	if err != nil {
+		return err
+	}
 	if len(tl) > 0 {
 		err := r.addTimeline(id, tl)
 		if err != nil {
 			return err
 		}
 	}
-	err := r.closeSummary(id)
+	err = r.closeSummary(id)
 	if err != nil {
 		return err
 	}
