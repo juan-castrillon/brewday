@@ -9,7 +9,7 @@ import (
 )
 
 type LauternRouter struct {
-	TL           Timeline
+	TLStore      TimelineStore
 	SummaryStore SummaryRecorderStore
 	Store        RecipeStore
 }
@@ -22,10 +22,11 @@ func (r *LauternRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 }
 
 // addTimelineEvent adds an event to the timeline
-func (r *LauternRouter) addTimelineEvent(message string) {
-	if r.TL != nil {
-		r.TL.AddEvent(message)
+func (r *LauternRouter) addTimelineEvent(id, message string) error {
+	if r.TLStore != nil {
+		return r.TLStore.AddEvent(id, message)
 	}
+	return nil
 }
 
 // addSummaryLauternNotes adds lautern notes to the summary
@@ -42,7 +43,10 @@ func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	r.addTimelineEvent("Started Läutern")
+	err := r.addTimelineEvent(id, "Started Läutern")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	re, err := r.Store.Retrieve(id)
 	if err != nil {
 		return err
@@ -69,7 +73,10 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	r.addTimelineEvent("Finished Läutern")
+	err = r.addTimelineEvent(id, "Finished Läutern")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	err = r.addSummaryLauternNotes(id, req.Notes)
 	if err != nil {
 		log.Error().Err(err).Str("id", id).Msg("Failed to add lautern notes to summary")

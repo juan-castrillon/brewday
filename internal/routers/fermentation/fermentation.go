@@ -13,16 +13,17 @@ import (
 )
 
 type FermentationRouter struct {
-	TL           Timeline
+	TLStore      TimelineStore
 	SummaryStore SummaryRecorderStore
 	Store        RecipeStore
 }
 
 // addTimelineEvent adds an event to the timeline
-func (r *FermentationRouter) addTimelineEvent(message string) {
-	if r.TL != nil {
-		r.TL.AddEvent(message)
+func (r *FermentationRouter) addTimelineEvent(id, message string) error {
+	if r.TLStore != nil {
+		return r.TLStore.AddEvent(id, message)
 	}
+	return nil
 }
 
 // addSummaryPreFermentation adds a pre fermentation summary
@@ -71,7 +72,10 @@ func (r *FermentationRouter) getPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent("Started Pre Fermentation")
+	err = r.addTimelineEvent(id, "Started Pre Fermentation")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	re.SetStatus(recipe.RecipeStatusPreFermentation, "measure")
 	return c.Render(http.StatusOK, "fermentation_pre.html", map[string]interface{}{
 		"Title":    "Pre Fermentation",
@@ -115,7 +119,10 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent("Started Pre Fermentation Water")
+	err = r.addTimelineEvent(id, "Started Pre Fermentation Water")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	volumeDiffRaw := c.QueryParam("volumeDiff")
 	sgDiffRaw := c.QueryParam("sgDiff")
 	options := []WaterOption{}
@@ -175,7 +182,10 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent("Finished Adding Water")
+	err = r.addTimelineEvent(id, "Finished Adding Water")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	err = r.addSummaryPreFermentation(id, req.FinalVolume, req.FinalSG, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
@@ -185,7 +195,10 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
 	}
-	r.addTimelineEvent("Finished Pre Fermentation")
+	err = r.addTimelineEvent(id, "Finished Pre Fermentation")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentation", id))
 }
 
@@ -199,7 +212,10 @@ func (r *FermentationRouter) getFermentationHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent("Started Fermentation")
+	err = r.addTimelineEvent(id, "Started Fermentation")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	re.SetStatus(recipe.RecipeStatusFermenting, "start")
 	return c.Render(http.StatusOK, "fermentation.html", map[string]interface{}{
 		"Title":       "Fermentation",
@@ -220,7 +236,10 @@ func (r *FermentationRouter) postFermentationHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent("Inserted Yeast")
+	err = r.addTimelineEvent(id, "Inserted Yeast")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	err = r.addSummaryYeastStart(id, req.Temperature, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add yeast start to summary")
@@ -244,7 +263,10 @@ func (r *FermentationRouter) getEndFermentationHandler(c echo.Context) error {
 			hops = append(hops, h)
 		}
 	}
-	r.addTimelineEvent("Finished Day")
+	err = r.addTimelineEvent(id, "Finished Day")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	re.SetStatus(recipe.RecipeStatusFinished)
 	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
 		"Title":     "End Fermentation",

@@ -14,17 +14,18 @@ import (
 
 type HoppingRouter struct {
 	Store           RecipeStore
-	TL              Timeline
+	TLStore         TimelineStore
 	SummaryStore    SummaryRecorderStore
 	ingredientCache map[string]ingredientList
 	initialVolCache map[string]float32
 }
 
 // addTimelineEvent adds an event to the timeline
-func (r *HoppingRouter) addTimelineEvent(message string) {
-	if r.TL != nil {
-		r.TL.AddEvent(message)
+func (r *HoppingRouter) addTimelineEvent(id, message string) error {
+	if r.TLStore != nil {
+		return r.TLStore.AddEvent(id, message)
 	}
+	return nil
 }
 
 // addSummaryHopping adds a hopping to the summary and notes related to it
@@ -108,7 +109,10 @@ func (r *HoppingRouter) getStartHoppingHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	r.addTimelineEvent("Started Hopping")
+	err := r.addTimelineEvent(id, "Started Hopping")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	re, err := r.Store.Retrieve(id)
 	if err != nil {
 		return err
@@ -127,9 +131,12 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	r.addTimelineEvent("Start heating up")
+	err := r.addTimelineEvent(id, "Start heating up")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	var req ReqPostStartHopping
-	err := c.Bind(&req)
+	err = c.Bind(&req)
 	if err != nil {
 		return err
 	}
@@ -243,10 +250,16 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 			return err
 		}
 		if ingrNum == len(ings) {
-			r.addTimelineEvent("Finished hopping boiling time")
+			err = r.addTimelineEvent(id, "Finished hopping boiling time")
+			if err != nil {
+				log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
+			}
 		} else {
 			ingredient := ings[ingrNum]
-			r.addTimelineEvent("Added " + ingredient.Name)
+			err = r.addTimelineEvent(id, "Added "+ingredient.Name)
+			if err != nil {
+				log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
+			}
 			err = r.addSummaryHopping(id, ingredient.Name, req.RealAmount, req.RealAlpha, req.RealDuration, "")
 			if err != nil {
 				log.Error().Str("id", id).Err(err).Msg("could not add hopping to summary")
@@ -271,7 +284,10 @@ func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 		return err
 	}
 	re.SetStatus(recipe.RecipeStatusBoiling, "finalVol")
-	r.addTimelineEvent("Finished Hopping")
+	err = r.addTimelineEvent(id, "Finished Hopping")
+	if err != nil {
+		log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
+	}
 	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
 		"Title":    "Hopping " + re.Name,
 		"Subtitle": "4. Measure volume after boiling",
@@ -289,7 +305,10 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent("Boil finished")
+	err = r.addTimelineEvent(id, "Boil finished")
+	if err != nil {
+		log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
+	}
 	var req ReqPostEndHopping
 	err = c.Bind(&req)
 	if err != nil {

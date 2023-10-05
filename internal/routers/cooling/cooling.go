@@ -11,7 +11,7 @@ import (
 
 type CoolingRouter struct {
 	Store        RecipeStore
-	TL           Timeline
+	TLStore      TimelineStore
 	SummaryStore SummaryRecorderStore
 }
 

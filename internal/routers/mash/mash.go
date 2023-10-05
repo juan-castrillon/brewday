@@ -13,7 +13,7 @@ import (
 
 type MashRouter struct {
 	Store        RecipeStore
-	TL           Timeline
+	TLStore      TimelineStore
 	SummaryStore SummaryRecorderStore
 }
 
@@ -25,10 +25,11 @@ func (r *MashRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 }
 
 // addTimelineEvent adds an event to the timeline
-func (r *MashRouter) addTimelineEvent(message string) {
-	if r.TL != nil {
-		r.TL.AddEvent(message)
+func (r *MashRouter) addTimelineEvent(id, message string) error {
+	if r.TLStore != nil {
+		return r.TLStore.AddEvent(id, message)
 	}
+	return nil
 }
 
 // addSummaryMashTemp adds a mash temperature to the summary and notes related to it
@@ -58,7 +59,10 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 		return err
 	}
 	re.SetStatus(recipe.RecipeStatusMashing, "start")
-	r.addTimelineEvent("Started mashing")
+	err = r.addTimelineEvent(id, "Started mashing")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
 	return c.Render(200, "mash_start.html", map[string]interface{}{
 		"Title":        "Mash " + re.Name,
 		"MainWater":    re.Mashing.MainWaterVolume,
@@ -127,7 +131,10 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	}
 	switch rastNum {
 	case 0:
-		r.addTimelineEvent("Finished Einmaischen")
+		err = r.addTimelineEvent(id, "Finished Einmaischen")
+		if err != nil {
+			log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+		}
 		var req ReqPostFirstRast
 		err := c.Bind(&req)
 		if err != nil {
@@ -138,7 +145,10 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 			log.Error().Str("id", id).Err(err).Msg("could not add mash temp to summary")
 		}
 	case len(re.Mashing.Rasts):
-		r.addTimelineEvent("Finished mashing")
+		err = r.addTimelineEvent(id, "Finished mashing")
+		if err != nil {
+			log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+		}
 		return c.Redirect(302, c.Echo().Reverse("getLautern", id))
 	default:
 		var req ReqPostRasts

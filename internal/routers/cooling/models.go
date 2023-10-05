@@ -2,10 +2,10 @@ package cooling
 
 import "brewday/internal/recipe"
 
-// Timeline represents a timeline of events
-type Timeline interface {
+// TimelineStore represents a component that stores timelines
+type TimelineStore interface {
 	// AddEvent adds an event to the timeline
-	AddEvent(message string)
+	AddEvent(id, message string) error
 }
 
 // SummaryRecorderStore represents a component that stores summary recorders
