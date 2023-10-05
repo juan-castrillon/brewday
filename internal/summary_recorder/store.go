@@ -30,8 +30,8 @@ func SummaryRecorderFactory(recorderType string) SummaryRecorder {
 	}
 }
 
-// GetSummaryRecorder returns the summary recorder for the given recipe id
-func (s *SummaryRecorderStore) GetSummaryRecorder(recipeID string) (SummaryRecorder, error) {
+// getSummaryRecorder returns the summary recorder for the given recipe id
+func (s *SummaryRecorderStore) getSummaryRecorder(recipeID string) (SummaryRecorder, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sr, ok := s.summaryRecorders[recipeID]
@@ -51,7 +51,7 @@ func (s *SummaryRecorderStore) AddSummaryRecorder(recipeID string, recorderType 
 
 // AddMashTemp adds a mash temperature to the summary and notes related to it
 func (s *SummaryRecorderStore) AddMashTemp(id string, temp float64, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -61,7 +61,7 @@ func (s *SummaryRecorderStore) AddMashTemp(id string, temp float64, notes string
 
 // AddRast adds a rast to the summary and notes related to it
 func (s *SummaryRecorderStore) AddRast(id string, temp float64, duration float64, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func (s *SummaryRecorderStore) AddRast(id string, temp float64, duration float64
 
 // AddLauternNotes adds lautern notes to the summary
 func (s *SummaryRecorderStore) AddLaunternNotes(id, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (s *SummaryRecorderStore) AddLaunternNotes(id, notes string) error {
 
 // AddHopping adds a hopping to the summary and notes related to it
 func (s *SummaryRecorderStore) AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func (s *SummaryRecorderStore) AddHopping(id string, name string, amount float32
 
 // AddMeasuredVolume adds a measured volume to the summary
 func (s *SummaryRecorderStore) AddMeasuredVolume(id string, name string, amount float32, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func (s *SummaryRecorderStore) AddMeasuredVolume(id string, name string, amount 
 
 // AddEvaporation adds an evaporation to the summary
 func (s *SummaryRecorderStore) AddEvaporation(id string, amount float32) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -111,7 +111,7 @@ func (s *SummaryRecorderStore) AddEvaporation(id string, amount float32) error {
 
 // AddCooling adds a cooling to the summary and notes related to it
 func (s *SummaryRecorderStore) AddCooling(id string, finalTemp, coolingTime float32, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -121,7 +121,7 @@ func (s *SummaryRecorderStore) AddCooling(id string, finalTemp, coolingTime floa
 
 // AddSummaryPreFermentation adds a summary of the pre fermentation
 func (s *SummaryRecorderStore) AddSummaryPreFermentation(id string, volume float32, sg float32, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (s *SummaryRecorderStore) AddSummaryPreFermentation(id string, volume float
 
 // AddEfficiency adds the efficiency (sudhausausbeute) to the summary
 func (s *SummaryRecorderStore) AddEfficiency(id string, efficiencyPercentage float32) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (s *SummaryRecorderStore) AddEfficiency(id string, efficiencyPercentage flo
 
 // AddYeastStart adds the yeast start to the summary
 func (s *SummaryRecorderStore) AddYeastStart(id string, temperature, notes string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -151,7 +151,7 @@ func (s *SummaryRecorderStore) AddYeastStart(id string, temperature, notes strin
 
 // AddTimeline adds a timeline to the summary
 func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
@@ -161,7 +161,7 @@ func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
 
 // GetSummary returns the summary
 func (s *SummaryRecorderStore) GetSummary(id string) (string, error) {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return "", err
 	}
@@ -170,7 +170,7 @@ func (s *SummaryRecorderStore) GetSummary(id string) (string, error) {
 
 // GetExtension returns the extension of the summary
 func (s *SummaryRecorderStore) GetExtension(id string) (string, error) {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return "", err
 	}
@@ -179,7 +179,7 @@ func (s *SummaryRecorderStore) GetExtension(id string) (string, error) {
 
 // Close closes the summary recorder
 func (s *SummaryRecorderStore) Close(id string) error {
-	rec, err := s.GetSummaryRecorder(id)
+	rec, err := s.getSummaryRecorder(id)
 	if err != nil {
 		return err
 	}
