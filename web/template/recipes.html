@@ -17,7 +17,10 @@
                             <br>
                             <b>Status: </b>{{ recipeStatus $recipe }}
                         </p>
-                        <a href='{{ reverse "getContinue" $recipe.ID }}' class="secondary-content"><i class="medium material-icons">play_arrow</i></a>
+                        <div class="secondary-content">
+                            <a href='{{ reverse "getContinue" $recipe.ID }}' class="btn-floating waves-effect waves-light"><i class="material-icons">play_arrow</i></a>&nbsp;
+                            <a href='{{ reverse "deleteRecipe" $recipe.ID }}' class="btn-floating waves-effect waves-light red"><i class="material-icons">delete</i></a>
+                        </div>
                     </li>
                     {{ end }}
                 </ul>

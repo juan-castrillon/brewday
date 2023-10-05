@@ -49,6 +49,13 @@ func (s *SummaryRecorderStore) AddSummaryRecorder(recipeID string, recorderType 
 	s.summaryRecorders[recipeID] = summaryRecorder
 }
 
+// DeleteSummaryRecorder deletes the summary recorder for the given recipe id
+func (s *SummaryRecorderStore) DeleteSummaryRecorder(recipeID string) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	delete(s.summaryRecorders, recipeID)
+}
+
 // AddMashTemp adds a mash temperature to the summary and notes related to it
 func (s *SummaryRecorderStore) AddMashTemp(id string, temp float64, notes string) error {
 	rec, err := s.getSummaryRecorder(id)

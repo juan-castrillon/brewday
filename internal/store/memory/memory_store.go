@@ -59,3 +59,15 @@ func (s *MemoryStore) List() ([]*recipe.Recipe, error) {
 	}
 	return recipes, nil
 }
+
+// Delete deletes a recipe
+func (s *MemoryStore) Delete(id string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	_, ok := s.recipes[id]
+	if !ok {
+		return errors.New("recipe not found")
+	}
+	delete(s.recipes, id)
+	return nil
+}

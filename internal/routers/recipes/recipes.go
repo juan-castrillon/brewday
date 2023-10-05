@@ -12,7 +12,9 @@ import (
 )
 
 type RecipesRouter struct {
-	Store RecipeStore
+	Store        RecipeStore
+	TLStore      TimelineStore
+	SummaryStore SummaryRecorderStore
 }
 
 func (r *RecipesRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
@@ -20,6 +22,7 @@ func (r *RecipesRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	recipes.GET("", r.getRecipesHandler).Name = "getRecipes"
 	recipes.GET("/continue/:recipe_id", r.getContinueHandler).Name = "getContinue"
 	recipes.GET("/start/:recipe_id", r.getStartHandler).Name = "getRecipeStart"
+	recipes.GET("/delete/:recipe_id", r.deleteRecipeHandler).Name = "deleteRecipe"
 }
 
 // getRecipeList returns the list of recipes
@@ -76,6 +79,21 @@ func (r *RecipesRouter) getContinueHandler(c echo.Context) error {
 		return err
 	}
 	return c.Redirect(http.StatusFound, redirectURL)
+}
+
+// deleteRecipeHandler is the handler for the delete button on the recipes page
+func (r *RecipesRouter) deleteRecipeHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	err := r.Store.Delete(id)
+	if err != nil {
+		return err
+	}
+	r.SummaryStore.DeleteSummaryRecorder(id)
+	r.TLStore.DeleteTimeline(id)
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getRecipes"))
 }
 
 // statusRedirectURL returns the URL to redirect to based on the status of the recipe

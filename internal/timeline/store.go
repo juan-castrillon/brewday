@@ -49,6 +49,13 @@ func (s *TimelineStore) AddTimeline(recipeID string, timelineType string) {
 	s.timelines[recipeID] = timeline
 }
 
+// DeleteTimeline deletes the timeline for the given recipe id
+func (s *TimelineStore) DeleteTimeline(recipeID string) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	delete(s.timelines, recipeID)
+}
+
 // AddEvent adds an event to the timeline for the given recipe id
 func (s *TimelineStore) AddEvent(id string, message string) error {
 	tl, err := s.getTimelineFromStore(id)

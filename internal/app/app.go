@@ -105,7 +105,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 		},
 		&recipes.RecipesRouter{
-			Store: store,
+			Store:        store,
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
 		},
 	}
 	a.RegisterStaticFiles()

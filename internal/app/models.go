@@ -27,6 +27,8 @@ type TimelineStore interface {
 	GetTimeline(id string) ([]string, error)
 	// AddTimeline adds a timeline to the store
 	AddTimeline(recipeID string, timelineType string)
+	// DeleteTimeline deletes the timeline for the given recipe id
+	DeleteTimeline(recipeID string)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application
@@ -44,6 +46,8 @@ type RecipeStore interface {
 	Retrieve(id string) (*recipe.Recipe, error)
 	// List lists all the recipes
 	List() ([]*recipe.Recipe, error)
+	// Delete deletes a recipe based on an identifier
+	Delete(id string) error
 }
 
 // SummaryRecorderStore is the interface that helps decouple the summary recorder store from the application
@@ -79,6 +83,8 @@ type SummaryRecorderStore interface {
 	GetExtension(id string) (string, error)
 	// Close closes the summary recorder
 	Close(id string) error
+	// DeleteSummaryRecorder deletes the summary recorder for the given recipe id
+	DeleteSummaryRecorder(recipeID string)
 }
 
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent
