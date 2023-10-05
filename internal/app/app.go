@@ -73,6 +73,7 @@ func (a *App) Initialize(components *AppComponents) error {
 		&import_recipe.ImportRouter{
 			Store:                store,
 			SummaryRecorderStore: ss,
+			TLStore:              a.TLStore,
 		},
 		&mash.MashRouter{
 			Store:        store,

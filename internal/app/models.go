@@ -25,6 +25,8 @@ type TimelineStore interface {
 	AddEvent(id, message string) error
 	// GetTimeline returns a timeline of events
 	GetTimeline(id string) ([]string, error)
+	// AddTimeline adds a timeline to the store
+	AddTimeline(recipeID string, timelineType string)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application
