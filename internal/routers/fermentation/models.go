@@ -46,8 +46,15 @@ type ReqPostPreFermentationWater struct {
 	Notes       string  `json:"notes" form:"notes"`
 }
 
-// ReqPostFermentation represents the request for the post fermentation page
-type ReqPostFermentation struct {
+// ReqPostFermentationYeast represents the request for the post yeast fermentation page
+type ReqPostFermentationYeast struct {
 	Temperature string `json:"temperature" form:"temperature"` // string because it can be a range
 	Notes       string `json:"notes" form:"notes"`
+}
+
+// ReqPostFermentationStart represents the request for the post fermentation start page
+type ReqPostFermentationStart struct {
+	NotificationDays int    `json:"notification_days" form:"notification_days"`
+	TimeUnit         string `json:"time_unit" form:"time_unit"`
+	Notes            string `json:"notes" form:"notes"`
 }

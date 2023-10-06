@@ -4,9 +4,11 @@ import (
 	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 	"brewday/internal/tools"
+	"brewday/internal/watcher"
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -53,12 +55,14 @@ func (r *FermentationRouter) addSummaryYeastStart(id string, temperature, notes 
 // registerRoutes registers the routes for the fermentation router
 func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	fermentation := parent.Group("/fermentation")
-	fermentation.GET("/start/:recipe_id", r.getFermentationStartHandler).Name = "getFermentationStart"
-	fermentation.POST("/start/:recipe_id", r.postFermentationStartHandler).Name = "postFermentationStart"
 	fermentation.GET("/pre/:recipe_id", r.getPreFermentationHandler).Name = "getPreFermentation"
 	fermentation.POST("/pre/:recipe_id", r.postPreFermentationHandler).Name = "postPreFermentation"
 	fermentation.GET("/pre/water/:recipe_id", r.getPreFermentationWaterHandler).Name = "getPreFermentationWater"
 	fermentation.POST("/pre/water/:recipe_id", r.postPreFermentationWaterHandler).Name = "postPreFermentationWater"
+	fermentation.GET("/yeast/:recipe_id", r.getFermentationYeastHandler).Name = "getFermentationYeast"
+	fermentation.POST("/yeast/:recipe_id", r.postFermentationYeastHandler).Name = "postFermentationYeast"
+	fermentation.GET("/start/:recipe_id", r.getMainFermentationStartHandler).Name = "getMainFermentationStart"
+	fermentation.POST("/start/:recipe_id", r.postMainFermentationStartHandler).Name = "postMainFermentationStart"
 	root.GET("/end/:recipe_id", r.getEndFermentationHandler).Name = "getEndFermentation"
 }
 
@@ -199,11 +203,11 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentationStart", id))
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getFermentationYeast", id))
 }
 
-// getFermentationStartHandler returns the handler for the start fermentation page
-func (r *FermentationRouter) getFermentationStartHandler(c echo.Context) error {
+// getFermentationYeastHandler returns the handler for the start fermentation (yeast) page
+func (r *FermentationRouter) getFermentationYeastHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
@@ -216,8 +220,8 @@ func (r *FermentationRouter) getFermentationStartHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	re.SetStatus(recipe.RecipeStatusFermenting, "start")
-	return c.Render(http.StatusOK, "fermentation.html", map[string]interface{}{
+	re.SetStatus(recipe.RecipeStatusFermenting, "yeast")
+	return c.Render(http.StatusOK, "fermentation_yeast.html", map[string]interface{}{
 		"Title":       "Fermentation",
 		"Subtitle":    "Start Fermentation",
 		"RecipeID":    id,
@@ -226,13 +230,13 @@ func (r *FermentationRouter) getFermentationStartHandler(c echo.Context) error {
 	})
 }
 
-// postFermentationStartHandler handles the post request for the start fermentation page
-func (r *FermentationRouter) postFermentationStartHandler(c echo.Context) error {
+// postFermentationYeastHandler handles the post request for the start fermentation (yeast) page
+func (r *FermentationRouter) postFermentationYeastHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	var req ReqPostFermentation
+	var req ReqPostFermentationYeast
 	err := c.Bind(&req)
 	if err != nil {
 		return err
@@ -245,6 +249,65 @@ func (r *FermentationRouter) postFermentationStartHandler(c echo.Context) error 
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add yeast start to summary")
 	}
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentationStart", id))
+}
+
+// getMainFermentationHandler returns the handler for the main fermentation page
+func (r *FermentationRouter) getMainFermentationStartHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	re.SetStatus(recipe.RecipeStatusFermenting, "start")
+	return c.Render(http.StatusOK, "fermentation_start.html", map[string]interface{}{
+		"Title":              "Fermentation",
+		"Subtitle":           "Set notification",
+		"RecipeID":           id,
+		"RecommendedMinDays": 7,
+		"RecommendedDays":    10,
+	})
+}
+
+// postMainFermentationHandler handles the post request for the main fermentation page
+func (r *FermentationRouter) postMainFermentationStartHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	var req ReqPostFermentationStart
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	var notificationDate1, notificationDate2 time.Time
+	// We want to notify the user the day before and on the day of the notification so SG can be measured and verified to be stable
+	switch req.TimeUnit {
+	case "days":
+		notificationDate1 = now.AddDate(0, 0, req.NotificationDays-1)
+		notificationDate2 = now.AddDate(0, 0, req.NotificationDays)
+	case "seconds": // This is mainly for testing
+		notificationDate1 = now.Add(time.Duration(req.NotificationDays-1) * time.Second)
+		notificationDate2 = now.Add(time.Duration(req.NotificationDays) * time.Second)
+	default:
+		return fmt.Errorf("unknown time unit %s", req.TimeUnit)
+	}
+	w1 := watcher.NewWatcher(notificationDate1, func() error {
+		// TODO: add notification
+		log.Info().Str("id", id).Msg("notification 1")
+		return nil
+	})
+	w2 := watcher.NewWatcher(notificationDate2, func() error {
+		// TODO: add notification
+		log.Info().Str("id", id).Msg("notification 2")
+		return nil
+	})
+	w1.Start()
+	w2.Start()
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndFermentation", id))
 }
 

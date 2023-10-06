@@ -167,7 +167,18 @@ func (r *RecipesRouter) statusRedirectURL(c echo.Context, re *recipe.Recipe, id 
 			return "", errors.New("invalid parameter for pre-fermentation status")
 		}
 	case recipe.RecipeStatusFermenting:
-		return c.Echo().Reverse("getFermentationStart", id), nil
+		param1, ok := params[0].(string)
+		if !ok {
+			return "", errors.New("invalid parameter for fermentation status")
+		}
+		switch param1 {
+		case "yeast":
+			return c.Echo().Reverse("getFermentationYeast", id), nil
+		case "start":
+			return c.Echo().Reverse("getMainFermentationStart", id), nil
+		default:
+			return "", errors.New("invalid parameter for fermentation status")
+		}
 	case recipe.RecipeStatusFinished:
 		return c.Echo().Reverse("getEndFermentation", id), nil
 	default:
