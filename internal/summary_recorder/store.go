@@ -156,6 +156,16 @@ func (s *SummaryRecorderStore) AddYeastStart(id string, temperature, notes strin
 	return nil
 }
 
+// AddSGMeasurement adds a SG measurement to the summary
+func (s *SummaryRecorderStore) AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error {
+	rec, err := s.getSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddSGMeasurement(date, gravity, final, notes)
+	return nil
+}
+
 // AddTimeline adds a timeline to the summary
 func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
 	rec, err := s.getSummaryRecorder(id)

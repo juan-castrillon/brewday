@@ -1,6 +1,19 @@
 package fermentation
 
-import "brewday/internal/recipe"
+import (
+	"brewday/internal/recipe"
+	"brewday/internal/watcher"
+)
+
+type SGMeasurement struct {
+	Date    string
+	Gravity float32
+}
+
+type FermentationStatus struct {
+	MinDaysPassed bool
+	InitialWatch  *watcher.Watcher
+}
 
 // TimelineStore represents a component that stores timelines
 type TimelineStore interface {
@@ -16,12 +29,20 @@ type SummaryRecorderStore interface {
 	AddEfficiency(id string, efficiencyPercentage float32) error
 	// AddYeastStart adds the yeast start to the summary
 	AddYeastStart(id string, temperature, notes string) error
+	// AddSGMeasurement adds a SG measurement to the summary
+	AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
 }
 
 // RecipeStore represents a component that stores recipes
 type RecipeStore interface {
 	// Retrieve retrieves a recipe based on an identifier
 	Retrieve(id string) (*recipe.Recipe, error)
+}
+
+// Notifier is the interface that helps decouple the notifier from the application
+type Notifier interface {
+	// Send sends a notification
+	Send(message, title string, opts map[string]any) error
 }
 
 // ReqPostPreFermentation represents the request for the post pre fermentation page
@@ -54,7 +75,14 @@ type ReqPostFermentationYeast struct {
 
 // ReqPostFermentationStart represents the request for the post fermentation start page
 type ReqPostFermentationStart struct {
-	NotificationDays int    `json:"notification_days" form:"notification_days"`
-	TimeUnit         string `json:"time_unit" form:"time_unit"`
-	Notes            string `json:"notes" form:"notes"`
+	NotificationDays       int    `json:"notification_days" form:"notification_days"`
+	NotificationDaysBefore int    `json:"notification_days_before" form:"notification_days_before"`
+	TimeUnit               string `json:"time_unit" form:"time_unit"`
+}
+
+// ReqPostMainFermentation represents the request for the post main fermentation page
+type ReqPostMainFermentation struct {
+	SG    float32 `json:"sg" form:"sg"`
+	Final bool    `json:"final" form:"final"`
+	Notes string  `json:"notes" form:"notes"`
 }

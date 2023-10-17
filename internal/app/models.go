@@ -75,6 +75,8 @@ type SummaryRecorderStore interface {
 	AddEfficiency(id string, efficiencyPercentage float32) error
 	// AddYeastStart adds the yeast start to the summary
 	AddYeastStart(id string, temperature, notes string) error
+	// AddSGMeasurement adds a SG measurement to the summary
+	AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
 	// AddTimeline adds a timeline to the summary
 	AddTimeline(id string, timeline []string) error
 	// GetSummary returns the summary

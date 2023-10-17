@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -15,9 +16,88 @@ import (
 )
 
 type FermentationRouter struct {
-	TLStore      TimelineStore
-	SummaryStore SummaryRecorderStore
-	Store        RecipeStore
+	TLStore       TimelineStore
+	SummaryStore  SummaryRecorderStore
+	Store         RecipeStore
+	Notifier      Notifier
+	statusMapLock sync.Mutex
+	sgMapLock     sync.Mutex
+	// MainFermentationStatus is a map of recipe id to whether the main fermentation minimum days have passed
+	MainFermentationStatus map[string]*FermentationStatus
+	// SGMeasurements is a map of recipe id to the SG measurements
+	SGMeasurements map[string][]SGMeasurement
+}
+
+// sendNotification sends a notification if the notifier is available
+func (r *FermentationRouter) sendNotification(message, title string, opts map[string]interface{}) error {
+	if r.Notifier != nil {
+		return r.Notifier.Send(message, title, opts)
+	}
+	return nil
+}
+
+// addMainFermentationStatus adds a main fermentation status to a recipe id
+func (r *FermentationRouter) addMainFermentationStatus(id string, status bool) {
+	r.statusMapLock.Lock()
+	defer r.statusMapLock.Unlock()
+	if r.MainFermentationStatus == nil {
+		r.MainFermentationStatus = make(map[string]*FermentationStatus)
+	}
+	_, ok := r.MainFermentationStatus[id]
+	if !ok {
+		r.MainFermentationStatus[id] = &FermentationStatus{}
+	}
+	r.MainFermentationStatus[id].MinDaysPassed = status
+}
+
+// addMainFermentationWatcher adds a watcher to a recipe id
+func (r *FermentationRouter) addMainFermentationWatcher(id string, w *watcher.Watcher) {
+	r.statusMapLock.Lock()
+	defer r.statusMapLock.Unlock()
+	if r.MainFermentationStatus == nil {
+		r.MainFermentationStatus = make(map[string]*FermentationStatus)
+	}
+	_, ok := r.MainFermentationStatus[id]
+	if !ok {
+		r.MainFermentationStatus[id] = &FermentationStatus{}
+	}
+	r.MainFermentationStatus[id].InitialWatch = w
+}
+
+// getMainFermentationStatus returns the main fermentation status for a recipe id
+func (r *FermentationRouter) getMainFermentationStatus(id string) (*FermentationStatus, error) {
+	r.statusMapLock.Lock()
+	defer r.statusMapLock.Unlock()
+	status, ok := r.MainFermentationStatus[id]
+	if !ok {
+		return nil, fmt.Errorf("no status for id %s", id)
+	}
+	return status, nil
+}
+
+// addSGMeasurement adds an SG measurement to a recipe id
+func (r *FermentationRouter) addSGMeasurement(id string, sg SGMeasurement) {
+	r.sgMapLock.Lock()
+	defer r.sgMapLock.Unlock()
+	if r.SGMeasurements == nil {
+		r.SGMeasurements = make(map[string][]SGMeasurement)
+	}
+	_, ok := r.SGMeasurements[id]
+	if !ok {
+		r.SGMeasurements[id] = []SGMeasurement{}
+	}
+	r.SGMeasurements[id] = append(r.SGMeasurements[id], sg)
+}
+
+// getSGMeasurements returns the SG measurements for a recipe id
+func (r *FermentationRouter) getSGMeasurements(id string) ([]SGMeasurement, error) {
+	r.sgMapLock.Lock()
+	defer r.sgMapLock.Unlock()
+	sgs, ok := r.SGMeasurements[id]
+	if !ok {
+		return []SGMeasurement{}, nil
+	}
+	return sgs, nil
 }
 
 // addTimelineEvent adds an event to the timeline
@@ -52,6 +132,14 @@ func (r *FermentationRouter) addSummaryYeastStart(id string, temperature, notes 
 	return nil
 }
 
+// addSummarySGMeasurement adds a SG measurement to the summary
+func (r *FermentationRouter) addSummarySGMeasurement(id string, m SGMeasurement, final bool, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddSGMeasurement(id, m.Date, m.Gravity, final, notes)
+	}
+	return nil
+}
+
 // registerRoutes registers the routes for the fermentation router
 func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	fermentation := parent.Group("/fermentation")
@@ -63,6 +151,8 @@ func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group)
 	fermentation.POST("/yeast/:recipe_id", r.postFermentationYeastHandler).Name = "postFermentationYeast"
 	fermentation.GET("/start/:recipe_id", r.getMainFermentationStartHandler).Name = "getMainFermentationStart"
 	fermentation.POST("/start/:recipe_id", r.postMainFermentationStartHandler).Name = "postMainFermentationStart"
+	fermentation.GET("/main/:recipe_id", r.getMainFermentationHandler).Name = "getMainFermentation"
+	fermentation.POST("/main/:recipe_id", r.postMainFermentationHandler).Name = "postMainFermentation"
 	root.GET("/end/:recipe_id", r.getEndFermentationHandler).Name = "getEndFermentation"
 }
 
@@ -263,11 +353,12 @@ func (r *FermentationRouter) getMainFermentationStartHandler(c echo.Context) err
 		return err
 	}
 	re.SetStatus(recipe.RecipeStatusFermenting, "start")
+	r.addMainFermentationStatus(id, false)
 	return c.Render(http.StatusOK, "fermentation_start.html", map[string]interface{}{
 		"Title":              "Fermentation",
 		"Subtitle":           "Set notification",
 		"RecipeID":           id,
-		"RecommendedMinDays": 7,
+		"RecommendedMinDays": 8,
 		"RecommendedDays":    10,
 	})
 }
@@ -278,37 +369,116 @@ func (r *FermentationRouter) postMainFermentationStartHandler(c echo.Context) er
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
 	var req ReqPostFermentationStart
-	err := c.Bind(&req)
+	err = c.Bind(&req)
 	if err != nil {
 		return err
 	}
 	now := time.Now()
-	var notificationDate1, notificationDate2 time.Time
-	// We want to notify the user the day before and on the day of the notification so SG can be measured and verified to be stable
-	switch req.TimeUnit {
-	case "days":
-		notificationDate1 = now.AddDate(0, 0, req.NotificationDays-1)
-		notificationDate2 = now.AddDate(0, 0, req.NotificationDays)
-	case "seconds": // This is mainly for testing
-		notificationDate1 = now.Add(time.Duration(req.NotificationDays-1) * time.Second)
-		notificationDate2 = now.Add(time.Duration(req.NotificationDays) * time.Second)
-	default:
-		return fmt.Errorf("unknown time unit %s", req.TimeUnit)
+	timeDiff := req.NotificationDays - req.NotificationDaysBefore
+	var notificationDate time.Time
+	for i := 0; i <= timeDiff; i++ {
+		switch req.TimeUnit {
+		case "days":
+			notificationDate = now.AddDate(0, 0, req.NotificationDaysBefore+i)
+		case "seconds": // This is mainly for testing
+			notificationDate = now.Add(time.Duration(req.NotificationDaysBefore+i) * time.Second)
+		default:
+			return fmt.Errorf("unknown time unit %s", req.TimeUnit)
+		}
+		var w *watcher.Watcher
+		if i == 0 {
+			w = watcher.NewWatcher(notificationDate, func() error {
+				log.Info().Str("id", id).Msg("first notification")
+				r.sendNotification("Measure SG for the first time", "Main Fermentation "+re.Name, nil)
+				r.addMainFermentationStatus(id, true)
+				return nil
+			})
+			r.addMainFermentationWatcher(id, w)
+		} else {
+			w = watcher.NewWatcher(notificationDate, func() error {
+				log.Info().Str("id", id).Msg("notification")
+				r.sendNotification("Measure SG", "Main Fermentation "+re.Name, nil)
+				return nil
+			})
+		}
+		w.Start()
 	}
-	w1 := watcher.NewWatcher(notificationDate1, func() error {
-		// TODO: add notification
-		log.Info().Str("id", id).Msg("notification 1")
-		return nil
-	})
-	w2 := watcher.NewWatcher(notificationDate2, func() error {
-		// TODO: add notification
-		log.Info().Str("id", id).Msg("notification 2")
-		return nil
-	})
-	w1.Start()
-	w2.Start()
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndFermentation", id))
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))
+}
+
+// getMainFermentationHandler returns the handler for the main fermentation page
+func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	status, err := r.getMainFermentationStatus(id)
+	if err != nil {
+		return err
+	}
+	if !status.MinDaysPassed {
+		re.SetStatus(recipe.RecipeStatusFermenting, "wait")
+		wt := status.InitialWatch.MissingTime()
+		return c.Render(http.StatusOK, "fermentation_wait.html", map[string]interface{}{
+			"Title":       "Fermentation",
+			"Subtitle":    "Main Fermentation",
+			"RecipeID":    id,
+			"MissingTime": wt.String(),
+		})
+	} else {
+		// This should ask for the SGs and once user clicks on its stable for me lead to
+		// sugar calculation
+		re.SetStatus(recipe.RecipeStatusFermenting, "main")
+		measurements, err := r.getSGMeasurements(id)
+		if err != nil {
+			return err
+		}
+		return c.Render(http.StatusOK, "fermentation_main.html", map[string]interface{}{
+			"Title":            "Fermentation",
+			"Subtitle":         "Main Fermentation",
+			"RecipeID":         id,
+			"PastMeasurements": measurements,
+		})
+	}
+}
+
+// postMainFermentationHandler handles the post request for the main fermentation page
+func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	var req ReqPostMainFermentation
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	err = r.addTimelineEvent(id, "Added SG Measurement")
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+	}
+	m := SGMeasurement{
+		Date:    time.Now().Format("2006-01-02"),
+		Gravity: req.SG,
+	}
+	r.addSGMeasurement(id, m)
+	err = r.addSummarySGMeasurement(id, m, req.Final, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add sg measurement to summary")
+	}
+	if req.Final {
+		return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndFermentation", id))
+	}
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))
 }
 
 // getEndFermentationHandler handles the get request for the end fermentation page

@@ -101,6 +101,19 @@ func (r *MarkdownSummaryRecorder) AddYeastStart(temperature, notes string) {
 	line := fmt.Sprintf("- **Temperature**: %s°C", temperature)
 	r.addNewLine(line)
 	r.addNewLine(notes)
+	r.addNewLine("## SG measurement")
+}
+
+// AddSGMeasurement adds a SG measurement to the summary
+func (r *MarkdownSummaryRecorder) AddSGMeasurement(date string, gravity float32, final bool, notes string) {
+	line := fmt.Sprintf("- **%s**: %.3f", date, gravity)
+	if final {
+		line += " (final)"
+	}
+	if notes != "" {
+		line += " (" + notes + ")"
+	}
+	r.addNewLine(line)
 }
 
 // Close closes the summary recorder

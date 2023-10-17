@@ -1,0 +1,79 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <p>Enter the measured SG</p>
+            </div>
+            <div class="col s12">
+                <p>If you believe the gravity measures are stable, you can submit is as final, but just after min 2 days</p>
+            </div>
+        </div>
+        <div class="row">
+            <form action='{{ reverse "postMainFermentation" .RecipeID }}' method="post" class="col s12" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="input-field col s8">
+                        <i class="material-icons prefix">gradient</i>
+                        <input type="text" id="sg" name="sg">
+                        <label for="sg">Specific Gravity (SG)</label>
+                    </div>
+                    <div class="input-field col s4">
+                        <p>
+                            <label>
+                                <input type="checkbox" id="final" name="final" value="true" {{ if le (len .PastMeasurements) 0 }} disabled="disabled" {{ end }}/>
+                                <span>Final</span>
+                            </label>
+                        </p>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">edit_note</i>
+                        <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
+                        <label for="notes1">Notes</label>
+                    </div>
+                </div>
+                <button class="btn tooltipped waves-effect waves-light" data-position="top" data-tooltip="This will notify you also one day before you selected so you can measure twice" type="submit" name="action" id="send_form">Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
+        </div>
+        {{ if gt (len .PastMeasurements) 0 }}
+        <div class="row">
+            <div class="col s12">
+                <h5>Last input values</h5>
+            </div>
+            <div class="col s6">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+        {{ end }}
+    </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('myChart');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [{{ range $d := .PastMeasurements }}'{{ $d.Date }}', {{ end }}],
+            datasets: [{
+                label: 'SG',
+                data: [{{ range $d := .PastMeasurements }}{{ $d.Gravity }}, {{ end }}],
+                fill: true,
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    suggestedMin: 1.000,
+                    suggestedMax: 1.020
+                }
+            }
+        }
+    });
+</script>
+{{ template "footer" . }}

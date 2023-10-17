@@ -21,6 +21,8 @@ type SummaryRecorder interface {
 	AddEfficiency(efficiencyPercentage float32)
 	// AddYeastStart adds the yeast start to the summary
 	AddYeastStart(temperature, notes string)
+	// AddSGMeasurement adds a SG measurement to the summary
+	AddSGMeasurement(date string, gravity float32, final bool, notes string)
 	// Close closes the summary recorder
 	Close()
 	// GetSummary returns the summary

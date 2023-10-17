@@ -18,20 +18,20 @@
                 <div class="row">
                     <div class="input-field col s6">
                         <i class="material-icons prefix">notifications_active</i>
-                        <input type="text" id="days" name="notification_days" value="{{.RecommendedDays}}">
-                        <label for="days">Notification days</label>
+                        <input type="text" id="days_bf" name="notification_days_before" value="{{.RecommendedMinDays}}">
+                        <label for="days_bf">First Notification in:</label>
                     </div>
                     <div class="input-field col s6">
+                        <input type="text" id="days" name="notification_days" value="{{.RecommendedDays}}">
+                        <label for="days">Last Notification in:</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">access_time</i>
                         <select name="time_unit" id="unit" value="days">
                             <option value="days" selected>Days</option>
                             <option value="seconds">Seconds</option>
                         </select>
                         <label for="unit">Time unit</label>
-                    </div>
-                    <div class="input-field col s12">
-                        <i class="material-icons prefix">edit_note</i>
-                        <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
-                        <label for="notes1">Notes</label>
                     </div>
                 </div>
                 <button class="btn tooltipped waves-effect waves-light" data-position="top" data-tooltip="This will notify you also one day before you selected so you can measure twice" type="submit" name="action" id="send_form">Submit
