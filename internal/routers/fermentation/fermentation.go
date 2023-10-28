@@ -161,7 +161,6 @@ func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group)
 	fermentation.POST("/start/:recipe_id", r.postMainFermentationStartHandler).Name = "postMainFermentationStart"
 	fermentation.GET("/main/:recipe_id", r.getMainFermentationHandler).Name = "getMainFermentation"
 	fermentation.POST("/main/:recipe_id", r.postMainFermentationHandler).Name = "postMainFermentation"
-	root.GET("/end/:recipe_id", r.getEndFermentationHandler).Name = "getEndFermentation"
 }
 
 // getPreFermentationHandler returns the handler for the pre fermentation page
@@ -498,37 +497,7 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		if err != nil {
 			log.Error().Str("id", id).Err(err).Msg("could not add alcohol to summary")
 		}
-		return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndFermentation", id))
+		return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopStart", id))
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))
-}
-
-// getEndFermentationHandler handles the get request for the end fermentation page
-func (r *FermentationRouter) getEndFermentationHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
-	var hops []recipe.Hops
-	for _, h := range re.Hopping.Hops {
-		if h.DryHop {
-			hops = append(hops, h)
-		}
-	}
-	err = r.addTimelineEvent(id, "Finished Day")
-	if err != nil {
-		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
-	}
-	re.SetStatus(recipe.RecipeStatusFinished)
-	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
-		"Title":     "End Fermentation",
-		"RecipeID":  id,
-		"Subtitle":  "Congratulations, you've finished the brew day!",
-		"Hops":      hops,
-		"Additions": re.Fermentation.AdditionalIngredients,
-	})
 }
