@@ -31,4 +31,6 @@ type SummaryRecorder interface {
 	GetExtension() string
 	// AddTimeline adds a timeline to the summary
 	AddTimeline(timeline []string)
+	// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
+	AddAlcoholMainFermentation(alcohol float32)
 }

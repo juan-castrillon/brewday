@@ -140,6 +140,14 @@ func (r *FermentationRouter) addSummarySGMeasurement(id string, m SGMeasurement,
 	return nil
 }
 
+// addSummaryAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
+func (r *FermentationRouter) addSummaryAlcoholMainFermentation(id string, alcohol float32) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddAlcoholMainFermentation(id, alcohol)
+	}
+	return nil
+}
+
 // registerRoutes registers the routes for the fermentation router
 func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	fermentation := parent.Group("/fermentation")
@@ -284,6 +292,8 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
 	}
+	re.SetOriginalGravity(req.FinalSG)
+	re.SetMainFermentationVolume(req.FinalVolume)
 	eff := tools.CalculateEfficiencySG(req.FinalSG, req.FinalVolume, re.Mashing.GetTotalMaltWeight())
 	err = r.addSummaryEfficiency(id, eff)
 	if err != nil {
@@ -476,6 +486,18 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		log.Error().Str("id", id).Err(err).Msg("could not add sg measurement to summary")
 	}
 	if req.Final {
+		re, err := r.Store.Retrieve(id)
+		if err != nil {
+			return err
+		}
+		re.SetFinalGravity(req.SG)
+		og := re.GetResults().OriginalGravity
+		alc := tools.CalculateAlcohol(og, req.SG)
+		re.SetAlcohol(alc)
+		err = r.addSummaryAlcoholMainFermentation(id, alc)
+		if err != nil {
+			log.Error().Str("id", id).Err(err).Msg("could not add alcohol to summary")
+		}
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndFermentation", id))
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))

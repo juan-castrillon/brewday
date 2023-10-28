@@ -18,6 +18,13 @@ const (
 	RecipeStatusFinished
 )
 
+type RecipeResults struct {
+	OriginalGravity        float32
+	FinalGravity           float32
+	Alcohol                float32
+	MainFermentationVolume float32
+}
+
 // Recipe is the main struct for a recipe
 type Recipe struct {
 	// Name is the name of the recipe
@@ -47,6 +54,10 @@ type Recipe struct {
 	statusLock sync.Mutex
 	// ID is the identifier of the recipe. This is populated by the appropriate store and should not be set manually
 	ID string
+	// results is the results of the recipe. This is populated by the appropriate handlers and should not be set manually
+	results RecipeResults
+	// resultsLock is the lock for the results
+	resultsLock sync.Mutex
 }
 
 // MashInstructions is the struct for the mashing instructions
@@ -199,4 +210,46 @@ func (r *Recipe) GetStatusString() string {
 	default:
 		return "Unknown"
 	}
+}
+
+// InitResults initializes the results of the recipe
+func (r *Recipe) InitResults() {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	r.results = RecipeResults{}
+}
+
+// GetResults returns the results of the recipe
+func (r *Recipe) GetResults() RecipeResults {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	return r.results
+}
+
+// SetOriginalGravity sets the original gravity of the recipe
+func (r *Recipe) SetOriginalGravity(og float32) {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	r.results.OriginalGravity = og
+}
+
+// SetFinalGravity sets the final gravity of the recipe
+func (r *Recipe) SetFinalGravity(fg float32) {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	r.results.FinalGravity = fg
+}
+
+// SetAlcohol sets the alcohol of the recipe
+func (r *Recipe) SetAlcohol(alcohol float32) {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	r.results.Alcohol = alcohol
+}
+
+// SetMainFermentationVolume sets the main fermentation volume of the recipe
+func (r *Recipe) SetMainFermentationVolume(volume float32) {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	r.results.MainFermentationVolume = volume
 }

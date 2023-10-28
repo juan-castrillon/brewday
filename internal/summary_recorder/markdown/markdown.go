@@ -116,6 +116,13 @@ func (r *MarkdownSummaryRecorder) AddSGMeasurement(date string, gravity float32,
 	r.addNewLine(line)
 }
 
+// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
+func (r *MarkdownSummaryRecorder) AddAlcoholMainFermentation(alcohol float32) {
+	r.addNewLine("## Alcohol")
+	line := fmt.Sprintf("- **Main fermentation**: %.2f%%", alcohol)
+	r.addNewLine(line)
+}
+
 // Close closes the summary recorder
 func (r *MarkdownSummaryRecorder) Close() {
 	r.addNewLine("## Calculations")

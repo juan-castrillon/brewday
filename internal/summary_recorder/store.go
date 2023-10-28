@@ -166,6 +166,16 @@ func (s *SummaryRecorderStore) AddSGMeasurement(id string, date string, gravity 
 	return nil
 }
 
+// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
+func (s *SummaryRecorderStore) AddAlcoholMainFermentation(id string, alcohol float32) error {
+	rec, err := s.getSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddAlcoholMainFermentation(alcohol)
+	return nil
+}
+
 // AddTimeline adds a timeline to the summary
 func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
 	rec, err := s.getSummaryRecorder(id)

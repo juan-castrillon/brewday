@@ -35,6 +35,7 @@ func (s *MemoryStore) Store(recipe *recipe.Recipe) (string, error) {
 	id := s.CreateID(recipe.Name)
 	s.recipes[id] = recipe
 	recipe.ID = id
+	recipe.InitResults()
 	return id, nil
 }
 
