@@ -79,6 +79,8 @@ type SummaryRecorderStore interface {
 	AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
 	// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
 	AddAlcoholMainFermentation(id string, alcohol float32) error
+	// AddSummaryDryHop adds a summary of the dry hop
+	AddSummaryDryHop(id string, name string, amount float32) error
 	// AddTimeline adds a timeline to the summary
 	AddTimeline(id string, timeline []string) error
 	// GetSummary returns the summary

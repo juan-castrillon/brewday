@@ -23,6 +23,8 @@ type SummaryRecorder interface {
 	AddYeastStart(temperature, notes string)
 	// AddSGMeasurement adds a SG measurement to the summary
 	AddSGMeasurement(date string, gravity float32, final bool, notes string)
+	// AddSummaryDryHop adds a summary of the dry hop
+	AddSummaryDryHop(name string, amount float32)
 	// Close closes the summary recorder
 	Close()
 	// GetSummary returns the summary

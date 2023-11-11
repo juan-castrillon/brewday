@@ -176,6 +176,16 @@ func (s *SummaryRecorderStore) AddAlcoholMainFermentation(id string, alcohol flo
 	return nil
 }
 
+// AddSummaryDryHop adds a summary of the dry hop
+func (s *SummaryRecorderStore) AddSummaryDryHop(id string, name string, amount float32) error {
+	rec, err := s.getSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddSummaryDryHop(name, amount)
+	return nil
+}
+
 // AddTimeline adds a timeline to the summary
 func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
 	rec, err := s.getSummaryRecorder(id)

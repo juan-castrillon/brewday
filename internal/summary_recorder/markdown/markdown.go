@@ -121,6 +121,14 @@ func (r *MarkdownSummaryRecorder) AddAlcoholMainFermentation(alcohol float32) {
 	r.addNewLine("## Alcohol")
 	line := fmt.Sprintf("- **Main fermentation**: %.2f%%", alcohol)
 	r.addNewLine(line)
+	r.addNewLine("")
+	r.addNewLine("## Dry hop")
+}
+
+// AddSummaryDryHop adds a summary of the dry hop
+func (r *MarkdownSummaryRecorder) AddSummaryDryHop(name string, amount float32) {
+	line := fmt.Sprintf("- **%s**: %.2fg", name, amount)
+	r.addNewLine(line)
 }
 
 // Close closes the summary recorder

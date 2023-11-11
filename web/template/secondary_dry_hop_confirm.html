@@ -1,0 +1,60 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                {{ $rid := .RecipeID }}
+                {{ $not := .Notifications }}
+                {{ range $id, $hop := .Hops }}
+                <div class="row">
+                    {{ $w := index $not $id }}
+                    {{ with $w }}
+                    {{ $mt := .MissingTime }}
+                    {{ if $hop.In }}
+                    <div class="row valign-wrapper">
+                        <p>{{$hop.Name}} was confirmed - Notification in {{$mt}}</p>
+                    </div>
+                    {{ else}}
+                    <form class="col s12 valign-wrapper" action='{{ reverse "postDryHopConfirm" $rid }}' method="post" enctype="multipart/form-data">
+                        <div class="col s12">
+                            <div class="col s3">
+                                <p>{{$hop.Name}} - {{$hop.Amount}}g</p>
+                            </div>
+                            <input type="hidden" name="id" value="{{$id}}">
+                            <div class="input-field col s3">
+                                <input type="text" id="amount" name="real_amount">
+                                <label for="amount">Real amount in grams</label>
+                            </div>
+                            <div class="col s4">
+                                <p>Notification in: {{ $mt }}</p>
+                            </div>
+                            <button class="btn waves-effect waves-light col s2" type="submit" name="action" id="send_form">Confirm
+                                <i class="material-icons right">check_circle</i>
+                            </button>
+                        </div>
+                    </form>
+                    {{ end }}
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+        </div>
+        <div class="row">
+            <a class="waves-effect waves-light btn" onclick="continueProcess()"><i class="material-icons left">send</i>Bottle</a>
+        </div>
+    </div>
+</main>
+<script>
+    function continueProcess() {
+        url = '{{ reverse "getBottle" $rid }}'
+        window.location = url
+    }
+</script>
+{{ template "footer" . }}

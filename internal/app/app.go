@@ -10,6 +10,7 @@ import (
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
 	"brewday/internal/routers/recipes"
+	secondaryferm "brewday/internal/routers/secondary_ferm"
 	summary "brewday/internal/routers/summary"
 	"context"
 	"io/fs"
@@ -96,6 +97,11 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore: ss,
 		},
 		&fermentation.FermentationRouter{
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
+			Store:        store,
+		},
+		&secondaryferm.SecondaryFermentationRouter{
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Store:        store,

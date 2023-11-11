@@ -24,7 +24,7 @@ func NewWatcher(date time.Time, callback func() error) *Watcher {
 	return &Watcher{
 		callback:      callback,
 		executionDate: date,
-		stopChan:      make(chan bool),
+		stopChan:      make(chan bool, 1),
 	}
 }
 
