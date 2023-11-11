@@ -201,6 +201,7 @@ func (r *SecondaryFermentationRouter) postDryHopConfirmHandler(c echo.Context) e
 		w.Stop()
 	}
 	dh.In = true
+	dh.InDate = time.Now().Format("2006-01-02 15:04")
 	err = r.addTimelineEvent(id, fmt.Sprintf("Added dry hop %s", dh.Name))
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")

@@ -35,7 +35,9 @@ type DryHop struct {
 	// NotificationSet is an internal boolean flag used by the frontend to keep track of whether the notification has been set or not
 	NotificationSet bool
 	// In signalizes whether the hop has been added to the wort or not
-	In       bool
+	In bool
+	// InDate is the date when the hop was added to the wort
+	InDate   string
 	Name     string
 	Amount   float32
 	Duration float32

@@ -19,7 +19,7 @@
                     {{ $mt := .MissingTime }}
                     {{ if $hop.In }}
                     <div class="row valign-wrapper">
-                        <p>{{$hop.Name}} was confirmed - Notification in {{$mt}}</p>
+                        <p>{{$hop.Name}} was confirmed on {{$hop.InDate}} - Notification in {{$mt}}</p>
                     </div>
                     {{ else}}
                     <form class="col s12 valign-wrapper" action='{{ reverse "postDryHopConfirm" $rid }}' method="post" enctype="multipart/form-data">
