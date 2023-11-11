@@ -1,6 +1,7 @@
 package secondaryferm
 
 import (
+	"brewday/internal/tools"
 	"brewday/internal/watcher"
 	"errors"
 )
@@ -77,10 +78,66 @@ func (r *SecondaryFermentationRouter) getDryHopNotifications(id string) (DryHopN
 	return list, nil
 }
 
+// addSugarResult adds a sugar result to a recipe
+func (r *SecondaryFermentationRouter) addSugarResult(id string, result *SugarResult) {
+	r.sugarResultsLock.Lock()
+	defer r.sugarResultsLock.Unlock()
+	if r.SugarResults == nil {
+		r.SugarResults = make(map[string][]SugarResult)
+	}
+	_, ok := r.SugarResults[id]
+	if !ok {
+		r.SugarResults[id] = []SugarResult{}
+	}
+	r.SugarResults[id] = append(r.SugarResults[id], *result)
+}
+
+// getSugarResults retrieves the sugar results for a recipe
+func (r *SecondaryFermentationRouter) getSugarResults(id string) ([]SugarResult, error) {
+	r.sugarResultsLock.Lock()
+	defer r.sugarResultsLock.Unlock()
+	list, ok := r.SugarResults[id]
+	if !ok {
+		return nil, errors.New("no sugar results found for recipe")
+	}
+	return list, nil
+}
+
+// calculateSugar calculates the amount of sugar needed for a certain carbonation level
+// It makes several calculations varying the water amount and stores all the results
+// Values calculated are 0.1..0.5 liters of water (each 0.1)
+func (r *SecondaryFermentationRouter) calculateSugar(id string, volume, carbonation, temperature, alcoholBefore float32, sugarType string) {
+	for i := 1; i <= 5; i++ {
+		water := float32(i) / 10
+		amount, alcohol := tools.SugarForCarbonation(volume, carbonation, temperature, alcoholBefore, water, sugarType)
+		r.addSugarResult(id, &SugarResult{
+			Water:   water,
+			Amount:  amount,
+			Alcohol: alcohol,
+		})
+	}
+}
+
 // addSummaryDryHop adds a pre fermentation summary
 func (r *SecondaryFermentationRouter) addSummaryDryHop(id string, name string, amount float32) error {
 	if r.SummaryStore != nil {
 		return r.SummaryStore.AddSummaryDryHop(id, name, amount)
+	}
+	return nil
+}
+
+// addSummaryBottle adds a summary of the bottling
+func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, st, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddSummaryBottle(id, carbonation, alcohol, sugar, temp, vol, st, notes)
+	}
+	return nil
+}
+
+// addSummaryPreBottle adds a summary of the pre bottling
+func (r *SecondaryFermentationRouter) addSummaryPreBottle(id string, volume float32) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddSummaryPreBottle(id, volume)
 	}
 	return nil
 }

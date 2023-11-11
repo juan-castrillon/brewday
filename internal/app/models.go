@@ -81,6 +81,10 @@ type SummaryRecorderStore interface {
 	AddAlcoholMainFermentation(id string, alcohol float32) error
 	// AddSummaryDryHop adds a summary of the dry hop
 	AddSummaryDryHop(id string, name string, amount float32) error
+	// AddSummaryPreBottle adds a summary of the pre bottling
+	AddSummaryPreBottle(id string, volume float32) error
+	// AddSummaryBottle adds a summary of the bottling
+	AddSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
 	// AddTimeline adds a timeline to the summary
 	AddTimeline(id string, timeline []string) error
 	// GetSummary returns the summary

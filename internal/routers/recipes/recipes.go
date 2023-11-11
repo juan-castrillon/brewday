@@ -182,6 +182,15 @@ func (r *RecipesRouter) statusRedirectURL(c echo.Context, re *recipe.Recipe, id 
 			return c.Echo().Reverse("getDryHopStart", id), nil
 		case "dry_hop_confirm":
 			return c.Echo().Reverse("getDryHopConfirm", id), nil
+		case "pre_bottle":
+			return c.Echo().Reverse("getPreBottle", id), nil
+		case "bottle":
+			t, ok := params[1].(string)
+			if !ok {
+				return "", errors.New("invalid parameter for fermentation status")
+			}
+			queryParams := fmt.Sprintf("?type=%s", t)
+			return c.Echo().Reverse("getBottle", id) + queryParams, nil
 		default:
 			return "", errors.New("invalid parameter for fermentation status")
 		}

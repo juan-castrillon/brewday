@@ -15,6 +15,10 @@ type TimelineStore interface {
 type SummaryRecorderStore interface {
 	// AddSummaryDryHop adds a summary of the dry hop
 	AddSummaryDryHop(id string, name string, amount float32) error
+	// AddSummaryPreBottle adds a summary of the pre bottling
+	AddSummaryPreBottle(id string, volume float32) error
+	// AddSummaryBottle adds a summary of the bottling
+	AddSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
 }
 
 // RecipeStore represents a component that stores recipes
@@ -49,6 +53,16 @@ type DryHopNotification = map[string]*watcher.Watcher
 // DryHopMap is a map that relates a dry hop id to a dry hop
 type DryHopMap = map[string]*DryHop
 
+// SugarResult is the result of the sugar calculation
+type SugarResult struct {
+	// Water is the amount of water in liters
+	Water float32
+	// Amount is the amount of sugar in grams
+	Amount float32
+	// Alcohol is the estimated final alcohol content
+	Alcohol float32
+}
+
 type ReqPostDryHopStart struct {
 	ID               string `json:"id" form:"id"`
 	NotificationTime int    `json:"notification_time" form:"notification_time"`
@@ -58,4 +72,20 @@ type ReqPostDryHopStart struct {
 type ReqPostDryHopConfirm struct {
 	ID     string  `json:"id" form:"id"`
 	Amount float32 `json:"real_amount" form:"real_amount"`
+}
+
+type ReqPostPreBottle struct {
+	Volume      float32 `json:"volume" form:"volume"`
+	LostVolume  float32 `json:"lost" form:"lost"`
+	SugarType   string  `json:"sugar_type" form:"sugar_type"`
+	Temperature float32 `json:"temperature" form:"temperature"`
+}
+
+type ReqPostBottle struct {
+	RealVolume  float32 `json:"real_volume" form:"real_volume"`
+	SugarAmount float32 `json:"sugar_amount" form:"sugar_amount"`
+	SugarType   string  `json:"sugar_type" form:"sugar_type"`
+	Water       float32 `json:"water" form:"water"`
+	Temperature float32 `json:"temperature" form:"temperature"`
+	Notes       string  `json:"notes" form:"notes"`
 }

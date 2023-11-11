@@ -3,6 +3,7 @@ package secondaryferm
 import (
 	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
+	"brewday/internal/tools"
 	"brewday/internal/watcher"
 	"fmt"
 	"net/http"
@@ -14,16 +15,19 @@ import (
 )
 
 type SecondaryFermentationRouter struct {
-	TLStore         TimelineStore
-	SummaryStore    SummaryRecorderStore
-	Store           RecipeStore
-	Notifier        Notifier
-	hopWatchersLock sync.Mutex
-	dryHopsLock     sync.Mutex
+	TLStore          TimelineStore
+	SummaryStore     SummaryRecorderStore
+	Store            RecipeStore
+	Notifier         Notifier
+	hopWatchersLock  sync.Mutex
+	dryHopsLock      sync.Mutex
+	sugarResultsLock sync.Mutex
 	// HopWatchers stores all dry hop watchers for a recipe id
 	HopWatchers map[string]DryHopNotification
 	// DryHops relates a list of dry hops with a recipe id
 	DryHops map[string]DryHopMap
+	// SugarResults stores the sugar results for a recipe id
+	SugarResults map[string][]SugarResult
 }
 
 // RegisterRoutes adds routes to the web server
@@ -35,6 +39,8 @@ func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *ec
 	sf.POST("/dry_hop/start/:recipe_id", r.postDryHopStartHandler).Name = "postDryHopStart"
 	sf.GET("/dry_hop/confirm/:recipe_id", r.getDryHopConfirmHandler).Name = "getDryHopConfirm"
 	sf.POST("/dry_hop/confirm/:recipe_id", r.postDryHopConfirmHandler).Name = "postDryHopConfirm"
+	sf.GET("/pre_bottle/:recipe_id", r.getPreBottleHandler).Name = "getPreBottle"
+	sf.POST("/pre_bottle/:recipe_id", r.postPreBottleHandler).Name = "postPreBottle"
 	sf.GET("/bottle/:recipe_id", r.getBottleHandler).Name = "getBottle"
 	sf.POST("/bottle/:recipe_id", r.postBottleHandler).Name = "postBottle"
 	sf.GET("/start/:recipe_id", r.getSecondaryFermentationStartHandler).Name = "getSecondaryFermentationStart"
@@ -43,6 +49,7 @@ func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *ec
 	sf.POST("/fridge/:recipe_id", r.postFridgeHandler).Name = "postFridge"
 	root.GET("/end/:recipe_id", r.getEndHandler).Name = "getEnd"
 	//http://localhost:8080/secondary_fermentation/dry_hop/start/47696e67657220576974/load
+	//http://localhost:8080/secondary_fermentation/pre_bottle/47696e67657220576974
 }
 
 // getDryHopStartLoadHandler is responsible for loading the dry hops in the internal structures and then
@@ -213,19 +220,117 @@ func (r *SecondaryFermentationRouter) postDryHopConfirmHandler(c echo.Context) e
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopConfirm", id))
 }
 
+// getPreBottleHandler is the handler for the pre bottle page
+// This page will ask for the volume and the type of priming sugar
+func (r *SecondaryFermentationRouter) getPreBottleHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	re.SetStatus(recipe.RecipeStatusFermenting, "pre_bottle")
+	return c.Render(http.StatusOK, "secondary_pre_bottle.html", map[string]interface{}{
+		"Title":    "Bottle",
+		"Subtitle": "Set the volume and the type of priming sugar",
+		"RecipeID": id,
+	})
+}
+
+// postPreBottleHandler is the handler for the pre bottle page
+func (r *SecondaryFermentationRouter) postPreBottleHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	var req ReqPostPreBottle
+	err = c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	res := re.GetResults()
+	vol := req.Volume - req.LostVolume
+	r.calculateSugar(
+		id, vol,
+		re.Fermentation.Carbonation, req.Temperature,
+		res.Alcohol,
+		req.SugarType,
+	)
+	redirect := "getBottle"
+	queryParams := fmt.Sprintf("?type=%s", req.SugarType)
+	err = r.addSummaryPreBottle(id, req.Volume)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add summary pre bottle")
+	}
+	return c.Redirect(http.StatusFound, c.Echo().Reverse(redirect, id)+queryParams)
+}
+
 // getBottleHandler is the handler for the bottle page
 func (r *SecondaryFermentationRouter) getBottleHandler(c echo.Context) error {
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEnd", c.Param("recipe_id")))
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	t := c.QueryParam("type")
+	re.SetStatus(recipe.RecipeStatusFermenting, "bottle", t)
+	sugarResults, err := r.getSugarResults(id)
+	if err != nil {
+		return err
+	}
+	s := sugarResults[0]
+	return c.Render(http.StatusOK, "secondary_bottle.html", map[string]interface{}{
+		"Title":        "Bottle",
+		"Subtitle":     "Create the sugar solution",
+		"RecipeID":     id,
+		"SugarResults": sugarResults,
+		"Sugar":        s.Amount,
+		"SugarType":    t,
+	})
 }
 
 // postBottleHandler is the handler for the bottle page
 func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
-	return nil
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	var req ReqPostBottle
+	err = c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	res := re.GetResults()
+	_, realAlcohol := tools.SugarForCarbonation(
+		req.RealVolume, re.Fermentation.Carbonation, req.Temperature,
+		res.Alcohol, req.Water, req.SugarType,
+	)
+	realCO2 := tools.CarbonationForSugar(req.RealVolume, req.SugarAmount, req.Temperature, req.SugarType)
+	err = r.addSummaryBottle(id, realCO2, realAlcohol, req.SugarAmount, req.Temperature, req.RealVolume, req.SugarType, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add summary bottle")
+	}
+	re.SetAlcohol(realAlcohol)
+	r.addTimelineEvent(id, "Bottled")
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationStart", id))
 }
 
 // getSecondaryFermentationStartHandler is the handler for the secondary fermentation start page
 func (r *SecondaryFermentationRouter) getSecondaryFermentationStartHandler(c echo.Context) error {
-	return nil
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEnd", c.Param("recipe_id")))
 }
 
 // postSecondaryFermentationStartHandler is the handler for the secondary fermentation start page

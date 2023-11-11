@@ -186,6 +186,26 @@ func (s *SummaryRecorderStore) AddSummaryDryHop(id string, name string, amount f
 	return nil
 }
 
+// AddSummaryPreBottle adds a summary of the pre bottling
+func (s *SummaryRecorderStore) AddSummaryPreBottle(id string, volume float32) error {
+	rec, err := s.getSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddSummaryPreBottle(volume)
+	return nil
+}
+
+// AddSummaryBottle adds a summary of the bottling
+func (s *SummaryRecorderStore) AddSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error {
+	rec, err := s.getSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddSummaryBottle(carbonation, alcohol, sugar, temp, vol, sugarType, notes)
+	return nil
+}
+
 // AddTimeline adds a timeline to the summary
 func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
 	rec, err := s.getSummaryRecorder(id)

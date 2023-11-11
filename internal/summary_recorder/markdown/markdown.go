@@ -129,6 +129,32 @@ func (r *MarkdownSummaryRecorder) AddAlcoholMainFermentation(alcohol float32) {
 func (r *MarkdownSummaryRecorder) AddSummaryDryHop(name string, amount float32) {
 	line := fmt.Sprintf("- **%s**: %.2fg", name, amount)
 	r.addNewLine(line)
+	r.addNewLine("")
+}
+
+// AddSummaryPreBottle adds a summary of the pre bottling
+func (r *MarkdownSummaryRecorder) AddSummaryPreBottle(volume float32) {
+	r.addNewLine("## Pre bottling")
+	line := fmt.Sprintf("- **Volume**: %.2fL", volume)
+	r.addNewLine(line)
+	r.addNewLine("")
+}
+
+// AddSummaryBottle adds a summary of the bottling
+func (r *MarkdownSummaryRecorder) AddSummaryBottle(carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) {
+	r.addNewLine("## Bottle")
+	line := fmt.Sprintf("- **Carbonation**: %.2f g/L", carbonation)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Alcohol**: %.2f%%vol", alcohol)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Sugar**: %.2f g (%s)", sugar, sugarType)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Temperature**: %.2f°C", temp)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Volume Before Sugar**: %.2fL", vol)
+	r.addNewLine(line)
+	r.addNewLine(notes)
+	r.addNewLine("")
 }
 
 // Close closes the summary recorder

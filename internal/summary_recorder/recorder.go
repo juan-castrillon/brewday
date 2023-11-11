@@ -25,6 +25,10 @@ type SummaryRecorder interface {
 	AddSGMeasurement(date string, gravity float32, final bool, notes string)
 	// AddSummaryDryHop adds a summary of the dry hop
 	AddSummaryDryHop(name string, amount float32)
+	// AddSummaryPreBottle adds a summary of the pre bottling
+	AddSummaryPreBottle(volume float32)
+	// AddSummaryBottle adds a summary of the bottling
+	AddSummaryBottle(icarbonation, alcohol, sugar, temp, vol float32, sugarType, notes string)
 	// Close closes the summary recorder
 	Close()
 	// GetSummary returns the summary
