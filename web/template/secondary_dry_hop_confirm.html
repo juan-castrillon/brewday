@@ -15,11 +15,9 @@
                 {{ range $id, $hop := .Hops }}
                 <div class="row">
                     {{ $w := index $not $id }}
-                    {{ with $w }}
-                    {{ $mt := .MissingTime }}
                     {{ if $hop.In }}
                     <div class="row valign-wrapper">
-                        <p>{{$hop.Name}} was confirmed on {{$hop.InDate}} - Notification in {{$mt}}</p>
+                        <p>{{$hop.Name}} was confirmed on {{$hop.InDate}}</p>
                     </div>
                     {{ else}}
                     <form class="col s12 valign-wrapper" action='{{ reverse "postDryHopConfirm" $rid }}' method="post" enctype="multipart/form-data">
@@ -32,15 +30,17 @@
                                 <input type="text" id="amount" name="real_amount">
                                 <label for="amount">Real amount in grams</label>
                             </div>
+                            {{ with $w }}
+                            {{ $mt := .MissingTime }}
                             <div class="col s4">
                                 <p>Notification in: {{ $mt }}</p>
                             </div>
+                            {{ end }}
                             <button class="btn waves-effect waves-light col s2" type="submit" name="action" id="send_form">Confirm
                                 <i class="material-icons right">check_circle</i>
                             </button>
                         </div>
                     </form>
-                    {{ end }}
                     {{ end }}
                 </div>
                 {{ end }}
