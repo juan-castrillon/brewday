@@ -203,6 +203,13 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
 	}
+	// TODO: this is int he wrong place, it must be in the "hot" wort
+	hotWortVol := re.GetResults().HotWortVolume
+	eff := tools.CalculateEfficiencySG(req.SG, hotWortVol, re.Mashing.GetTotalMaltWeight())
+	err = r.addSummaryEfficiency(id, eff)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
+	}
 	volumeDiff := req.Volume - (re.BatchSize + 1) // +1 for the 1l of yeast
 	sgDiff := re.InitialSG - req.SG
 	redirect := "getPreFermentationWater"
@@ -293,11 +300,6 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	}
 	re.SetOriginalGravity(req.FinalSG)
 	re.SetMainFermentationVolume(req.FinalVolume)
-	eff := tools.CalculateEfficiencySG(req.FinalSG, req.FinalVolume, re.Mashing.GetTotalMaltWeight())
-	err = r.addSummaryEfficiency(id, eff)
-	if err != nil {
-		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
-	}
 	err = r.addTimelineEvent(id, "Finished Pre Fermentation")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")

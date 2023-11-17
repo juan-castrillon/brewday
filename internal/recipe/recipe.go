@@ -19,6 +19,7 @@ const (
 )
 
 type RecipeResults struct {
+	HotWortVolume          float32
 	OriginalGravity        float32
 	FinalGravity           float32
 	Alcohol                float32
@@ -224,6 +225,13 @@ func (r *Recipe) GetResults() RecipeResults {
 	r.resultsLock.Lock()
 	defer r.resultsLock.Unlock()
 	return r.results
+}
+
+// SetHotWortVolume sets the hot wort volume of the recipe
+func (r *Recipe) SetHotWortVolume(volume float32) {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	r.results.HotWortVolume = volume
 }
 
 // SetOriginalGravity sets the original gravity of the recipe
