@@ -103,6 +103,31 @@ func (r *SecondaryFermentationRouter) getSugarResults(id string) ([]SugarResult,
 	return list, nil
 }
 
+// addSecondaryWatcher adds a watcher for the secondary fermentation
+func (r *SecondaryFermentationRouter) addSecondaryWatcher(id string, watcher *watcher.Watcher) error {
+	r.secondaryWatchersLock.Lock()
+	defer r.secondaryWatchersLock.Unlock()
+	if r.SecondaryWatchers == nil {
+		r.SecondaryWatchers = make(map[string]SecondaryFermentationWatcher)
+	}
+	r.SecondaryWatchers[id] = SecondaryFermentationWatcher{
+		watch: watcher,
+	}
+	return nil
+}
+
+// getSecondaryWatcher retrieves a watcher for the secondary fermentation
+// if none is found, it returns nil
+func (r *SecondaryFermentationRouter) getSecondaryWatcher(id string) *watcher.Watcher {
+	r.secondaryWatchersLock.Lock()
+	defer r.secondaryWatchersLock.Unlock()
+	w, ok := r.SecondaryWatchers[id]
+	if !ok {
+		return nil
+	}
+	return w.watch
+}
+
 // calculateSugar calculates the amount of sugar needed for a certain carbonation level
 // It makes several calculations varying the water amount and stores all the results
 // Values calculated are 0.1..0.5 liters of water (each 0.1)
@@ -138,6 +163,14 @@ func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, a
 func (r *SecondaryFermentationRouter) addSummaryPreBottle(id string, volume float32) error {
 	if r.SummaryStore != nil {
 		return r.SummaryStore.AddSummaryPreBottle(id, volume)
+	}
+	return nil
+}
+
+// addSummarySecondaryFermentation adds a summary of the secondary fermentation
+func (r *SecondaryFermentationRouter) addSummarySecondaryFermentation(id string, days int, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddSummarySecondary(id, days, notes)
 	}
 	return nil
 }

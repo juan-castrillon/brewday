@@ -29,6 +29,8 @@ type SummaryRecorder interface {
 	AddSummaryPreBottle(volume float32)
 	// AddSummaryBottle adds a summary of the bottling
 	AddSummaryBottle(icarbonation, alcohol, sugar, temp, vol float32, sugarType, notes string)
+	// AddSummarySecondary adds a summary of the secondary fermentation
+	AddSummarySecondary(days int, notes string)
 	// Close closes the summary recorder
 	Close()
 	// GetSummary returns the summary

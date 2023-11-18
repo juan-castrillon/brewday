@@ -15,19 +15,22 @@ import (
 )
 
 type SecondaryFermentationRouter struct {
-	TLStore          TimelineStore
-	SummaryStore     SummaryRecorderStore
-	Store            RecipeStore
-	Notifier         Notifier
-	hopWatchersLock  sync.Mutex
-	dryHopsLock      sync.Mutex
-	sugarResultsLock sync.Mutex
+	TLStore               TimelineStore
+	SummaryStore          SummaryRecorderStore
+	Store                 RecipeStore
+	Notifier              Notifier
+	hopWatchersLock       sync.Mutex
+	secondaryWatchersLock sync.Mutex
+	dryHopsLock           sync.Mutex
+	sugarResultsLock      sync.Mutex
 	// HopWatchers stores all dry hop watchers for a recipe id
 	HopWatchers map[string]DryHopNotification
 	// DryHops relates a list of dry hops with a recipe id
 	DryHops map[string]DryHopMap
 	// SugarResults stores the sugar results for a recipe id
 	SugarResults map[string][]SugarResult
+	// SecondaryWatchers stores the watchers for the secondary fermentation
+	SecondaryWatchers map[string]SecondaryFermentationWatcher
 }
 
 // RegisterRoutes adds routes to the web server
@@ -45,11 +48,13 @@ func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *ec
 	sf.POST("/bottle/:recipe_id", r.postBottleHandler).Name = "postBottle"
 	sf.GET("/start/:recipe_id", r.getSecondaryFermentationStartHandler).Name = "getSecondaryFermentationStart"
 	sf.POST("/start/:recipe_id", r.postSecondaryFermentationStartHandler).Name = "postSecondaryFermentationStart"
+	sf.POST("/end/:recipe_id", r.postSecondaryFermentationEndHandler).Name = "postSecondaryFermentationEnd"
 	sf.GET("/fridge/:recipe_id", r.getFridgeHandler).Name = "getFridge"
 	sf.POST("/fridge/:recipe_id", r.postFridgeHandler).Name = "postFridge"
 	root.GET("/end/:recipe_id", r.getEndHandler).Name = "getEnd"
 	//http://localhost:8080/secondary_fermentation/dry_hop/start/47696e67657220576974/load
 	//http://localhost:8080/secondary_fermentation/pre_bottle/47696e67657220576974
+	//http://localhost:8080/secondary_fermentation/start/47696e67657220576974
 }
 
 // getDryHopStartLoadHandler is responsible for loading the dry hops in the internal structures and then
@@ -330,12 +335,89 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 
 // getSecondaryFermentationStartHandler is the handler for the secondary fermentation start page
 func (r *SecondaryFermentationRouter) getSecondaryFermentationStartHandler(c echo.Context) error {
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEnd", c.Param("recipe_id")))
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	watch := r.getSecondaryWatcher(id)
+	missingTime := ""
+	isDone := false
+	isSet := false
+	if watch != nil {
+		isSet = true
+		if watch.IsDone() {
+			isDone = true
+		} else {
+			missingTime = watch.MissingTime().String()
+		}
+	}
+	re.SetStatus(recipe.RecipeStatusFermenting, "start_secondary")
+	return c.Render(http.StatusOK, "secondary_start.html", map[string]interface{}{
+		"Title":    "Start Secondary Fermentation",
+		"RecipeID": id,
+		"Subtitle": "First, let the bottles at warm temperature",
+		"MinDays":  5,
+		"Missing":  missingTime,
+		"IsDone":   isDone,
+		"IsSet":    isSet,
+	})
 }
 
 // postSecondaryFermentationStartHandler is the handler for the secondary fermentation start page
 func (r *SecondaryFermentationRouter) postSecondaryFermentationStartHandler(c echo.Context) error {
-	return nil
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	var req ReqPostSecondaryStart
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	now := time.Now()
+	var notificationDate time.Time
+	switch req.TimeUnit {
+	case "days":
+		notificationDate = now.AddDate(0, 0, req.NotificationTime)
+	case "seconds": // This is mainly for testing
+		notificationDate = now.Add(time.Duration(req.NotificationTime) * time.Second)
+	default:
+		return fmt.Errorf("unknown time unit %s", req.TimeUnit)
+	}
+	w := watcher.NewWatcher(notificationDate, func() error {
+		log.Info().Msgf("secondary fermentation notification triggered")
+		return r.sendNotification("Secondary Fermentation", "Time to put bottles in the fridge", nil)
+	})
+	w.Start()
+	err = r.addSecondaryWatcher(id, w)
+	if err != nil {
+		return err
+	}
+	r.addTimelineEvent(id, "Secondary Fermentation Started")
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationStart", id))
+}
+
+// postSecondaryFermentationEndHandler is the handler for the secondary fermentation end page
+func (r *SecondaryFermentationRouter) postSecondaryFermentationEndHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	var req ReqPostSecondaryEnd
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	r.addTimelineEvent(id, "Secondary Fermentation Ended")
+	err = r.addSummarySecondaryFermentation(id, req.Days, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add summary secondary fermentation")
+	}
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEnd", id))
 }
 
 // getFridgeHandler is the handler for the fridge page

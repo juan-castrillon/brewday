@@ -206,6 +206,16 @@ func (s *SummaryRecorderStore) AddSummaryBottle(id string, carbonation, alcohol,
 	return nil
 }
 
+// AddSummarySecondary adds a summary of the secondary fermentation
+func (s *SummaryRecorderStore) AddSummarySecondary(id string, days int, notes string) error {
+	rec, err := s.getSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
+	rec.AddSummarySecondary(days, notes)
+	return nil
+}
+
 // AddTimeline adds a timeline to the summary
 func (s *SummaryRecorderStore) AddTimeline(id string, timeline []string) error {
 	rec, err := s.getSummaryRecorder(id)

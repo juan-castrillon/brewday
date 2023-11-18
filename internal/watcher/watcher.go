@@ -58,6 +58,11 @@ func (w *Watcher) MissingTime() time.Duration {
 	return missing
 }
 
+// IsDone returns whether the callback has been executed or not
+func (w *Watcher) IsDone() bool {
+	return w.MissingTime() == 0
+}
+
 // Err returns the error returned by the callback
 func (w *Watcher) Err() error {
 	w.errMu.Lock()

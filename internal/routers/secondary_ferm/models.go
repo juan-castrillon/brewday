@@ -19,6 +19,8 @@ type SummaryRecorderStore interface {
 	AddSummaryPreBottle(id string, volume float32) error
 	// AddSummaryBottle adds a summary of the bottling
 	AddSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
+	// AddSummarySecondary adds a summary of the secondary fermentation
+	AddSummarySecondary(id string, days int, notes string) error
 }
 
 // RecipeStore represents a component that stores recipes
@@ -63,6 +65,10 @@ type SugarResult struct {
 	Alcohol float32
 }
 
+type SecondaryFermentationWatcher struct {
+	watch *watcher.Watcher
+}
+
 type ReqPostDryHopStart struct {
 	ID               string `json:"id" form:"id"`
 	NotificationTime int    `json:"notification_time" form:"notification_time"`
@@ -88,4 +94,14 @@ type ReqPostBottle struct {
 	Water       float32 `json:"water" form:"water"`
 	Temperature float32 `json:"temperature" form:"temperature"`
 	Notes       string  `json:"notes" form:"notes"`
+}
+
+type ReqPostSecondaryStart struct {
+	NotificationTime int    `json:"notification_time" form:"notification_time"`
+	TimeUnit         string `json:"time_unit" form:"time_unit"`
+}
+
+type ReqPostSecondaryEnd struct {
+	Days  int    `json:"days" form:"days"`
+	Notes string `json:"notes" form:"notes"`
 }

@@ -157,6 +157,15 @@ func (r *MarkdownSummaryRecorder) AddSummaryBottle(carbonation, alcohol, sugar, 
 	r.addNewLine("")
 }
 
+// AddSummarySecondary adds a summary of the secondary fermentation
+func (r *MarkdownSummaryRecorder) AddSummarySecondary(days int, notes string) {
+	r.addNewLine("## Secondary fermentation")
+	line := fmt.Sprintf("- **Days**: %d", days)
+	r.addNewLine(line)
+	r.addNewLine(notes)
+	r.addNewLine("")
+}
+
 // Close closes the summary recorder
 func (r *MarkdownSummaryRecorder) Close() {
 	r.addNewLine("## Calculations")
