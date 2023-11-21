@@ -42,11 +42,21 @@ var SRMHex = []string{
 	"#520907",
 	"#4C0505",
 	"#470606",
-	"#440607",
-	"#3F0708",
-	"#3B0607",
-	"#3A070B",
-	"#36080A",
+	"#420607",
+	"#3D0708",
+	"#370607",
+	"#2D0607",
+	"#1F0506",
+	"#1A0404",
+	"#160404",
+	"#120303",
+	"#0E0202",
+	"#0A0202",
+	"#080101",
+	"#060101",
+	"#040100",
+	"#020100",
+	"#000000",
 }
 
 // SRMToHex converts SRM value to hex color code using a lookup table.
@@ -54,6 +64,12 @@ func SRMToHex(srm float64) string {
 	// Round the SRM value to the nearest integer.
 	roundFloat := math.Round(srm)
 	roundInt := int(roundFloat)
+	index := roundInt - 1
+	if index < 0 {
+		return SRMHex[0]
+	} else if index > len(SRMHex)-1 {
+		return SRMHex[len(SRMHex)-1]
+	}
 	return SRMHex[roundInt-1]
 }
 

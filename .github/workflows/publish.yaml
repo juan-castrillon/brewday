@@ -3,12 +3,19 @@ on:
   push:
     tags:
       - "**"
-env:
-  IMAGE_NAME: jpcr3108/brewday
+
 jobs:
   push_docker_hub:
     name: Push to Docker Hub
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - dockerfile: ./Dockerfile
+            image: jpcr3108/brewday
+          - dockerfile: ./Dockerfile.arm
+            image: jpcr3108/brewday-arm
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -21,12 +28,12 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.IMAGE_NAME }}
+          images: ${{ matrix.image }}
       - name: Push to Docker Hub
         uses: docker/build-push-action@v4
         with:
           push: true
-          file: ./Dockerfile
+          file: ${{ matrix.dockerfile }}
           build-args: VERSION=$GITHUB_REF_NAME
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

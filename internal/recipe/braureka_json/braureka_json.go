@@ -194,7 +194,7 @@ func bJsonRecipeToRecipe(r *BraurekaJSONRecipe) (*recipe.Recipe, error) {
 	if err != nil {
 		return nil, err
 	}
-	rec := &recipe.Recipe{
+	return &recipe.Recipe{
 		Name:         r.Name,
 		Style:        r.Style,
 		BatchSize:    vol,
@@ -204,9 +204,7 @@ func bJsonRecipeToRecipe(r *BraurekaJSONRecipe) (*recipe.Recipe, error) {
 		Mashing:      *mashInst,
 		Hopping:      *hopInst,
 		Fermentation: *fermInst,
-	}
-	rec.SetStatus(recipe.RecipeStatusCreated)
-	return rec, nil
+	}, nil
 }
 
 // getMashInstructions returns the mash instructions for a BraurekaJSONRecipe
