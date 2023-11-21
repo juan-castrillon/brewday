@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Recipes page with a list of all active recipes and possibility to continue a recipe.
+- Extended fermentation with notification setting pages. Now, the user can choose which notifications to receive and when.
+- Added dry hop , secondary fermentation and bottling to the process.
+
+### Changed
+- Fixed efficiency calculation for mash.
+
+
 ## [0.3.0] - 2023-10-01
 
 ### Added
