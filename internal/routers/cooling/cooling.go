@@ -1,22 +1,26 @@
 package cooling
 
 import (
+	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
 type CoolingRouter struct {
-	TL      Timeline
-	Summary SummaryRecorder
+	Store        RecipeStore
+	TLStore      TimelineStore
+	SummaryStore SummaryRecorderStore
 }
 
 // addSummaryCooling adds a cooling to the summary and notes related to it
-func (r *CoolingRouter) addSummaryCooling(finalTemp, coolingTime float32, notes string) {
-	if r.Summary != nil {
-		r.Summary.AddCooling(finalTemp, coolingTime, notes)
+func (r *CoolingRouter) addSummaryCooling(id string, finalTemp, coolingTime float32, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddCooling(id, finalTemp, coolingTime, notes)
 	}
+	return nil
 }
 
 // RegisterRoutes registers the routes for the cooling router
@@ -32,6 +36,11 @@ func (r *CoolingRouter) getCoolingHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	re.SetStatus(recipe.RecipeStatusCooling)
 	return c.Render(http.StatusOK, "cooling.html", map[string]interface{}{
 		"Title":    "Cooling",
 		"RecipeID": id,
@@ -49,6 +58,9 @@ func (r *CoolingRouter) postCoolingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addSummaryCooling(req.FinalTemp, req.CoolingTime, req.Notes)
+	err = r.addSummaryCooling(id, req.FinalTemp, req.CoolingTime, req.Notes)
+	if err != nil {
+		log.Error().Str("id", id).Err(err).Msg("could not add cooling to summary")
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getPreFermentation", id))
 }

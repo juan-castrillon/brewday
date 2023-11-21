@@ -1,15 +1,23 @@
 package cooling
 
-// Timeline represents a timeline of events
-type Timeline interface {
+import "brewday/internal/recipe"
+
+// TimelineStore represents a component that stores timelines
+type TimelineStore interface {
 	// AddEvent adds an event to the timeline
-	AddEvent(message string)
+	AddEvent(id, message string) error
 }
 
-// SummaryRecorder represents a component that records a summary
-type SummaryRecorder interface {
+// SummaryRecorderStore represents a component that stores summary recorders
+type SummaryRecorderStore interface {
 	// AddCooling adds a cooling to the summary and notes related to it
-	AddCooling(finalTemp, coolingTime float32, notes string)
+	AddCooling(id string, finalTemp, coolingTime float32, notes string) error
+}
+
+// RecipeStore represents a component that stores recipes
+type RecipeStore interface {
+	// Retrieve retrieves a recipe based on an identifier
+	Retrieve(id string) (*recipe.Recipe, error)
 }
 
 // ReqPostCooling represents the request to post a cooling

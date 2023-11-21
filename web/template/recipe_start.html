@@ -10,31 +10,6 @@
 <main>
     <div class="container">
         <div class="row">
-            <form method="post" action='{{ reverse "postImportPreview" }}' class="col s12" enctype="multipart/form-data">
-                <div class="file-field input-field">
-                    <div class="btn">
-                        <span>File</span>
-                        <input type="file" name="recipe_file">
-                    </div>
-                    <div class="file-path-wrapper">
-                        <input class="file-path validate" type="text" placeholder="Upload one or more files"
-                            name="path">
-                    </div>
-                </div>
-                <div class="input-field">
-                    <select name="parser_type">
-                        <option value="mmum" selected>MMUM</option>
-                        <option value="braureka_json">Braureka JSON</option>
-                    </select>
-                    <label>Format</label>
-                </div>
-                <button class="btn waves-effect waves-light" type="submit" name="action">Submit
-                    <i class="material-icons right">send</i>
-                </button>
-            </form>
-        </div>
-        {{ if .Recipe }}
-        <div class="row">
             <ul class="collapsible" id="recipe_shows">
                 <li class="active">
                     <div class="collapsible-header"><i class="material-icons">info</i>General</div>
@@ -107,10 +82,7 @@
                 </li>
             </ul>
         </div>
-        {{ $id := urlEncode .RecipeID }}
-        <a class="waves-effect waves-light btn" href='{{ reverse "getImportNext" $id "start" }}'>Import and Start</a>
-        <a class="waves-effect waves-light btn" href='{{ reverse "getImportNext" $id "continue" }}'>Just Import</a>
-        {{ end }}
+        <a class="waves-effect waves-light btn" href='{{ reverse "getMashStart" .RecipeID }}'>Start</a>
     </div>
 </main>
 <script>
@@ -118,8 +90,6 @@
         var options = {};
         var elems = document.querySelectorAll('.collapsible');
         var instances = M.Collapsible.init(elems, options);
-        var elems2 = document.querySelectorAll('select');
-        var instances2 = M.FormSelect.init(elems2, options);
     });
 </script>
 {{ template "footer" . }}

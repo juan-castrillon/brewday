@@ -49,8 +49,9 @@ app:
 
 notification:
   enabled: true
-  app-token: "1234567890"
   gotify-url: http://localhost:8080
+  username: BrewDay
+  password: 1234567890
 ```
 
 The following is an example of the same configuration via environment variables:
@@ -58,9 +59,11 @@ The following is an example of the same configuration via environment variables:
 ```bash
 export BREWDAY_APP_PORT=8080
 export BREWDAY_NOTIFICATION_ENABLED=true
-export BREWDAY_NOTIFICATION_APP-TOKEN=1234567890
 export BREWDAY_NOTIFICATION_GOTIFY-URL=http://localhost:8080
+export BREWDAY_NOTIFICATION_USERNAME=BrewDay
+export BREWDAY_NOTIFICATION_PASSWORD=1234567890
 ```
+
 
 ## Deployment
 

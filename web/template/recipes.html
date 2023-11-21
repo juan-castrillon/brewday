@@ -1,0 +1,42 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12"><h3>{{.Subtitle}}</h3></div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <ul class="collection">
+                    {{ range $recipe := .Recipes }}
+                    <li class="collection-item avatar">
+                        <i class="material-icons circle recipe_icon">sports_bar</i>
+                        <span class="title">{{ $recipe.Name }} ({{ $recipe.ID }})</span>
+                        <p>{{ $recipe.Style }}
+                            <br>
+                            <b>Status: </b>{{ recipeStatus $recipe }}
+                        </p>
+                        <div class="secondary-content">
+                            <a href='{{ reverse "getContinue" $recipe.ID }}' class="btn-floating waves-effect waves-light"><i class="material-icons">play_arrow</i></a>&nbsp;
+                            <a href='{{ reverse "deleteRecipe" $recipe.ID }}' class="btn-floating waves-effect waves-light red"><i class="material-icons">delete</i></a>
+                        </div>
+                    </li>
+                    {{ end }}
+                </ul>
+            </div>
+        </div>
+    </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.recipe_icon'); // Get all the icons
+        var colors = ['red', 'pink', 'purple', 'indigo', 'blue', 'cyan', 'teal', 'green', 'lime', 'yellow', 'orange', 'amber', 'grey'];
+        // Loop through the icons and assign a random color
+        for (var elem of elems) {
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            elem.classList.add(color);
+        }
+    });
+</script>
+{{ template "footer" . }}

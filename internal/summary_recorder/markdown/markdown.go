@@ -101,6 +101,69 @@ func (r *MarkdownSummaryRecorder) AddYeastStart(temperature, notes string) {
 	line := fmt.Sprintf("- **Temperature**: %s°C", temperature)
 	r.addNewLine(line)
 	r.addNewLine(notes)
+	r.addNewLine("## SG measurement")
+}
+
+// AddSGMeasurement adds a SG measurement to the summary
+func (r *MarkdownSummaryRecorder) AddSGMeasurement(date string, gravity float32, final bool, notes string) {
+	line := fmt.Sprintf("- **%s**: %.3f", date, gravity)
+	if final {
+		line += " (final)"
+	}
+	if notes != "" {
+		line += " (" + notes + ")"
+	}
+	r.addNewLine(line)
+}
+
+// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
+func (r *MarkdownSummaryRecorder) AddAlcoholMainFermentation(alcohol float32) {
+	r.addNewLine("## Alcohol")
+	line := fmt.Sprintf("- **Main fermentation**: %.2f%%", alcohol)
+	r.addNewLine(line)
+	r.addNewLine("")
+	r.addNewLine("## Dry hop")
+}
+
+// AddSummaryDryHop adds a summary of the dry hop
+func (r *MarkdownSummaryRecorder) AddSummaryDryHop(name string, amount float32) {
+	line := fmt.Sprintf("- **%s**: %.2fg", name, amount)
+	r.addNewLine(line)
+	r.addNewLine("")
+}
+
+// AddSummaryPreBottle adds a summary of the pre bottling
+func (r *MarkdownSummaryRecorder) AddSummaryPreBottle(volume float32) {
+	r.addNewLine("## Pre bottling")
+	line := fmt.Sprintf("- **Volume**: %.2fL", volume)
+	r.addNewLine(line)
+	r.addNewLine("")
+}
+
+// AddSummaryBottle adds a summary of the bottling
+func (r *MarkdownSummaryRecorder) AddSummaryBottle(carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) {
+	r.addNewLine("## Bottle")
+	line := fmt.Sprintf("- **Carbonation**: %.2f g/L", carbonation)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Alcohol**: %.2f%%vol", alcohol)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Sugar**: %.2f g (%s)", sugar, sugarType)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Temperature**: %.2f°C", temp)
+	r.addNewLine(line)
+	line = fmt.Sprintf("- **Volume Before Sugar**: %.2fL", vol)
+	r.addNewLine(line)
+	r.addNewLine(notes)
+	r.addNewLine("")
+}
+
+// AddSummarySecondary adds a summary of the secondary fermentation
+func (r *MarkdownSummaryRecorder) AddSummarySecondary(days int, notes string) {
+	r.addNewLine("## Secondary fermentation")
+	line := fmt.Sprintf("- **Days**: %d", days)
+	r.addNewLine(line)
+	r.addNewLine(notes)
+	r.addNewLine("")
 }
 
 // Close closes the summary recorder
@@ -121,8 +184,8 @@ func (r *MarkdownSummaryRecorder) GetSummary() string {
 	return r.summary
 }
 
-// GetExtention returns the extention of the summary
-func (r *MarkdownSummaryRecorder) GetExtention() string {
+// GetExtension returns the extention of the summary
+func (r *MarkdownSummaryRecorder) GetExtension() string {
 	return "md"
 }
 

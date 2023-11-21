@@ -1,6 +1,7 @@
 package app
 
 import (
+	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 	"brewday/internal/routers/cooling"
 	"brewday/internal/routers/fermentation"
@@ -8,10 +9,13 @@ import (
 	"brewday/internal/routers/import_recipe"
 	"brewday/internal/routers/lautern"
 	"brewday/internal/routers/mash"
+	"brewday/internal/routers/recipes"
+	secondaryferm "brewday/internal/routers/secondary_ferm"
 	summary "brewday/internal/routers/summary"
 	"context"
 	"io/fs"
 	"math"
+	"net/url"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -29,17 +33,17 @@ type App struct {
 	staticFs fs.FS
 	routers  []common.Router
 	renderer Renderer
-	TL       Timeline
+	TLStore  TimelineStore
 	notifier Notifier
 }
 
 // AppComponents is the structure that contains the external components of the application
 type AppComponents struct {
-	Renderer Renderer
-	TL       Timeline
-	Notifier Notifier
-	Store    RecipeStore
-	Summary  SummaryRecorder
+	Renderer     Renderer
+	TL           TimelineStore
+	Notifier     Notifier
+	Store        RecipeStore
+	SummaryStore SummaryRecorderStore
 }
 
 // NewApp creates a new App
@@ -61,42 +65,57 @@ func (a *App) Initialize(components *AppComponents) error {
 	a.server.Use(middleware.Recover())
 	// Initialize internal components
 	store := components.Store
-	summ := components.Summary
 	a.renderer = components.Renderer
-	a.TL = components.TL
+	a.TLStore = components.TL
 	a.notifier = components.Notifier
+	ss := components.SummaryStore
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
-			Store: store,
+			Store:                store,
+			SummaryRecorderStore: ss,
+			TLStore:              a.TLStore,
 		},
 		&mash.MashRouter{
-			Store:   store,
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
 		},
 		&lautern.LauternRouter{
-			Store:   store,
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
 		},
 		&hopping.HoppingRouter{
-			Store:   store,
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
 		},
 		&cooling.CoolingRouter{
-			TL:      a.TL,
-			Summary: summ,
+			Store:        store,
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
 		},
 		&fermentation.FermentationRouter{
-			TL:      a.TL,
-			Summary: summ,
-			Store:   store,
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
+			Store:        store,
+			Notifier:     a.notifier,
+		},
+		&secondaryferm.SecondaryFermentationRouter{
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
+			Store:        store,
+			Notifier:     a.notifier,
 		},
 		&summary.SummaryRouter{
-			Summary: summ,
-			TL:      a.TL,
+			SummaryStore: ss,
+			TLStore:      a.TLStore,
+		},
+		&recipes.RecipesRouter{
+			Store:        store,
+			TLStore:      a.TLStore,
+			SummaryStore: ss,
 		},
 	}
 	a.RegisterStaticFiles()
@@ -126,6 +145,12 @@ func (a *App) RegisterTemplates() error {
 		f64 := float64(f)
 		return math.Round(f64*(math.Pow10(decimals))) / math.Pow10(decimals)
 	})
+	a.renderer.AddFunc("recipeStatus", func(r *recipe.Recipe) string {
+		return r.GetStatusString()
+	})
+	a.renderer.AddFunc("urlEncode", func(s string) string {
+		return url.QueryEscape(s)
+	})
 
 	fs := echo.MustSubFS(a.staticFs, "web/template")
 	err := a.renderer.RegisterTemplates(fs)
@@ -145,7 +170,7 @@ func (a *App) RegisterRoutes() {
 	a.server.GET("/", func(c echo.Context) error {
 		return c.Redirect(302, a.server.Reverse("getImport"))
 	})
-	a.server.POST("/timeline", a.postTimelineEvent).Name = "postTimelineEvent"
+	a.server.POST("/timeline/:recipe_id", a.postTimelineEvent).Name = "postTimelineEvent"
 	a.server.POST("/notification", a.postNotification).Name = "postNotification"
 }
 

@@ -6,8 +6,8 @@ import (
 	"brewday/internal/notifications"
 	"brewday/internal/render"
 	"brewday/internal/store/memory"
-	"brewday/internal/summary_recorder/markdown"
-	"brewday/internal/timeline/basic"
+	summaryrecorder "brewday/internal/summary_recorder"
+	"brewday/internal/timeline"
 	"context"
 	"embed"
 	"flag"
@@ -40,9 +40,9 @@ func main() {
 	components := &app.AppComponents{}
 	// Initialize components
 	components.Renderer = render.NewTemplateRenderer()
-	components.TL = basic.NewBasicTimeline()
+	components.TL = timeline.NewTimelineStore()
 	components.Store = memory.NewMemoryStore()
-	components.Summary = markdown.NewMarkdownSummaryRecorder()
+	components.SummaryStore = summaryrecorder.NewSummaryRecorderStore()
 	if config.Notification.Enabled {
 		n, err := notifications.NewGotifyNotifier(
 			config.Notification.GotifyURL,

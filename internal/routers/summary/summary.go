@@ -8,46 +8,48 @@ import (
 )
 
 type SummaryRouter struct {
-	Summary SummaryRecorder
-	TL      Timeline
+	SummaryStore SummaryRecorderStore
+	TLStore      TimelineStore
 }
 
 // getSummary returns the summary
-func (r *SummaryRouter) getSummary() string {
-	if r.Summary != nil {
-		return r.Summary.GetSummary()
+func (r *SummaryRouter) getSummary(id string) (string, error) {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.GetSummary(id)
 	}
-	return ""
+	return "", nil
 }
 
-// getExtention returns the extention
-func (r *SummaryRouter) getExtention() string {
-	if r.Summary != nil {
-		return r.Summary.GetExtention()
+// getExtention returns the extension
+func (r *SummaryRouter) getExtension(id string) (string, error) {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.GetExtension(id)
 	}
-	return ""
+	return "", nil
 }
 
 // addTimeline adds a timeline
-func (r *SummaryRouter) addTimeline(tl []string) {
-	if r.Summary != nil {
-		r.Summary.AddTimeline(tl)
+func (r *SummaryRouter) addTimeline(id string, tl []string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddTimeline(id, tl)
 	}
+	return nil
 }
 
 // closeSummary closes the summary
-func (r *SummaryRouter) closeSummary() {
-	if r.Summary != nil {
-		r.Summary.Close()
+func (r *SummaryRouter) closeSummary(id string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.Close(id)
 	}
+	return nil
 }
 
 // getTimeline returns the timeline
-func (r *SummaryRouter) getTimeline() []string {
-	if r.TL != nil {
-		return r.TL.GetTimeline()
+func (r *SummaryRouter) getTimeline(id string) ([]string, error) {
+	if r.TLStore != nil {
+		return r.TLStore.GetTimeline(id)
 	}
-	return []string{}
+	return []string{}, nil
 }
 
 // RegisterRoutes registers the routes for the summary router
@@ -62,16 +64,31 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	tl := r.getTimeline()
-	if len(tl) > 0 {
-		r.addTimeline(tl)
+	tl, err := r.getTimeline(id)
+	if err != nil {
+		return err
 	}
-	r.closeSummary()
-	summ := r.getSummary()
-	ext := r.getExtention()
+	if len(tl) > 0 {
+		err := r.addTimeline(id, tl)
+		if err != nil {
+			return err
+		}
+	}
+	err = r.closeSummary(id)
+	if err != nil {
+		return err
+	}
+	summ, err := r.getSummary(id)
+	if err != nil {
+		return err
+	}
+	ext, err := r.getExtension(id)
+	if err != nil {
+		return err
+	}
 	fileName := id + "." + ext
 	c.Response().Header().Set("Content-Type", "application/octet-stream")
 	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
-	_, err := c.Response().Write([]byte(summ))
+	_, err = c.Response().Write([]byte(summ))
 	return err
 }

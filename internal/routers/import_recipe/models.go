@@ -13,3 +13,15 @@ type RecipeStore interface {
 	// Store stores a recipe and returns an identifier that can be used to retrieve it
 	Store(recipe *recipe.Recipe) (string, error)
 }
+
+// SummaryRecorderStore represents a component that stores summary recorders
+// The recipe id is used as key
+type SummaryRecorderStore interface {
+	AddSummaryRecorder(recipeID string, recorderType string)
+}
+
+// TimelineStore represents a component that stores timelines
+// The recipe id is used as key
+type TimelineStore interface {
+	AddTimeline(recipeID string, timelineType string)
+}

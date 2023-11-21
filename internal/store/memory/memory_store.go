@@ -34,6 +34,8 @@ func (s *MemoryStore) Store(recipe *recipe.Recipe) (string, error) {
 	defer s.lock.Unlock()
 	id := s.CreateID(recipe.Name)
 	s.recipes[id] = recipe
+	recipe.ID = id
+	recipe.InitResults()
 	return id, nil
 }
 
@@ -46,4 +48,27 @@ func (s *MemoryStore) Retrieve(id string) (*recipe.Recipe, error) {
 		return nil, errors.New("recipe not found")
 	}
 	return re, nil
+}
+
+// List lists all the recipes
+func (s *MemoryStore) List() ([]*recipe.Recipe, error) {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	var recipes []*recipe.Recipe
+	for _, re := range s.recipes {
+		recipes = append(recipes, re)
+	}
+	return recipes, nil
+}
+
+// Delete deletes a recipe
+func (s *MemoryStore) Delete(id string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	_, ok := s.recipes[id]
+	if !ok {
+		return errors.New("recipe not found")
+	}
+	delete(s.recipes, id)
+	return nil
 }

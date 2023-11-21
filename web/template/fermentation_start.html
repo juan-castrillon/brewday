@@ -1,0 +1,54 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <h5>Now it's time to let the yeast work. Below you can set a notification to let you know when the fermentation is done.</h5>
+                <h5>As a rule of thumb, the minimum time for fermentation is {{.RecommendedMinDays}} days.</h5>
+                <h5>The recommended time is {{.RecommendedDays}} days.</h5>
+            </div>
+        </div>
+        <div class="row">
+            <form action='{{ reverse "postMainFermentationStart" .RecipeID }}' method="post" class="col s12" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="input-field col s6">
+                        <i class="material-icons prefix">notifications_active</i>
+                        <input type="text" id="days_bf" name="notification_days_before" value="{{.RecommendedMinDays}}">
+                        <label for="days_bf">First Notification in:</label>
+                    </div>
+                    <div class="input-field col s6">
+                        <input type="text" id="days" name="notification_days" value="{{.RecommendedDays}}">
+                        <label for="days">Last Notification in:</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">access_time</i>
+                        <select name="time_unit" id="unit" value="days">
+                            <option value="days" selected>Days</option>
+                            <option value="seconds">Seconds</option>
+                        </select>
+                        <label for="unit">Time unit</label>
+                    </div>
+                </div>
+                <button class="btn tooltipped waves-effect waves-light" data-position="top" data-tooltip="This will notify you also one day before you selected so you can measure twice" type="submit" name="action" id="send_form">Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.tooltipped');
+        var instances = M.Tooltip.init(elems, {});
+    });
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('select');
+        var instances = M.FormSelect.init(elems, {});
+    });
+</script>
+{{ template "footer" . }}

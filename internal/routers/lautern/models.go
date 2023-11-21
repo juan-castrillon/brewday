@@ -8,16 +8,16 @@ type RecipeStore interface {
 	Retrieve(id string) (*recipe.Recipe, error)
 }
 
-// Timeline represents a timeline of events
-type Timeline interface {
+// TimelineStore represents a component that stores timelines
+type TimelineStore interface {
 	// AddEvent adds an event to the timeline
-	AddEvent(message string)
+	AddEvent(id, message string) error
 }
 
-// SummaryRecorder represents a component that records a summary
-type SummaryRecorder interface {
+// SummaryRecorderStore represents a component that stores summary recorders
+type SummaryRecorderStore interface {
 	// AddLauternNotes adds lautern notes to the summary
-	AddLaunternNotes(notes string)
+	AddLaunternNotes(id, notes string) error
 }
 
 // ReqPostLautern represents the request body for the postLauternHandler

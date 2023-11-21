@@ -27,3 +27,13 @@ func CalculateEvaporation(volumeBefore, volumeAfter, time float32) float32 {
 	hours := time / 60
 	return perc / hours
 }
+
+// CalculateAlcohol returns the alcohol percentage of a brew in %vol
+// It takes the original and final gravity in SG
+// It calculates the ABV using the cutaia formula
+func CalculateAlcohol(originalGravity, finalGravity float32) float32 {
+	oe := SGToPlato(originalGravity)
+	ae := SGToPlato(finalGravity)
+	abw := (0.372 + 0.00357*oe) * (oe - ae)
+	return abw * (1.308e-5 + 3.868e-3*ae + 1.275e-5*ae*ae + 6.3e-8*ae*ae*ae + 1) / 0.7909
+}

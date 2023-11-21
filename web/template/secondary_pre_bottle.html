@@ -1,0 +1,49 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <br>
+        </div>
+        <div class="row">
+            <form action='{{ reverse "postPreBottle" .RecipeID }}' method="post" class="col s12" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">system_update_alt</i>
+                        <input type="text" id="volume" name="volume">
+                        <label for="volume">Volume in the tank (L)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">local_drink</i>
+                        <input type="text" id="lost" name="lost" value="1">
+                        <label for="lost">Volume lost in yeast (L)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <select name="sugar_type">
+                            <option value="glucose" selected>Traubenzucker</option>
+                            <option value="sucrose">Table sugar</option>
+                        </select>
+                        <label>Sugar Type</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">thermostat</i>
+                        <input type="text" id="temp" name="temperature">
+                        <label for="temp">Temperature</label>
+                    </div>
+                </div>
+                <button class="btn waves-effect waves-light" type="submit" name="action" id="send_form">Submit
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var options = {};
+        var elems2 = document.querySelectorAll('select');
+        var instances2 = M.FormSelect.init(elems2, options);
+    });
+</script>
+{{ template "footer" . }}

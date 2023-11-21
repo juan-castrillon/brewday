@@ -8,18 +8,19 @@ type RecipeStore interface {
 	Retrieve(id string) (*recipe.Recipe, error)
 }
 
-// Timeline represents a timeline of events
-type Timeline interface {
+// TimelineStore represents a component that stores timelines
+type TimelineStore interface {
 	// AddEvent adds an event to the timeline
-	AddEvent(message string)
+	AddEvent(id, message string) error
 }
 
-// SummaryRecorder represents a component that records a summary
-type SummaryRecorder interface {
+// SummaryRecorderStore represents a component that stores summary recorders
+// The recipe id is used as key
+type SummaryRecorderStore interface {
 	// AddMashTemp adds a mash temperature to the summary and notes related to it
-	AddMashTemp(temp float64, notes string)
+	AddMashTemp(id string, temp float64, notes string) error
 	// AddRast adds a rast to the summary and notes related to it
-	AddRast(temp float64, duration float64, notes string)
+	AddRast(id string, temp float64, duration float64, notes string) error
 }
 
 // ReqPostRasts represents the request body for the postRastsHandler
