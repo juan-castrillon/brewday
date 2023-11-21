@@ -49,12 +49,7 @@ func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *ec
 	sf.GET("/start/:recipe_id", r.getSecondaryFermentationStartHandler).Name = "getSecondaryFermentationStart"
 	sf.POST("/start/:recipe_id", r.postSecondaryFermentationStartHandler).Name = "postSecondaryFermentationStart"
 	sf.POST("/end/:recipe_id", r.postSecondaryFermentationEndHandler).Name = "postSecondaryFermentationEnd"
-	sf.GET("/fridge/:recipe_id", r.getFridgeHandler).Name = "getFridge"
-	sf.POST("/fridge/:recipe_id", r.postFridgeHandler).Name = "postFridge"
 	root.GET("/end/:recipe_id", r.getEndHandler).Name = "getEnd"
-	//http://localhost:8080/secondary_fermentation/dry_hop/start/47696e67657220576974/load
-	//http://localhost:8080/secondary_fermentation/pre_bottle/47696e67657220576974
-	//http://localhost:8080/secondary_fermentation/start/47696e67657220576974
 }
 
 // getDryHopStartLoadHandler is responsible for loading the dry hops in the internal structures and then
@@ -105,7 +100,8 @@ func (r *SecondaryFermentationRouter) getDryHopStartHandler(c echo.Context) erro
 	re.SetStatus(recipe.RecipeStatusFermenting, "dry_hop_start")
 	dr, err := r.getDryHops(id)
 	if err != nil {
-		return err
+		log.Info().Str("id", id).Err(err).Msg("Recipe has no dry hops")
+		return c.Redirect(http.StatusFound, c.Echo().Reverse("getPreBottle", id))
 	}
 	return c.Render(http.StatusOK, "secondary_dry_hop_start.html", map[string]interface{}{
 		"Title":    "Dry Hop",
@@ -420,16 +416,6 @@ func (r *SecondaryFermentationRouter) postSecondaryFermentationEndHandler(c echo
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEnd", id))
 }
 
-// getFridgeHandler is the handler for the fridge page
-func (r *SecondaryFermentationRouter) getFridgeHandler(c echo.Context) error {
-	return nil
-}
-
-// postFridgeHandler is the handler for the fridge page
-func (r *SecondaryFermentationRouter) postFridgeHandler(c echo.Context) error {
-	return nil
-}
-
 // getEndHandler is the handler for the end page
 func (r *SecondaryFermentationRouter) getEndHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
@@ -448,6 +434,6 @@ func (r *SecondaryFermentationRouter) getEndHandler(c echo.Context) error {
 	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
 		"Title":    "End Fermentation",
 		"RecipeID": id,
-		"Subtitle": "Congratulations, you've finished the brew day!",
+		"Subtitle": "Congratulations, you've finished the brew!",
 	})
 }
