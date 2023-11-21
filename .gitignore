@@ -1,3 +1,4 @@
 .vscode
 PROGRESS
 local_run.sh
+config.yaml

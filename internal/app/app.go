@@ -100,11 +100,13 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Store:        store,
+			Notifier:     a.notifier,
 		},
 		&secondaryferm.SecondaryFermentationRouter{
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Store:        store,
+			Notifier:     a.notifier,
 		},
 		&summary.SummaryRouter{
 			SummaryStore: ss,
