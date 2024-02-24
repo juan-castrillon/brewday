@@ -263,7 +263,7 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 			})
 		}
 	}
-	re.SetStatus(recipe.RecipeStatusPreFermentation, "water", volumeDiff, sgDiff)
+	re.SetStatus(recipe.RecipeStatusPreFermentation, "water", tools.AnyToString(volumeDiff), tools.AnyToString(sgDiff))
 	return c.Render(http.StatusOK, "fermentation_pre_water.html", map[string]interface{}{
 		"Title":         "Pre Fermentation Water",
 		"RecipeID":      id,

@@ -56,14 +56,14 @@ func TestGetStatus(t *testing.T) {
 		Name           string
 		Recipe         *Recipe
 		ExpectedStatus RecipeStatus
-		ExpectedParams []any
+		ExpectedParams []string
 	}
 	testCases := []testCase{
 		{
 			Name:           "No params",
-			Recipe:         &Recipe{status: RecipeStatusCreated, statusParams: []any{}},
+			Recipe:         &Recipe{status: RecipeStatusCreated, statusParams: []string{}},
 			ExpectedStatus: RecipeStatusCreated,
-			ExpectedParams: []any{},
+			ExpectedParams: []string{},
 		},
 		{
 			Name:           "Nil params",
@@ -73,15 +73,15 @@ func TestGetStatus(t *testing.T) {
 		},
 		{
 			Name:           "With one param",
-			Recipe:         &Recipe{status: RecipeStatusCreated, statusParams: []any{"test"}},
+			Recipe:         &Recipe{status: RecipeStatusCreated, statusParams: []string{"test"}},
 			ExpectedStatus: RecipeStatusCreated,
-			ExpectedParams: []any{"test"},
+			ExpectedParams: []string{"test"},
 		},
 		{
 			Name:           "With multiple params",
-			Recipe:         &Recipe{status: RecipeStatusCreated, statusParams: []any{"test", 1, 2.0}},
+			Recipe:         &Recipe{status: RecipeStatusCreated, statusParams: []string{"test", "1", "2.0"}},
 			ExpectedStatus: RecipeStatusCreated,
-			ExpectedParams: []any{"test", 1, 2.0},
+			ExpectedParams: []string{"test", "1", "2.0"},
 		},
 	}
 	for _, tc := range testCases {
@@ -99,30 +99,30 @@ func TestSetStatus(t *testing.T) {
 		Name   string
 		Recipe *Recipe
 		Status RecipeStatus
-		Params []any
+		Params []string
 	}
 	testCases := []testCase{
 		{
 			Name:   "No params to params",
-			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []any{}},
+			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []string{}},
 			Status: RecipeStatusMashing,
-			Params: []any{"test", 1, 2.0},
+			Params: []string{"test", "1", "2.0"},
 		},
 		{
 			Name:   "No params to nil",
-			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []any{}},
+			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []string{}},
 			Status: RecipeStatusMashing,
 			Params: nil,
 		},
 		{
 			Name:   "Params to no params",
-			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []any{"test", 1, 2.0}},
+			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []string{"test", "1", "2.0"}},
 			Status: RecipeStatusMashing,
-			Params: []any{},
+			Params: []string{},
 		},
 		{
 			Name:   "Params to nil",
-			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []any{"test", 1, 2.0}},
+			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []string{"test", "1", "2.0"}},
 			Status: RecipeStatusMashing,
 			Params: nil,
 		},
@@ -130,19 +130,19 @@ func TestSetStatus(t *testing.T) {
 			Name:   "Nil to no params",
 			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: nil},
 			Status: RecipeStatusMashing,
-			Params: []any{},
+			Params: []string{},
 		},
 		{
 			Name:   "Nil to params",
 			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: nil},
 			Status: RecipeStatusMashing,
-			Params: []any{"test", 1, 2.0},
+			Params: []string{"test", "1", "2.0"},
 		},
 		{
 			Name:   "Params to params",
-			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []any{"test", 1, 2.0}},
+			Recipe: &Recipe{status: RecipeStatusCreated, statusParams: []string{"test", "1", "2.0"}},
 			Status: RecipeStatusMashing,
-			Params: []any{"test2", 3, 4.0},
+			Params: []string{"test", "1", "2.0"},
 		},
 	}
 	for _, tc := range testCases {

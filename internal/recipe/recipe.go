@@ -50,7 +50,8 @@ type Recipe struct {
 	status RecipeStatus
 	// statusParams is the parameters for the status
 	// This is particular for each status, and it can be empty or things like rast number, hop number, ...
-	statusParams []any
+	// It must always be a string to avoid having to use reflection when storing the recipe.
+	statusParams []string
 	// statusLock is the lock for the status
 	statusLock sync.Mutex
 	// ID is the identifier of the recipe. This is populated by the appropriate store and should not be set manually
@@ -170,14 +171,14 @@ func (mash MashInstructions) GetTotalMaltWeight() float32 {
 }
 
 // GetStatus returns the status of the recipe
-func (r *Recipe) GetStatus() (RecipeStatus, []any) {
+func (r *Recipe) GetStatus() (RecipeStatus, []string) {
 	r.statusLock.Lock()
 	defer r.statusLock.Unlock()
 	return r.status, r.statusParams
 }
 
 // SetStatus sets the status of the recipe together with optional parameters
-func (r *Recipe) SetStatus(status RecipeStatus, params ...interface{}) {
+func (r *Recipe) SetStatus(status RecipeStatus, params ...string) {
 	r.statusLock.Lock()
 	defer r.statusLock.Unlock()
 	r.status = status

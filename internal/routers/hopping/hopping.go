@@ -193,7 +193,7 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 	}
 	if ingrNum == len(ings) {
 		if ings[ingrNum-1].Duration != 0 {
-			re.SetStatus(recipe.RecipeStatusBoiling, "lastBoil", ingrNum)
+			re.SetStatus(recipe.RecipeStatusBoiling, "lastBoil", tools.AnyToString(ingrNum))
 			return c.Render(http.StatusOK, "hopping_last_boil.html", map[string]interface{}{
 				"Title":       "Hopping " + re.Name,
 				"Subtitle":    "3. Add hops",
@@ -211,7 +211,7 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 		cookingTime = ings[ingrNum-1].Duration
 	}
 	ingredient := ings[ingrNum]
-	re.SetStatus(recipe.RecipeStatusBoiling, "hop", ingrNum)
+	re.SetStatus(recipe.RecipeStatusBoiling, "hop", tools.AnyToString(ingrNum))
 	return c.Render(http.StatusOK, "hopping_hop.html", map[string]interface{}{
 		"Title":            "Hopping " + re.Name,
 		"Subtitle":         "3. Add hops",

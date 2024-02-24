@@ -103,40 +103,24 @@ func (r *RecipesRouter) statusRedirectURL(c echo.Context, re *recipe.Recipe, id 
 	case recipe.RecipeStatusCreated:
 		return c.Echo().Reverse("getRecipeStart", id), nil
 	case recipe.RecipeStatusMashing:
-		param1, ok := params[0].(string)
-		if !ok {
-			return "", errors.New("invalid parameter for mashing status")
-		}
-		switch param1 {
+		switch params[0] {
 		case "start":
 			return c.Echo().Reverse("getMashStart", id), nil
 		case "rast":
-			rastNum, ok := params[1].(int)
-			if !ok {
-				return "", errors.New("invalid parameter for mashing status")
-			}
-			return c.Echo().Reverse("getRasts", id, rastNum), nil
+			return c.Echo().Reverse("getRasts", id, params[1]), nil
 		default:
 			return "", errors.New("invalid parameter for mashing status")
 		}
 	case recipe.RecipeStatusLautering:
 		return c.Echo().Reverse("getLautern", id), nil
 	case recipe.RecipeStatusBoiling:
-		param1, ok := params[0].(string)
-		if !ok {
-			return "", errors.New("invalid parameter for boiling status")
-		}
-		switch param1 {
+		switch params[0] {
 		case "initialVol":
 			return c.Echo().Reverse("getStartHopping", id), nil
 		case "beforeBoil":
 			return c.Echo().Reverse("getBoiling", id), nil
 		case "lastBoil", "hop":
-			ingrNum, ok := params[1].(int)
-			if !ok {
-				return "", errors.New("invalid parameter for boiling status")
-			}
-			return c.Echo().Reverse("getHopping", id, ingrNum), nil
+			return c.Echo().Reverse("getHopping", id, params[1]), nil
 		case "finalVol":
 			return c.Echo().Reverse("getEndHopping", id), nil
 		default:
@@ -145,33 +129,19 @@ func (r *RecipesRouter) statusRedirectURL(c echo.Context, re *recipe.Recipe, id 
 	case recipe.RecipeStatusCooling:
 		return c.Echo().Reverse("getCooling", id), nil
 	case recipe.RecipeStatusPreFermentation:
-		param1, ok := params[0].(string)
-		if !ok {
-			return "", errors.New("invalid parameter for pre-fermentation status")
-		}
-		switch param1 {
+		switch params[0] {
 		case "measure":
 			return c.Echo().Reverse("getPreFermentation", id), nil
 		case "water":
-			volumeDiff, ok := params[1].(float64)
-			if !ok {
-				return "", errors.New("invalid parameter for pre-fermentation status")
-			}
-			sgDiff, ok := params[2].(float64)
-			if !ok {
-				return "", errors.New("invalid parameter for pre-fermentation status")
-			}
-			queryParams := fmt.Sprintf("?volumeDiff=%f&sgDiff=%f", volumeDiff, sgDiff)
+			volumeDiff := params[1]
+			sgDiff := params[2]
+			queryParams := fmt.Sprintf("?volumeDiff=%s&sgDiff=%s", volumeDiff, sgDiff)
 			return c.Echo().Reverse("getPreFermentationWater", id) + queryParams, nil
 		default:
 			return "", errors.New("invalid parameter for pre-fermentation status")
 		}
 	case recipe.RecipeStatusFermenting:
-		param1, ok := params[0].(string)
-		if !ok {
-			return "", errors.New("invalid parameter for fermentation status")
-		}
-		switch param1 {
+		switch params[0] {
 		case "yeast":
 			return c.Echo().Reverse("getFermentationYeast", id), nil
 		case "start":
@@ -185,11 +155,7 @@ func (r *RecipesRouter) statusRedirectURL(c echo.Context, re *recipe.Recipe, id 
 		case "pre_bottle":
 			return c.Echo().Reverse("getPreBottle", id), nil
 		case "bottle":
-			t, ok := params[1].(string)
-			if !ok {
-				return "", errors.New("invalid parameter for fermentation status")
-			}
-			queryParams := fmt.Sprintf("?type=%s", t)
+			queryParams := fmt.Sprintf("?type=%s", params[1])
 			return c.Echo().Reverse("getBottle", id) + queryParams, nil
 		case "start_secondary":
 			return c.Echo().Reverse("getSecondaryFermentationStart", id), nil

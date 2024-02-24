@@ -3,6 +3,7 @@ package mash
 import (
 	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
+	"brewday/internal/tools"
 	"errors"
 	"net/http"
 	"strconv"
@@ -98,7 +99,7 @@ func (r *MashRouter) getRastsHandler(c echo.Context) error {
 		}
 	}
 	nextRastNum := rastNum + 1
-	re.SetStatus(recipe.RecipeStatusMashing, "rast", rastNum)
+	re.SetStatus(recipe.RecipeStatusMashing, "rast", tools.AnyToString(rastNum))
 	return c.Render(200, "mash_rasts.html", map[string]interface{}{
 		"Title":                "Mash " + re.Name,
 		"Rast":                 re.Mashing.Rasts[rastNum],
