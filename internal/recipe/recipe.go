@@ -29,100 +29,100 @@ type RecipeResults struct {
 // Recipe is the main struct for a recipe
 type Recipe struct {
 	// Name is the name of the recipe
-	Name string
+	Name string `json:"Name"`
 	// Style of the beer
-	Style string
+	Style string `json:"Style"`
 	// BatchSize is the size of the batch in liters
-	BatchSize float32
+	BatchSize float32 `json:"BatchSizeL"`
 	// InitialSG is the initial specific gravity (in SG)
-	InitialSG float32
+	InitialSG float32 `json:"InitialSG"`
 	// Bitterness is the bitterness in IBU
-	Bitterness float32
+	Bitterness float32 `json:"IBU"`
 	// ColorEBC is the color in EBC
-	ColorEBC float32
+	ColorEBC float32 `json:"ColorEBC"`
 	// Mashing is the mashing instructions
-	Mashing MashInstructions
+	Mashing MashInstructions `json:"Mashing"`
 	// Hopping is the hopping instructions
-	Hopping HopInstructions
+	Hopping HopInstructions `json:"Hopping"`
 	// Fermentation is the fermentation instructions
-	Fermentation FermentationInstructions
+	Fermentation FermentationInstructions `json:"Fermentation"`
 	// status is the status of the recipe
-	status RecipeStatus
+	status RecipeStatus `json:"-"`
 	// statusParams is the parameters for the status
 	// This is particular for each status, and it can be empty or things like rast number, hop number, ...
 	// It must always be a string to avoid having to use reflection when storing the recipe.
-	statusParams []string
+	statusParams []string `json:"-"`
 	// statusLock is the lock for the status
-	statusLock sync.Mutex
+	statusLock sync.Mutex `json:"-"`
 	// ID is the identifier of the recipe. This is populated by the appropriate store and should not be set manually
-	ID string
+	ID string `json:"ID"`
 	// results is the results of the recipe. This is populated by the appropriate handlers and should not be set manually
-	results RecipeResults
+	results RecipeResults `json:"-"`
 	// resultsLock is the lock for the results
-	resultsLock sync.Mutex
+	resultsLock sync.Mutex `json:"-"`
 }
 
 // MashInstructions is the struct for the mashing instructions
 // It contains the malts, the main water volume, the mash temperature, the mash out temperature and the rasts
 type MashInstructions struct {
 	// List of malts to use
-	Malts []Malt
+	Malts []Malt `json:"Malts"`
 	// MainWaterVolume is the main water volume in liters
-	MainWaterVolume float32
+	MainWaterVolume float32 `json:"MainWaterVolume"`
 	// Nachguss is the nachguss volume in liters
-	Nachguss float32
+	Nachguss float32 `json:"Nachguss"`
 	// MashTemperature is the mash temperature in °C
-	MashTemperature float32
+	MashTemperature float32 `json:"MashTemperature"`
 	// MashOutTemperature is the mash out temperature in °C
-	MashOutTemperature float32
+	MashOutTemperature float32 `json:"MashOutTemperature"`
 	// Rasts is the list of rasts to perform
-	Rasts []Rast
+	Rasts []Rast `json:"Rasts"`
 }
 
 // Rast is the struct for a rast
 // It represent maintaining a temperature for a given duration
 type Rast struct {
 	// Temperature is the temperature in °C
-	Temperature float32
+	Temperature float32 `json:"Temperature"`
 	// Duration is the duration in minutes
-	Duration float32
+	Duration float32 `json:"Duration"`
 }
 
 // Malt is the struct for a malt
 // It contains the name and the amount in grams
 type Malt struct {
 	// Name of the malt
-	Name string
+	Name string `json:"Name"`
 	// Amount in grams
-	Amount float32
+	Amount float32 `json:"Amount"`
 }
 
 // HopInstructions is the struct for the hopping instructions
 // It contains the hops and the additional ingredients (like spices)
 type HopInstructions struct {
 	// TotalCookingTime is the total cooking time in minutes
-	TotalCookingTime float32
+	TotalCookingTime float32 `json:"TotalCookingTime"`
 	// Hops is the list of hops to use
-	Hops []Hops
+	Hops []Hops `json:"Hops"`
 	// AdditionalIngredients is the list of additional ingredients to use in the boil
-	AdditionalIngredients []AdditionalIngredient
+	AdditionalIngredients []AdditionalIngredient `json:"HoppingAdditionalIngredients"`
 }
 
 // Hops is the struct for a hop
 // It contains the name, the alpha acid percentage, the amount in grams, the duration in minutes and if it is a dry hop
 type Hops struct {
 	// Name of the hop
-	Name string
+	Name string `json:"Name"`
 	// Alpha is the alpha acid percentage
-	Alpha float32
+	Alpha float32 `json:"Alpha"`
 	// Amount in grams
-	Amount float32
+	Amount float32 `json:"Amount"`
 	// Duration of cooking in minutes
-	Duration float32
+	Duration float32 `json:"Duration"`
 	// DryHop is true if this hop is for dry hopping
-	DryHop bool
+	DryHop bool `json:"DryHop"`
 	// Vorderwürze is true if this hop is for vorderwürze hopping
-	Vorderwuerze bool
+	Vorderwuerze bool `json:"Vorderwuerze"`
 }
 
 // AdditionalIngredient is the struct for an additional ingredient
@@ -131,34 +131,34 @@ type Hops struct {
 // It is used in the boil or in the fermentation
 type AdditionalIngredient struct {
 	// Name of the additional ingredient
-	Name string
+	Name string `json:"Name"`
 	// Amount in grams
-	Amount float32
+	Amount float32 `json:"Amount"`
 	// Duration in minutes
-	Duration float32
+	Duration float32 `json:"Duration"`
 }
 
 // FermentationInstructions is the struct for the fermentation instructions
 // It contains the yeast, the temperature, the additional ingredients and the carbonation in g/l
 type FermentationInstructions struct {
 	// Yeast is the yeast to use
-	Yeast Yeast
+	Yeast Yeast `json:"Yeast"`
 	// Temperature is the fermentation temperature in °C
 	// It can be a range of temperature (e.g. 18-22°C)
-	Temperature string
+	Temperature string `json:"Temperature"`
 	// AdditionalIngredients is the list of additional ingredients to use in the fermentation
-	AdditionalIngredients []AdditionalIngredient
+	AdditionalIngredients []AdditionalIngredient `json:"FermentationAdditionalIngredients"`
 	// Carbonation is the carbonation in g/l
-	Carbonation float32
+	Carbonation float32 `json:"Carbonation"`
 }
 
 // Yeast is the struct for a yeast
 // It contains the name and the amount in grams
 type Yeast struct {
 	// Name of the yeast
-	Name string
+	Name string `json:"Name"`
 	// Amount in grams
-	Amount float32
+	Amount float32 `json:"Amount"`
 }
 
 // GetTotalMaltWeight returns the total weight of the malts in g

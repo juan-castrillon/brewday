@@ -3,9 +3,7 @@ package sql
 import (
 	"brewday/internal/recipe"
 	"database/sql"
-	"fmt"
 	"strconv"
-	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,18 +12,8 @@ type PersistentStore struct {
 	dbClient        *sql.DB
 	insertStatement *sql.Stmt
 	// updateStatement   *sql.Stmt
-	// retrieveStatement *sql.Stmt
+	retrieveStatement *sql.Stmt
 	// deleteStatement   *sql.Stmt
-}
-
-type MarshallResult struct {
-	StatusParams string
-	MashingMalts string
-	MashingRasts string
-	HopHops      string
-	HopAdd       string
-	FermAdd      string
-	Yeast        string
 }
 
 func createTable(db *sql.DB) error {
@@ -104,10 +92,15 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 	// if err != nil {
 	// 	return nil, err
 	// }
-	// rs, err := db.Prepare("SELECT id, name, count, simple_name FROM my_objects WHERE id == ?")
-	// if err != nil {
-	// 	return nil, err
-	// }
+	rs, err := db.Prepare(`SELECT 
+		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
+		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,
+		hop_cooking_time, hop_hops, hop_additional,
+		ferm_yeast, ferm_temp, ferm_additional, ferm_carbonation
+	FROM recipes WHERE id == ?`)
+	if err != nil {
+		return nil, err
+	}
 	// ds, err := db.Prepare("DELETE FROM my_objects WHERE id == ?")
 	// if err != nil {
 	// 	return nil, err
@@ -117,7 +110,7 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 		dbClient:        db,
 		insertStatement: is,
 		// updateStatement:   us,
-		// retrieveStatement: rs,
+		retrieveStatement: rs,
 		// deleteStatement:   ds,
 	}, nil
 }
@@ -125,7 +118,10 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 // Store stores a recipe and returns an identifier that can be used to retrieve it
 func (s *PersistentStore) Store(r *recipe.Recipe) (string, error) {
 	status, _ := r.GetStatus()
-	marshalled := s.marshallArrays(r)
+	marshalled, err := s.marshalStructs(r)
+	if err != nil {
+		return "", err
+	}
 	res, err := s.insertStatement.Exec(
 		r.Name, r.Style, r.BatchSize, r.InitialSG, r.Bitterness, r.ColorEBC, status, marshalled.StatusParams,
 		marshalled.MashingMalts, r.Mashing.MainWaterVolume, r.Mashing.Nachguss, r.Mashing.MashTemperature, r.Mashing.MashOutTemperature, marshalled.MashingRasts,
@@ -144,7 +140,51 @@ func (s *PersistentStore) Store(r *recipe.Recipe) (string, error) {
 
 // Retrieve retrieves a recipe based on an identifier
 func (s *PersistentStore) Retrieve(id string) (*recipe.Recipe, error) {
-	return nil, nil
+	var name, style, fermTemp string
+	var batchSizeL, initialSg, ibu, ebc, mashMainWater, mashNachguss, mashTemp, mashOutTemp, hopCooking, fermCarbonation float32
+	var status recipe.RecipeStatus
+	toUnmarshall := &MarshalResult{}
+	err := s.retrieveStatement.QueryRow(id).Scan(&name, &style, &batchSizeL, &initialSg, &ibu, &ebc, &status, &toUnmarshall.StatusParams,
+		&toUnmarshall.MashingMalts, &mashMainWater, &mashNachguss, &mashTemp, &mashOutTemp, &toUnmarshall.MashingRasts,
+		&hopCooking, &toUnmarshall.HopHops, &toUnmarshall.HopAdd,
+		&toUnmarshall.Yeast, &fermTemp, &toUnmarshall.FermAdd, &fermCarbonation)
+	if err != nil {
+		return nil, err
+	}
+	unmarshaled, err := s.unmarshalStructs(toUnmarshall)
+	if err != nil {
+		return nil, err
+	}
+	r := &recipe.Recipe{
+		ID:         id,
+		Name:       name,
+		Style:      style,
+		BatchSize:  batchSizeL,
+		InitialSG:  initialSg,
+		Bitterness: ibu,
+		ColorEBC:   ebc,
+		Mashing: recipe.MashInstructions{
+			Malts:              unmarshaled.MashingMalts,
+			MainWaterVolume:    mashMainWater,
+			Nachguss:           mashNachguss,
+			MashTemperature:    mashTemp,
+			MashOutTemperature: mashOutTemp,
+			Rasts:              unmarshaled.MashingRasts,
+		},
+		Hopping: recipe.HopInstructions{
+			TotalCookingTime:      hopCooking,
+			Hops:                  unmarshaled.HopHops,
+			AdditionalIngredients: unmarshaled.HopAdd,
+		},
+		Fermentation: recipe.FermentationInstructions{
+			Yeast:                 unmarshaled.Yeast,
+			Temperature:           fermTemp,
+			AdditionalIngredients: unmarshaled.FermAdd,
+			Carbonation:           fermCarbonation,
+		},
+	}
+	r.SetStatus(status, unmarshaled.StatusParams...)
+	return r, nil
 }
 
 // List lists all the recipes
@@ -155,38 +195,6 @@ func (s *PersistentStore) List() ([]*recipe.Recipe, error) {
 // Delete deletes a recipe based on an identifier
 func (s *PersistentStore) Delete(id string) error {
 	return nil
-}
-
-func (s *PersistentStore) marshallArrays(r *recipe.Recipe) *MarshallResult {
-	_, statusParams := r.GetStatus()
-	var paramsString, malzString, rastString, hopsString, hopsAddString, fermAddString strings.Builder
-	for _, p := range statusParams {
-		paramsString.WriteString("[" + p + "]")
-	}
-	for _, m := range r.Mashing.Malts {
-		malzString.WriteString(fmt.Sprintf("[%s-%.2f]", m.Name, m.Amount))
-	}
-	for _, rast := range r.Mashing.Rasts {
-		rastString.WriteString(fmt.Sprintf("[%.2f-%.2f]", rast.Temperature, rast.Duration))
-	}
-	for _, h := range r.Hopping.Hops {
-		hopsString.WriteString(fmt.Sprintf("[%s-%.2f-%.2f-%2.f-%t-%t]", h.Name, h.Alpha, h.Amount, h.Duration, h.DryHop, h.Vorderwuerze))
-	}
-	for _, ha := range r.Hopping.AdditionalIngredients {
-		hopsAddString.WriteString(fmt.Sprintf("[%s-%.2f-%.2f]", ha.Name, ha.Amount, ha.Duration))
-	}
-	for _, fa := range r.Fermentation.AdditionalIngredients {
-		fermAddString.WriteString(fmt.Sprintf("[%s-%.2f-%.2f]", fa.Name, fa.Amount, fa.Duration))
-	}
-	return &MarshallResult{
-		StatusParams: paramsString.String(),
-		MashingMalts: malzString.String(),
-		MashingRasts: rastString.String(),
-		HopHops:      hopsString.String(),
-		HopAdd:       hopsAddString.String(),
-		FermAdd:      fermAddString.String(),
-		Yeast:        fmt.Sprintf("[%s-%.2f]", r.Fermentation.Yeast.Name, r.Fermentation.Yeast.Amount),
-	}
 }
 
 // type MySimpleObject struct {
