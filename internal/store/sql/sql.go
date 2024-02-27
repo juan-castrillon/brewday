@@ -3,6 +3,7 @@ package sql
 import (
 	"brewday/internal/recipe"
 	"database/sql"
+	"errors"
 	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -42,10 +43,6 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	// us, err := db.Prepare("UPDATE my_objects SET name = ? WHERE id == ?")
-	// if err != nil {
-	// 	return nil, err
-	// }
 	rs, err := db.Prepare(`SELECT 
 		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
 		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,
@@ -95,7 +92,26 @@ func (s *PersistentStore) Store(r *recipe.Recipe) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return strconv.FormatInt(id, 10), nil
+	idString := strconv.FormatInt(id, 10)
+	r.InitResults()
+	stmt, err := s.dbClient.Prepare(`INSERT INTO recipe_results 
+		(hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol, recipe_id)
+		VALUES ( ?, ?, ?, ?, ?, ?)
+	`)
+	if err != nil {
+		return "", err
+	}
+	defer stmt.Close()
+	initialResults := r.GetResults()
+	_, err = stmt.Exec(
+		initialResults.HotWortVolume, initialResults.OriginalGravity,
+		initialResults.FinalGravity, initialResults.Alcohol,
+		initialResults.MainFermentationVolume, idString,
+	)
+	if err != nil {
+		return "", err
+	}
+	return idString, nil
 }
 
 // Retrieve retrieves a recipe based on an identifier
@@ -196,27 +212,27 @@ func (s *PersistentStore) UpdateStatus(id string, status recipe.RecipeStatus, st
 	return err
 }
 
-// type MySimpleObject struct {
-// 	AName string
-// }
-
-// type MyObject struct {
-// 	ID             int
-// 	Name           string
-// 	Count          int
-// 	MySimpleObject MySimpleObject
-// }
-
-// func (s *PersistentStore) testUpdate(id int, name string) error {
-// 	err := s.create()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	stmt, err := s.dbClient.Prepare("UPDATE my_objects SET name = ? WHERE id == ?")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer stmt.Close()
-// 	_, err = stmt.Exec(name, id)
-// 	return err
-// }
+func (s *PersistentStore) UpdateResults(id string, resultType recipe.ResultType, value float32) error {
+	var columnName string
+	switch resultType {
+	case recipe.ResultHotWortVolume:
+		columnName = "hot_wort_vol"
+	case recipe.ResultOriginalGravity:
+		columnName = "original_sg"
+	case recipe.ResultFinalGravity:
+		columnName = "final_sg"
+	case recipe.ResultAlcohol:
+		columnName = "alcohol"
+	case recipe.ResultMainFermentationVolume:
+		columnName = "main_ferm_vol"
+	default:
+		return errors.New("invalid result not present in schema: " + strconv.Itoa(int(resultType)))
+	}
+	stmt, err := s.dbClient.Prepare("UPDATE recipe_results SET " + columnName + " = ? WHERE recipe_id == ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	_, err = stmt.Exec(value, id)
+	return err
+}

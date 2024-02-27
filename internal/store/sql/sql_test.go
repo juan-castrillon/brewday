@@ -65,14 +65,18 @@ func TestStoreAndRetrieve(t *testing.T) {
 	testCases := []struct {
 		Name         string
 		Modify       bool
+		SkipStore    bool
+		SkipStoreID  string
 		Status       recipe.RecipeStatus
 		StatusParams []string
+		Error        bool
 	}{
 		{Name: "Original", Modify: false},
 		{Name: "StatusNoParams", Modify: true, Status: recipe.RecipeStatusLautering, StatusParams: []string{}},
 		{Name: "StatusParams", Modify: true, Status: recipe.RecipeStatusPreFermentation, StatusParams: []string{
 			"water", "15.324", "0.032",
 		}},
+		{Name: "Read non existent recipe", Modify: false, SkipStore: true, SkipStoreID: "10", Error: true},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -80,16 +84,25 @@ func TestStoreAndRetrieve(t *testing.T) {
 			if tc.Modify {
 				r.SetStatus(tc.Status, tc.StatusParams...)
 			}
-			id, err := store.Store(&r)
-			require.NoError(err)
+			var id string
+			if !tc.SkipStore {
+				id, err = store.Store(&r)
+				require.NoError(err)
+			} else {
+				id = tc.SkipStoreID
+			}
 			actual, err := store.Retrieve(id)
-			require.NoError(err)
-			r.ID = id
-			require.Equal(&r, actual)
-			actualStatus, actualParams := actual.GetStatus()
-			expectedStatus, expectedParams := r.GetStatus()
-			require.Equal(expectedStatus, actualStatus)
-			require.ElementsMatch(expectedParams, actualParams)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				r.ID = id
+				require.Equal(&r, actual)
+				actualStatus, actualParams := actual.GetStatus()
+				expectedStatus, expectedParams := r.GetStatus()
+				require.Equal(expectedStatus, actualStatus)
+				require.ElementsMatch(expectedParams, actualParams)
+			}
 		})
 	}
 }
@@ -298,6 +311,100 @@ func TestUpdateStatus(t *testing.T) {
 			require.Equal(testRecipe.Name, actual.Name)
 			require.Equal(tc.Status, actualStatus)
 			require.ElementsMatch(tc.StatusParams, actualParams)
+		})
+	}
+}
+
+func TestUpdateResults(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name        string
+		RecipeID    string
+		UpdateType  recipe.ResultType
+		UpdateValue float32
+		Expected    *recipe.RecipeResults
+		Error       bool
+	}{
+		{
+			Name:        "Update hot wort volume",
+			RecipeID:    "test",
+			UpdateType:  recipe.ResultHotWortVolume,
+			UpdateValue: 10.5,
+			Expected: &recipe.RecipeResults{
+				HotWortVolume: 10.5,
+			},
+			Error: false,
+		},
+		{
+			Name:        "Update original sg",
+			RecipeID:    "test",
+			UpdateType:  recipe.ResultOriginalGravity,
+			UpdateValue: 1.068,
+			Expected: &recipe.RecipeResults{
+				OriginalGravity: 1.068,
+			},
+			Error: false,
+		},
+		{
+			Name:        "Update final sg",
+			RecipeID:    "test",
+			UpdateType:  recipe.ResultFinalGravity,
+			UpdateValue: 1.059,
+			Expected: &recipe.RecipeResults{
+				FinalGravity: 1.059,
+			},
+			Error: false,
+		},
+		{
+			Name:        "Update alcohol",
+			RecipeID:    "test",
+			UpdateType:  recipe.ResultAlcohol,
+			UpdateValue: 5.5,
+			Expected: &recipe.RecipeResults{
+				Alcohol: 5.5,
+			},
+			Error: false,
+		},
+		{
+			Name:        "Update main volume",
+			RecipeID:    "test",
+			UpdateType:  recipe.ResultMainFermentationVolume,
+			UpdateValue: 10.3,
+			Expected: &recipe.RecipeResults{
+				MainFermentationVolume: 10.3,
+			},
+			Error: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
+			store, err := NewPersistentStore(fileName)
+			require.NoError(err)
+			id, err := store.Store(&testRecipe)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			if tc.RecipeID == "test" {
+				tc.RecipeID = id
+			}
+			err = store.UpdateResults(tc.RecipeID, tc.UpdateType, tc.UpdateValue)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				var actual recipe.RecipeResults
+				var actualRecipeID string
+				err = store.dbClient.QueryRow(`
+					SELECT hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol, recipe_id
+					FROM recipe_results WHERE recipe_id == ?`, tc.RecipeID).Scan(
+					&actual.HotWortVolume, &actual.OriginalGravity,
+					&actual.FinalGravity, &actual.Alcohol, &actual.MainFermentationVolume,
+					&actualRecipeID,
+				)
+				require.NoError(err)
+				require.Equal(tc.Expected, &actual)
+				require.Equal(tc.RecipeID, actualRecipeID)
+			}
 		})
 	}
 }

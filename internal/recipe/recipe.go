@@ -3,6 +3,7 @@ package recipe
 import "sync"
 
 type RecipeStatus int
+type ResultType int
 
 const (
 	RecipeStatusUnknown RecipeStatus = iota
@@ -16,6 +17,11 @@ const (
 	RecipeStatusBottled
 	RecipeStatusFridge
 	RecipeStatusFinished
+	ResultHotWortVolume ResultType = iota
+	ResultOriginalGravity
+	ResultFinalGravity
+	ResultAlcohol
+	ResultMainFermentationVolume
 )
 
 type RecipeResults struct {
