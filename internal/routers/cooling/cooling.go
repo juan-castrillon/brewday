@@ -36,11 +36,10 @@ func (r *CoolingRouter) getCoolingHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
+	err := r.Store.UpdateStatus(id, recipe.RecipeStatusCooling)
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusCooling)
 	return c.Render(http.StatusOK, "cooling.html", map[string]interface{}{
 		"Title":    "Cooling",
 		"RecipeID": id,

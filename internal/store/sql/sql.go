@@ -198,6 +198,7 @@ func (s *PersistentStore) Delete(id string) error {
 	return err
 }
 
+// UpdateStatus updates the status of a recipe in the store
 func (s *PersistentStore) UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error {
 	stmt, err := s.dbClient.Prepare("UPDATE recipes SET status = ? , status_args = ? WHERE id == ?")
 	if err != nil {
@@ -212,6 +213,7 @@ func (s *PersistentStore) UpdateStatus(id string, status recipe.RecipeStatus, st
 	return err
 }
 
+// UpdateResults updates a certain result of a recipe
 func (s *PersistentStore) UpdateResults(id string, resultType recipe.ResultType, value float32) error {
 	var columnName string
 	switch resultType {

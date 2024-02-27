@@ -124,8 +124,11 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	if re == nil {
 		return errors.New("no recipe found")
 	}
-	re.SetStatus(recipe.RecipeStatusCreated)
 	id, err = r.Store.Store(re)
+	if err != nil {
+		return err
+	}
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusCreated)
 	if err != nil {
 		return err
 	}

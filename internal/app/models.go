@@ -48,6 +48,10 @@ type RecipeStore interface {
 	List() ([]*recipe.Recipe, error)
 	// Delete deletes a recipe based on an identifier
 	Delete(id string) error
+	// UpdateStatus updates the status of a recipe in the store
+	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
+	// UpdateResults updates a certain result of a recipe
+	UpdateResults(id string, resultType recipe.ResultType, value float32) error
 }
 
 // SummaryRecorderStore is the interface that helps decouple the summary recorder store from the application

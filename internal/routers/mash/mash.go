@@ -59,7 +59,10 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusMashing, "start")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusMashing, "start")
+	if err != nil {
+		return err
+	}
 	err = r.addTimelineEvent(id, "Started mashing")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
@@ -99,7 +102,10 @@ func (r *MashRouter) getRastsHandler(c echo.Context) error {
 		}
 	}
 	nextRastNum := rastNum + 1
-	re.SetStatus(recipe.RecipeStatusMashing, "rast", tools.AnyToString(rastNum))
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusMashing, "rast", tools.AnyToString(rastNum))
+	if err != nil {
+		return err
+	}
 	return c.Render(200, "mash_rasts.html", map[string]interface{}{
 		"Title":                "Mash " + re.Name,
 		"Rast":                 re.Mashing.Rasts[rastNum],

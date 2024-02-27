@@ -169,15 +169,14 @@ func (r *FermentationRouter) getPreFermentationHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
-	err = r.addTimelineEvent(id, "Started Pre Fermentation")
+	err := r.addTimelineEvent(id, "Started Pre Fermentation")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	re.SetStatus(recipe.RecipeStatusPreFermentation, "measure")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusPreFermentation, "measure")
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "fermentation_pre.html", map[string]interface{}{
 		"Title":    "Pre Fermentation",
 		"RecipeID": id,
@@ -263,7 +262,10 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 			})
 		}
 	}
-	re.SetStatus(recipe.RecipeStatusPreFermentation, "water", tools.AnyToString(volumeDiff), tools.AnyToString(sgDiff))
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusPreFermentation, "water", tools.AnyToString(volumeDiff), tools.AnyToString(sgDiff))
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "fermentation_pre_water.html", map[string]interface{}{
 		"Title":         "Pre Fermentation Water",
 		"RecipeID":      id,
@@ -321,7 +323,10 @@ func (r *FermentationRouter) getFermentationYeastHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	re.SetStatus(recipe.RecipeStatusFermenting, "yeast")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "yeast")
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "fermentation_yeast.html", map[string]interface{}{
 		"Title":       "Fermentation",
 		"Subtitle":    "Start Fermentation",
@@ -359,11 +364,10 @@ func (r *FermentationRouter) getMainFermentationStartHandler(c echo.Context) err
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
+	err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "start")
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusFermenting, "start")
 	r.addMainFermentationStatus(id, false)
 	return c.Render(http.StatusOK, "fermentation_start.html", map[string]interface{}{
 		"Title":              "Fermentation",
@@ -428,16 +432,15 @@ func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
 	status, err := r.getMainFermentationStatus(id)
 	if err != nil {
 		return err
 	}
 	if !status.MinDaysPassed {
-		re.SetStatus(recipe.RecipeStatusFermenting, "wait")
+		err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "wait")
+		if err != nil {
+			return err
+		}
 		wt := status.InitialWatch.MissingTime()
 		return c.Render(http.StatusOK, "fermentation_wait.html", map[string]interface{}{
 			"Title":       "Fermentation",
@@ -448,7 +451,10 @@ func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
 	} else {
 		// This should ask for the SGs and once user clicks on its stable for me lead to
 		// sugar calculation
-		re.SetStatus(recipe.RecipeStatusFermenting, "main")
+		err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "main")
+		if err != nil {
+			return err
+		}
 		measurements, err := r.getSGMeasurements(id)
 		if err != nil {
 			return err

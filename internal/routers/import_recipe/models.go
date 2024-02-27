@@ -12,6 +12,8 @@ type RecipeParser interface {
 type RecipeStore interface {
 	// Store stores a recipe and returns an identifier that can be used to retrieve it
 	Store(recipe *recipe.Recipe) (string, error)
+	// UpdateStatus updates the status of a recipe in the store
+	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
 }
 
 // SummaryRecorderStore represents a component that stores summary recorders

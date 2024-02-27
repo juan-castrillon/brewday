@@ -6,6 +6,8 @@ import "brewday/internal/recipe"
 type RecipeStore interface {
 	// Retrieve retrieves a recipe based on an identifier
 	Retrieve(id string) (*recipe.Recipe, error)
+	// UpdateStatus updates the status of a recipe in the store
+	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
 }
 
 // TimelineStore represents a component that stores timelines

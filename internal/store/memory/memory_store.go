@@ -72,3 +72,18 @@ func (s *MemoryStore) Delete(id string) error {
 	delete(s.recipes, id)
 	return nil
 }
+
+// UpdateStatus updates the status of a recipe in the store
+func (s *MemoryStore) UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error {
+	r, err := s.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	r.SetStatus(status, statusParams...)
+	return nil
+}
+
+// UpdateResults updates a certain result of a recipe
+func (s *MemoryStore) UpdateResults(id string, resultType recipe.ResultType, value float32) error {
+	return nil
+}

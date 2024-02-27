@@ -117,7 +117,10 @@ func (r *HoppingRouter) getStartHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusBoiling, "initialVol")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusBoiling, "initialVol")
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "hopping_start.html", map[string]interface{}{
 		"Title":    "Hopping " + re.Name,
 		"Subtitle": "1. Measure volume before boiling",
@@ -159,7 +162,10 @@ func (r *HoppingRouter) getBoilingHandler(c echo.Context) error {
 		return err
 	}
 	ings := r.getIngredients(id, re)
-	re.SetStatus(recipe.RecipeStatusBoiling, "beforeBoil")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusBoiling, "beforeBoil")
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "hopping_boiling.html", map[string]interface{}{
 		"Title":       "Hopping " + re.Name,
 		"Subtitle":    "2. Boil",
@@ -193,7 +199,10 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 	}
 	if ingrNum == len(ings) {
 		if ings[ingrNum-1].Duration != 0 {
-			re.SetStatus(recipe.RecipeStatusBoiling, "lastBoil", tools.AnyToString(ingrNum))
+			err = r.Store.UpdateStatus(id, recipe.RecipeStatusBoiling, "lastBoil", tools.AnyToString(ingrNum))
+			if err != nil {
+				return err
+			}
 			return c.Render(http.StatusOK, "hopping_last_boil.html", map[string]interface{}{
 				"Title":       "Hopping " + re.Name,
 				"Subtitle":    "3. Add hops",
@@ -211,7 +220,10 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 		cookingTime = ings[ingrNum-1].Duration
 	}
 	ingredient := ings[ingrNum]
-	re.SetStatus(recipe.RecipeStatusBoiling, "hop", tools.AnyToString(ingrNum))
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusBoiling, "hop", tools.AnyToString(ingrNum))
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "hopping_hop.html", map[string]interface{}{
 		"Title":            "Hopping " + re.Name,
 		"Subtitle":         "3. Add hops",
@@ -283,7 +295,10 @@ func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusBoiling, "finalVol")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusBoiling, "finalVol")
+	if err != nil {
+		return err
+	}
 	err = r.addTimelineEvent(id, "Finished Hopping")
 	if err != nil {
 		log.Error().Err(err).Str("id", id).Msg("could not add timeline event")

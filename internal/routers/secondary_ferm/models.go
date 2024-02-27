@@ -27,6 +27,8 @@ type SummaryRecorderStore interface {
 type RecipeStore interface {
 	// Retrieve retrieves a recipe based on an identifier
 	Retrieve(id string) (*recipe.Recipe, error)
+	// UpdateStatus updates the status of a recipe in the store
+	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
 }
 
 // Notifier is the interface that helps decouple the notifier from the application
