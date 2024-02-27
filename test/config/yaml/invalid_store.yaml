@@ -8,5 +8,5 @@ notification:
   password: "gotify"
 
 store:
-  type: sql
+  type: invalid
   path: "./bd.sqlite"

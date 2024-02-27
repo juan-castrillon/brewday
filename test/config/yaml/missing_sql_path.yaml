@@ -9,4 +9,3 @@ notification:
 
 store:
   type: sql
-  path: "./bd.sqlite"

@@ -6,6 +6,7 @@ import (
 	"brewday/internal/notifications"
 	"brewday/internal/render"
 	"brewday/internal/store/memory"
+	"brewday/internal/store/sql"
 	summaryrecorder "brewday/internal/summary_recorder"
 	"brewday/internal/timeline"
 	"context"
@@ -41,7 +42,21 @@ func main() {
 	// Initialize components
 	components.Renderer = render.NewTemplateRenderer()
 	components.TL = timeline.NewTimelineStore()
-	components.Store = memory.NewMemoryStore()
+	var store app.RecipeStore
+	switch config.Store.StoreType {
+	case "sql":
+		s, err := sql.NewPersistentStore(config.Store.Path)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while initializing db store")
+		}
+		defer s.Close()
+		store = s
+	case "memory":
+		store = memory.NewMemoryStore()
+	default:
+		log.Fatal().Msg("Invalid store type")
+	}
+	components.Store = store
 	components.SummaryStore = summaryrecorder.NewSummaryRecorderStore()
 	if config.Notification.Enabled {
 		n, err := notifications.NewGotifyNotifier(
