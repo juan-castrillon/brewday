@@ -283,12 +283,8 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
 	var req ReqPostPreFermentationWater
-	err = c.Bind(&req)
+	err := c.Bind(&req)
 	if err != nil {
 		return err
 	}
@@ -300,8 +296,14 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
 	}
-	re.SetOriginalGravity(req.FinalSG)
-	re.SetMainFermentationVolume(req.FinalVolume)
+	err = r.Store.UpdateResults(id, recipe.ResultOriginalGravity, req.FinalSG)
+	if err != nil {
+		return err
+	}
+	err = r.Store.UpdateResults(id, recipe.ResultMainFermentationVolume, req.FinalVolume)
+	if err != nil {
+		return err
+	}
 	err = r.addTimelineEvent(id, "Finished Pre Fermentation")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
@@ -497,10 +499,16 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		re.SetFinalGravity(req.SG)
+		err = r.Store.UpdateResults(id, recipe.ResultFinalGravity, req.SG)
+		if err != nil {
+			return err
+		}
 		og := re.GetResults().OriginalGravity
 		alc := tools.CalculateAlcohol(og, req.SG)
-		re.SetAlcohol(alc)
+		err = r.Store.UpdateResults(id, recipe.ResultAlcohol, alc)
+		if err != nil {
+			return err
+		}
 		err = r.addSummaryAlcoholMainFermentation(id, alc)
 		if err != nil {
 			log.Error().Str("id", id).Err(err).Msg("could not add alcohol to summary")

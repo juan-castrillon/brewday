@@ -4,6 +4,7 @@ import (
 	"brewday/internal/recipe"
 	"encoding/hex"
 	"errors"
+	"strconv"
 	"sync"
 )
 
@@ -85,5 +86,23 @@ func (s *MemoryStore) UpdateStatus(id string, status recipe.RecipeStatus, status
 
 // UpdateResults updates a certain result of a recipe
 func (s *MemoryStore) UpdateResults(id string, resultType recipe.ResultType, value float32) error {
+	r, err := s.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	switch resultType {
+	case recipe.ResultHotWortVolume:
+		r.SetHotWortVolume(value)
+	case recipe.ResultOriginalGravity:
+		r.SetOriginalGravity(value)
+	case recipe.ResultFinalGravity:
+		r.SetFinalGravity(value)
+	case recipe.ResultAlcohol:
+		r.SetAlcohol(value)
+	case recipe.ResultMainFermentationVolume:
+		r.SetMainFermentationVolume(value)
+	default:
+		return errors.New("invalid result not present in struct: " + strconv.Itoa(int(resultType)))
+	}
 	return nil
 }

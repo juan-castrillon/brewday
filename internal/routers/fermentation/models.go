@@ -41,6 +41,8 @@ type RecipeStore interface {
 	Retrieve(id string) (*recipe.Recipe, error)
 	// UpdateStatus updates the status of a recipe in the store
 	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
+	// UpdateResults updates a certain result of a recipe
+	UpdateResults(id string, resultType recipe.ResultType, value float32) error
 }
 
 // Notifier is the interface that helps decouple the notifier from the application

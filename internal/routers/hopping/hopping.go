@@ -337,7 +337,10 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}
-	re.SetHotWortVolume(req.FinalVolume)
+	err = r.Store.UpdateResults(id, recipe.ResultHotWortVolume, req.FinalVolume)
+	if err != nil {
+		return err
+	}
 	evap := tools.CalculateEvaporation(initialVol, req.FinalVolume, re.Hopping.TotalCookingTime)
 	err = r.addSummaryEvaporation(id, evap)
 	if err != nil {
