@@ -13,54 +13,8 @@ type PersistentStore struct {
 	insertStatement *sql.Stmt
 	// updateStatement   *sql.Stmt
 	retrieveStatement *sql.Stmt
+	listStatement     *sql.Stmt
 	// deleteStatement   *sql.Stmt
-}
-
-func createTable(db *sql.DB) error {
-	_, err := db.Exec(`
-	CREATE TABLE IF NOT EXISTS recipes (
-		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-		name TEXT NOT NULL,
-		style TEXT,
-		batch_size_l REAL,
-		initial_sg REAL,
-		ibu REAL,
-		ebc REAL,
-		status INTEGER NOT NULL, 
-		status_args TEXT,
-		mash_malts TEXT,
-		mash_main_water REAL,
-		mash_nachguss REAL,
-		mash_temp REAL,
-		mash_out_temp REAL,
-		mash_rasts TEXT,
-		hop_cooking_time REAL,
-		hop_hops TEXT,
-		hop_additional TEXT,
-		ferm_yeast TEXT,
-		ferm_temp TEXT,
-		ferm_additional TEXT,
-		ferm_carbonation REAL
-	)`)
-	return err
-}
-
-func createResultsTable(db *sql.DB) error {
-	_, err := db.Exec(`
-	CREATE TABLE IF NOT EXISTS recipe_results (
-		id INTEGER NOT NULL PRIMARY KEY,
-		hot_wort_vol REAL,
-		original_sg REAL,
-		final_sg REAL,
-		alcohol REAL,
-		main_ferm_vol REAL,
-		recipe_id INTEGER NOT NULL,
-		FOREIGN KEY (recipe_id) 
-			REFERENCES recipes (id)
-				ON DELETE CASCADE
-				ON UPDATE CASCADE
-	)`)
-	return err
 }
 
 func NewPersistentStore(path string) (*PersistentStore, error) {
@@ -101,6 +55,11 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Just getting what I need for now to display, if future calls to list require more, they are to be added here
+	ls, err := db.Prepare("SELECT id, name, style, status FROM recipes")
+	if err != nil {
+		return nil, err
+	}
 	// ds, err := db.Prepare("DELETE FROM my_objects WHERE id == ?")
 	// if err != nil {
 	// 	return nil, err
@@ -111,6 +70,7 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 		insertStatement: is,
 		// updateStatement:   us,
 		retrieveStatement: rs,
+		listStatement:     ls,
 		// deleteStatement:   ds,
 	}, nil
 }
@@ -189,7 +149,31 @@ func (s *PersistentStore) Retrieve(id string) (*recipe.Recipe, error) {
 
 // List lists all the recipes
 func (s *PersistentStore) List() ([]*recipe.Recipe, error) {
-	return nil, nil
+	rows, err := s.listStatement.Query()
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	result := []*recipe.Recipe{}
+	for rows.Next() {
+		var status recipe.RecipeStatus
+		var id, name, style string
+		err = rows.Scan(&id, &name, &style, &status)
+		if err != nil {
+			return nil, err
+		}
+		r := &recipe.Recipe{
+			ID:    id,
+			Name:  name,
+			Style: style,
+		}
+		r.SetStatus(status)
+		result = append(result, r)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return result, err
 }
 
 // Delete deletes a recipe based on an identifier
