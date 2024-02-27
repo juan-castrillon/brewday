@@ -106,3 +106,13 @@ func (s *MemoryStore) UpdateResults(id string, resultType recipe.ResultType, val
 	}
 	return nil
 }
+
+// RetrieveResults gets the results from a certain recipe
+func (s *MemoryStore) RetrieveResults(id string) (*recipe.RecipeResults, error) {
+	r, err := s.Retrieve(id)
+	if err != nil {
+		return nil, err
+	}
+	res := r.GetResults()
+	return &res, nil
+}

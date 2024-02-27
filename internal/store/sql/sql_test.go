@@ -392,18 +392,9 @@ func TestUpdateResults(t *testing.T) {
 				require.Error(err)
 			} else {
 				require.NoError(err)
-				var actual recipe.RecipeResults
-				var actualRecipeID string
-				err = store.dbClient.QueryRow(`
-					SELECT hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol, recipe_id
-					FROM recipe_results WHERE recipe_id == ?`, tc.RecipeID).Scan(
-					&actual.HotWortVolume, &actual.OriginalGravity,
-					&actual.FinalGravity, &actual.Alcohol, &actual.MainFermentationVolume,
-					&actualRecipeID,
-				)
+				actual, err := store.RetrieveResults(tc.RecipeID)
 				require.NoError(err)
-				require.Equal(tc.Expected, &actual)
-				require.Equal(tc.RecipeID, actualRecipeID)
+				require.Equal(tc.Expected, actual)
 			}
 		})
 	}

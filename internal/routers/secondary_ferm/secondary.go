@@ -252,7 +252,10 @@ func (r *SecondaryFermentationRouter) postPreBottleHandler(c echo.Context) error
 	if err != nil {
 		return err
 	}
-	res := re.GetResults()
+	res, err := r.Store.RetrieveResults(id)
+	if err != nil {
+		return err
+	}
 	vol := req.Volume - req.LostVolume
 	r.calculateSugar(
 		id, vol,
@@ -310,7 +313,10 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	res := re.GetResults()
+	res, err := r.Store.RetrieveResults(id)
+	if err != nil {
+		return err
+	}
 	_, realAlcohol := tools.SugarForCarbonation(
 		req.RealVolume, re.Fermentation.Carbonation, req.Temperature,
 		res.Alcohol, req.Water, req.SugarType,

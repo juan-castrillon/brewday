@@ -238,3 +238,18 @@ func (s *PersistentStore) UpdateResults(id string, resultType recipe.ResultType,
 	_, err = stmt.Exec(value, id)
 	return err
 }
+
+// RetrieveResults gets the results from a certain recipe
+func (s *PersistentStore) RetrieveResults(id string) (*recipe.RecipeResults, error) {
+	var actual recipe.RecipeResults
+	err := s.dbClient.QueryRow(`
+					SELECT hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol
+					FROM recipe_results WHERE recipe_id == ?`, id).Scan(
+		&actual.HotWortVolume, &actual.OriginalGravity,
+		&actual.FinalGravity, &actual.Alcohol, &actual.MainFermentationVolume,
+	)
+	if err != nil {
+		return nil, err
+	}
+	return &actual, nil
+}

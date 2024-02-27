@@ -203,7 +203,11 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
 	}
 	// TODO: this is int he wrong place, it must be in the "hot" wort
-	hotWortVol := re.GetResults().HotWortVolume
+	results, err := r.Store.RetrieveResults(id)
+	if err != nil {
+		return err
+	}
+	hotWortVol := results.HotWortVolume
 	eff := tools.CalculateEfficiencySG(req.SG, hotWortVol, re.Mashing.GetTotalMaltWeight())
 	err = r.addSummaryEfficiency(id, eff)
 	if err != nil {
@@ -495,15 +499,15 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		log.Error().Str("id", id).Err(err).Msg("could not add sg measurement to summary")
 	}
 	if req.Final {
-		re, err := r.Store.Retrieve(id)
-		if err != nil {
-			return err
-		}
 		err = r.Store.UpdateResults(id, recipe.ResultFinalGravity, req.SG)
 		if err != nil {
 			return err
 		}
-		og := re.GetResults().OriginalGravity
+		results, err := r.Store.RetrieveResults(id)
+		if err != nil {
+			return err
+		}
+		og := results.OriginalGravity
 		alc := tools.CalculateAlcohol(og, req.SG)
 		err = r.Store.UpdateResults(id, recipe.ResultAlcohol, alc)
 		if err != nil {
