@@ -182,6 +182,20 @@ func (s *PersistentStore) Delete(id string) error {
 	return err
 }
 
+func (s *PersistentStore) UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error {
+	stmt, err := s.dbClient.Prepare("UPDATE recipes SET status = ? , status_args = ? WHERE id == ?")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+	statusArgs, err := s.marshalStatusParams(statusParams...)
+	if err != nil {
+		return err
+	}
+	_, err = stmt.Exec(status, statusArgs, id)
+	return err
+}
+
 // type MySimpleObject struct {
 // 	AName string
 // }
@@ -191,51 +205,6 @@ func (s *PersistentStore) Delete(id string) error {
 // 	Name           string
 // 	Count          int
 // 	MySimpleObject MySimpleObject
-// }
-
-// func (s *PersistentStore) create() error {
-// 	const q = `CREATE TABLE IF NOT EXISTS my_objects (
-// 		id INTEGER NOT NULL PRIMARY KEY,
-// 		name TEXT,
-// 		count INTEGER,
-// 		simple_name TEXT
-// 	)`
-// 	_, err := s.dbClient.Exec(q)
-// 	return err
-// }
-
-// func (s *PersistentStore) testSave(o *MyObject) error {
-// 	err := s.create()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// stmt, _ := db.Prepare("INSERT INTO people (id, first_name, last_name, email, ip_address) VALUES (?, ?, ?, ?, ?)")
-// 	stmt, err := s.dbClient.Prepare("INSERT INTO my_objects (id, name, count, simple_name) VALUES (?, ?, ?, ?)")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer stmt.Close()
-// 	_, err = stmt.Exec(o.ID, o.Name, o.Count, o.MySimpleObject.AName)
-// 	return err
-// }
-
-// func (s *PersistentStore) testRetrieve(id int) (*MyObject, error) {
-// 	err := s.create()
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	stmt, err := s.dbClient.Prepare("SELECT id, name, count, simple_name FROM my_objects WHERE id == ?")
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer stmt.Close()
-// 	//result := &MyObject{MySimpleObject: MySimpleObject{}}
-// 	var result MyObject
-// 	err = stmt.QueryRow(id).Scan(&result.ID, &result.Name, &result.Count, &result.MySimpleObject.AName)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &result, nil
 // }
 
 // func (s *PersistentStore) testUpdate(id int, name string) error {
@@ -249,19 +218,5 @@ func (s *PersistentStore) Delete(id string) error {
 // 	}
 // 	defer stmt.Close()
 // 	_, err = stmt.Exec(name, id)
-// 	return err
-// }
-
-// func (s *PersistentStore) testDelete(id int) error {
-// 	err := s.create()
-// 	if err != nil {
-// 		return err
-// 	}
-// 	stmt, err := s.dbClient.Prepare("DELETE FROM my_objects WHERE id == ?")
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer stmt.Close()
-// 	_, err = stmt.Exec(id)
 // 	return err
 // }

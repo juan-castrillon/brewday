@@ -263,3 +263,41 @@ func TestDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateStatus(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	store, err := NewPersistentStore(fileName)
+	require.NoError(err)
+	id, err := store.Store(&testRecipe)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	testCases := []struct {
+		Name         string
+		Status       recipe.RecipeStatus
+		StatusParams []string
+	}{
+		{
+			Name:         "Status with no params",
+			Status:       recipe.RecipeStatusLautering,
+			StatusParams: []string{},
+		},
+		{
+			Name:         "Status with params",
+			Status:       recipe.RecipeStatusPreFermentation,
+			StatusParams: []string{"water", "15.324", "0.032"},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.UpdateStatus(id, tc.Status, tc.StatusParams...)
+			require.NoError(err)
+			actual, err := store.Retrieve(id)
+			require.NoError(err)
+			actualStatus, actualParams := actual.GetStatus()
+			require.Equal(testRecipe.Name, actual.Name)
+			require.Equal(tc.Status, actualStatus)
+			require.ElementsMatch(tc.StatusParams, actualParams)
+		})
+	}
+}

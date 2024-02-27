@@ -27,7 +27,7 @@ type UnmarshalResult struct {
 
 func (s *PersistentStore) marshalStructs(r *recipe.Recipe) (*MarshalResult, error) {
 	_, statusParams := r.GetStatus()
-	statusParamsByte, err := json.Marshal(statusParams)
+	sP, err := s.marshalStatusParams(statusParams...)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +56,7 @@ func (s *PersistentStore) marshalStructs(r *recipe.Recipe) (*MarshalResult, erro
 		return nil, err
 	}
 	return &MarshalResult{
-		StatusParams: string(statusParamsByte),
+		StatusParams: sP,
 		MashingMalts: string(maltBytes),
 		MashingRasts: string(rastBytes),
 		HopHops:      string(hopBytes),
@@ -64,6 +64,14 @@ func (s *PersistentStore) marshalStructs(r *recipe.Recipe) (*MarshalResult, erro
 		FermAdd:      string(fermAddBytes),
 		Yeast:        string(yeastBytes),
 	}, nil
+}
+
+func (s *PersistentStore) marshalStatusParams(statusParams ...string) (string, error) {
+	statusParamsByte, err := json.Marshal(statusParams)
+	if err != nil {
+		return "", err
+	}
+	return string(statusParamsByte), nil
 }
 
 func (s *PersistentStore) unmarshalStructs(m *MarshalResult) (*UnmarshalResult, error) {
