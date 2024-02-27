@@ -168,3 +168,98 @@ func TestList(t *testing.T) {
 		})
 	}
 }
+
+func TestDelete(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name           string
+		RecipesToStore int
+		DeleteID       string
+		Expected       []*recipe.Recipe
+		Error          bool
+	}{
+		{
+			Name:           "Single recipe",
+			RecipesToStore: 1,
+			DeleteID:       "1",
+			Expected:       []*recipe.Recipe{},
+			Error:          false,
+		},
+		{
+			Name:           "Delete first from two",
+			RecipesToStore: 2,
+			DeleteID:       "1",
+			Expected:       []*recipe.Recipe{{Name: "Huell Saison1", Style: "Saison"}},
+			Error:          false,
+		},
+		{
+			Name:           "Delete second from two",
+			RecipesToStore: 2,
+			DeleteID:       "2",
+			Expected:       []*recipe.Recipe{{Name: "Huell Saison0", Style: "Saison"}},
+			Error:          false,
+		},
+		{
+			Name:           "Delete middle from three",
+			RecipesToStore: 3,
+			DeleteID:       "2",
+			Expected: []*recipe.Recipe{
+				{Name: "Huell Saison0", Style: "Saison"},
+				{Name: "Huell Saison2", Style: "Saison"},
+			},
+			Error: false,
+		},
+		{
+			Name:           "Delete from empty db",
+			RecipesToStore: 0,
+			DeleteID:       "1",
+			Expected:       []*recipe.Recipe{},
+			Error:          false,
+		},
+		{
+			Name:           "Delete non existent ID",
+			RecipesToStore: 1,
+			DeleteID:       "3",
+			Expected: []*recipe.Recipe{
+				{Name: "Huell Saison0", Style: "Saison"},
+			},
+			Error: false,
+		},
+		{
+			Name:           "Delete non valid ID",
+			RecipesToStore: 1,
+			DeleteID:       "invalid",
+			Expected: []*recipe.Recipe{
+				{Name: "Huell Saison0", Style: "Saison"},
+			},
+			Error: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.TrimSpace("testdelete_"+tc.Name)) + ".sqlite"
+			store, err := NewPersistentStore(fileName)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			for i := 0; i < tc.RecipesToStore; i++ {
+				r := testRecipe
+				r.Name = fmt.Sprintf("%s%d", r.Name, i)
+				_, err := store.Store(&r)
+				require.NoError(err)
+			}
+			err = store.Delete(tc.DeleteID)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				actual, err := store.List()
+				require.NoError(err)
+				require.Equal(len(tc.Expected), len(actual))
+				for i := 0; i < len(actual); i++ {
+					require.Equal(tc.Expected[i].Name, actual[i].Name)
+					require.Equal(tc.Expected[i].Style, actual[i].Style)
+				}
+			}
+		})
+	}
+}

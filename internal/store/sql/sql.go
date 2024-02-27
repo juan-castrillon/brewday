@@ -14,7 +14,7 @@ type PersistentStore struct {
 	// updateStatement   *sql.Stmt
 	retrieveStatement *sql.Stmt
 	listStatement     *sql.Stmt
-	// deleteStatement   *sql.Stmt
+	deleteStatement   *sql.Stmt
 }
 
 func NewPersistentStore(path string) (*PersistentStore, error) {
@@ -60,10 +60,10 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 	if err != nil {
 		return nil, err
 	}
-	// ds, err := db.Prepare("DELETE FROM my_objects WHERE id == ?")
-	// if err != nil {
-	// 	return nil, err
-	// }
+	ds, err := db.Prepare("DELETE FROM recipes WHERE id == ?")
+	if err != nil {
+		return nil, err
+	}
 
 	return &PersistentStore{
 		dbClient:        db,
@@ -71,7 +71,7 @@ func NewPersistentStore(path string) (*PersistentStore, error) {
 		// updateStatement:   us,
 		retrieveStatement: rs,
 		listStatement:     ls,
-		// deleteStatement:   ds,
+		deleteStatement:   ds,
 	}, nil
 }
 
@@ -178,7 +178,8 @@ func (s *PersistentStore) List() ([]*recipe.Recipe, error) {
 
 // Delete deletes a recipe based on an identifier
 func (s *PersistentStore) Delete(id string) error {
-	return nil
+	_, err := s.deleteStatement.Exec(id)
+	return err
 }
 
 // type MySimpleObject struct {
