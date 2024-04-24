@@ -1,37 +1,27 @@
-package timeline
+package stores
 
 import (
-	"brewday/internal/timeline/basic"
+	"brewday/internal/timeline"
 	"errors"
 	"sync"
 )
 
-// TimelineStore represents a timeline store.
+// TimelineMemoryStore represents a timeline store stored in memory.
 // The recipe id is used as key
-type TimelineStore struct {
+type TimelineMemoryStore struct {
 	lock      sync.Mutex
-	timelines map[string]Timeline
+	timelines map[string]timeline.Timeline
 }
 
-// NewTimelineStore creates a new TimelineStore
-func NewTimelineStore() *TimelineStore {
-	return &TimelineStore{
-		timelines: make(map[string]Timeline),
-	}
-}
-
-// TimelineFactory is a factory for Timeline implementations
-func TimelineFactory(timelineType string) Timeline {
-	switch timelineType {
-	case "simple":
-		return basic.NewBasicTimeline()
-	default:
-		return basic.NewBasicTimeline()
+// NewTimelineMemoryStore creates a new TimelineStore
+func NewTimelineMemoryStore() *TimelineMemoryStore {
+	return &TimelineMemoryStore{
+		timelines: make(map[string]timeline.Timeline),
 	}
 }
 
 // getTimelineFromStore returns the timeline for the given recipe id
-func (s *TimelineStore) getTimelineFromStore(recipeID string) (Timeline, error) {
+func (s *TimelineMemoryStore) getTimelineFromStore(recipeID string) (timeline.Timeline, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	tl, ok := s.timelines[recipeID]
@@ -42,22 +32,22 @@ func (s *TimelineStore) getTimelineFromStore(recipeID string) (Timeline, error) 
 }
 
 // AddTimeline adds a timeline for the given recipe id
-func (s *TimelineStore) AddTimeline(recipeID string, timelineType string) {
-	timeline := TimelineFactory(timelineType)
+func (s *TimelineMemoryStore) AddTimeline(recipeID string, timelineType string) {
+	timeline := timeline.TimelineFactory(timelineType)
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.timelines[recipeID] = timeline
 }
 
 // DeleteTimeline deletes the timeline for the given recipe id
-func (s *TimelineStore) DeleteTimeline(recipeID string) {
+func (s *TimelineMemoryStore) DeleteTimeline(recipeID string) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	delete(s.timelines, recipeID)
 }
 
 // AddEvent adds an event to the timeline for the given recipe id
-func (s *TimelineStore) AddEvent(id string, message string) error {
+func (s *TimelineMemoryStore) AddEvent(id string, message string) error {
 	tl, err := s.getTimelineFromStore(id)
 	if err != nil {
 		return err
@@ -67,7 +57,7 @@ func (s *TimelineStore) AddEvent(id string, message string) error {
 }
 
 // GetTimeline returns the timeline as a slice of strings for the given recipe id
-func (s *TimelineStore) GetTimeline(id string) ([]string, error) {
+func (s *TimelineMemoryStore) GetTimeline(id string) ([]string, error) {
 	tl, err := s.getTimelineFromStore(id)
 	if err != nil {
 		return nil, err

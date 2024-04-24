@@ -8,7 +8,7 @@ import (
 	"brewday/internal/store/memory"
 	"brewday/internal/store/sql"
 	summaryrecorder "brewday/internal/summary_recorder"
-	"brewday/internal/timeline"
+	timeline_stores "brewday/internal/timeline/stores"
 	"context"
 	"embed"
 	"flag"
@@ -41,7 +41,7 @@ func main() {
 	components := &app.AppComponents{}
 	// Initialize components
 	components.Renderer = render.NewTemplateRenderer()
-	components.TL = timeline.NewTimelineStore()
+	components.TL = timeline_stores.NewTimelineMemoryStore()
 	var store app.RecipeStore
 	switch config.Store.StoreType {
 	case "sql":
