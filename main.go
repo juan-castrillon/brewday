@@ -6,10 +6,11 @@ import (
 	"brewday/internal/notifications"
 	"brewday/internal/render"
 	"brewday/internal/store/memory"
-	"brewday/internal/store/sql"
+	recipe_store_sql "brewday/internal/store/sql"
 	summaryrecorder "brewday/internal/summary_recorder"
 	tl_store_memory "brewday/internal/timeline/memory"
 	"context"
+	"database/sql"
 	"embed"
 	"flag"
 	"fmt"
@@ -18,6 +19,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	_ "github.com/mattn/go-sqlite3"
 
 	"github.com/rs/zerolog/log"
 )
@@ -45,7 +48,11 @@ func main() {
 	var store app.RecipeStore
 	switch config.Store.StoreType {
 	case "sql":
-		s, err := sql.NewPersistentStore(config.Store.Path)
+		db, err := sql.Open("sqlite3", "file:"+config.Store.Path+"?_foreign_keys=true")
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while initializing db store")
+		}
+		s, err := recipe_store_sql.NewPersistentStore(db)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error while initializing db store")
 		}

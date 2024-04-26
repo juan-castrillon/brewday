@@ -7,7 +7,11 @@ import (
 	"strings"
 	"testing"
 
+	"database/sql"
+
 	"github.com/stretchr/testify/require"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var testRecipe = recipe.Recipe{
@@ -59,7 +63,9 @@ var testRecipe = recipe.Recipe{
 func TestStoreAndRetrieve(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
-	store, err := NewPersistentStore(fileName)
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	store, err := NewPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	testCases := []struct {
@@ -153,7 +159,9 @@ func TestList(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testlist_"+tc.Name)) + ".sqlite"
-			store, err := NewPersistentStore(fileName)
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewPersistentStore(db)
 			require.NoError(err)
 			defer os.Remove(fileName)
 			for i := 0; i < tc.RecipesToStore; i++ {
@@ -251,7 +259,9 @@ func TestDelete(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testdelete_"+tc.Name)) + ".sqlite"
-			store, err := NewPersistentStore(fileName)
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewPersistentStore(db)
 			require.NoError(err)
 			defer os.Remove(fileName)
 			for i := 0; i < tc.RecipesToStore; i++ {
@@ -280,7 +290,9 @@ func TestDelete(t *testing.T) {
 func TestUpdateStatus(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
-	store, err := NewPersistentStore(fileName)
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	store, err := NewPersistentStore(db)
 	require.NoError(err)
 	id, err := store.Store(&testRecipe)
 	require.NoError(err)
@@ -379,7 +391,9 @@ func TestUpdateResults(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
-			store, err := NewPersistentStore(fileName)
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewPersistentStore(db)
 			require.NoError(err)
 			id, err := store.Store(&testRecipe)
 			require.NoError(err)

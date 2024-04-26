@@ -15,12 +15,8 @@ type PersistentStore struct {
 	updateStateStatement *sql.Stmt
 }
 
-func NewPersistentStore(path string) (*PersistentStore, error) {
-	db, err := sql.Open("sqlite3", "file:"+path+"?_foreign_keys=true")
-	if err != nil {
-		return nil, err
-	}
-	err = createTable(db)
+func NewPersistentStore(db *sql.DB) (*PersistentStore, error) {
+	err := createTable(db)
 	if err != nil {
 		return nil, err
 	}
