@@ -23,5 +23,5 @@ type SummaryRecorderStore interface {
 // The recipe id is used as key
 type TimelineStore interface {
 	// DeleteTimeline deletes the timeline for the given recipe id
-	DeleteTimeline(recipeID string)
+	DeleteTimeline(recipeID string) error
 }

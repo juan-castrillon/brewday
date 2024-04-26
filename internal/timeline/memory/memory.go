@@ -59,10 +59,11 @@ func (s *TimelineMemoryStore) AddTimeline(recipeID string) error {
 }
 
 // DeleteTimeline deletes the timeline for the given recipe id
-func (s *TimelineMemoryStore) DeleteTimeline(recipeID string) {
+func (s *TimelineMemoryStore) DeleteTimeline(recipeID string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	delete(s.timelines, recipeID)
+	return nil
 }
 
 // AddEvent adds an event to the timeline for the given recipe id

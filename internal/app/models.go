@@ -28,7 +28,7 @@ type TimelineStore interface {
 	// AddTimeline adds a timeline to the store
 	AddTimeline(recipeID string) error
 	// DeleteTimeline deletes the timeline for the given recipe id
-	DeleteTimeline(recipeID string)
+	DeleteTimeline(recipeID string) error
 }
 
 // Notifier is the interface that helps decouple the notifier from the application
