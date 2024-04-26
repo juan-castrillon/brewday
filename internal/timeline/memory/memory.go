@@ -50,11 +50,12 @@ func (s *TimelineMemoryStore) getTimelineFromStore(recipeID string) (*BasicTimel
 }
 
 // AddTimeline adds a timeline for the given recipe id
-func (s *TimelineMemoryStore) AddTimeline(recipeID string) {
+func (s *TimelineMemoryStore) AddTimeline(recipeID string) error {
 	timeline := NewBasicTimeline()
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.timelines[recipeID] = timeline
+	return s.AddEvent(recipeID, "Initialized Recipe")
 }
 
 // DeleteTimeline deletes the timeline for the given recipe id

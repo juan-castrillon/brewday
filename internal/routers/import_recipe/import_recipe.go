@@ -136,7 +136,10 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	delete(r.TempCache, decodedID)
 	// TODO: make this configurable probably via the UI
 	r.SummaryRecorderStore.AddSummaryRecorder(id, "markdown")
-	r.TLStore.AddTimeline(id)
+	err = r.TLStore.AddTimeline(id)
+	if err != nil {
+		return err
+	}
 	switch nextAction {
 	case "start":
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getRecipeStart", id))
