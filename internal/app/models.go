@@ -26,7 +26,7 @@ type TimelineStore interface {
 	// GetTimeline returns a timeline of events
 	GetTimeline(id string) ([]string, error)
 	// AddTimeline adds a timeline to the store
-	AddTimeline(recipeID string, timelineType string)
+	AddTimeline(recipeID string)
 	// DeleteTimeline deletes the timeline for the given recipe id
 	DeleteTimeline(recipeID string)
 }
