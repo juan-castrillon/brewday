@@ -92,7 +92,10 @@ func (r *RecipesRouter) deleteRecipeHandler(c echo.Context) error {
 		return err
 	}
 	r.SummaryStore.DeleteSummaryRecorder(id)
-	r.TLStore.DeleteTimeline(id)
+	err = r.TLStore.DeleteTimeline(id)
+	if err != nil {
+		return err
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getRecipes"))
 }
 
