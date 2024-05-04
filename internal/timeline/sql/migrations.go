@@ -18,5 +18,9 @@ func createTable(db *sql.DB) error {
 				ON DELETE CASCADE
 				ON UPDATE CASCADE
 	)`)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_timelines ON timelines (recipe_id, timestamp_unix)`)
 	return err
 }
