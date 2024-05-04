@@ -54,7 +54,7 @@ func (s *PersistentStore) Close() error {
 	if err != nil {
 		return err
 	}
-	return s.dbClient.Close()
+	return nil
 }
 
 // Store stores a recipe and returns an identifier that can be used to retrieve it

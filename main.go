@@ -9,6 +9,7 @@ import (
 	recipe_store_sql "brewday/internal/store/sql"
 	summaryrecorder "brewday/internal/summary_recorder"
 	tl_store_memory "brewday/internal/timeline/memory"
+	tl_store_sql "brewday/internal/timeline/sql"
 	"context"
 	"database/sql"
 	"embed"
@@ -44,26 +45,31 @@ func main() {
 	components := &app.AppComponents{}
 	// Initialize components
 	components.Renderer = render.NewTemplateRenderer()
-	components.TL = tl_store_memory.NewTimelineMemoryStore()
-	var store app.RecipeStore
 	switch config.Store.StoreType {
 	case "sql":
 		db, err := sql.Open("sqlite3", "file:"+config.Store.Path+"?_foreign_keys=true")
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error while initializing db store")
 		}
+		defer db.Close()
 		s, err := recipe_store_sql.NewPersistentStore(db)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error while initializing db store")
 		}
 		defer s.Close()
-		store = s
+		components.Store = s
+		tls, err := tl_store_sql.NewTimelinePersistentStore(db)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while initializing db store")
+		}
+		defer tls.Close()
+		components.TL = tls
 	case "memory":
-		store = memory.NewMemoryStore()
+		components.Store = memory.NewMemoryStore()
+		components.TL = tl_store_memory.NewTimelineMemoryStore()
 	default:
 		log.Fatal().Msg("Invalid store type")
 	}
-	components.Store = store
 	components.SummaryStore = summaryrecorder.NewSummaryRecorderStore()
 	if config.Notification.Enabled {
 		n, err := notifications.NewGotifyNotifier(

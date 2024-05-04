@@ -83,3 +83,8 @@ func (s *TimelinePersistentStore) DeleteTimeline(recipeID string) error {
 	_, err := s.dbClient.Exec("DELETE FROM timelines WHERE recipe_id == ?", recipeID)
 	return err
 }
+
+// Close closes the underlying connections to the database. It must always be called to avoid leaks
+func (s *TimelinePersistentStore) Close() error {
+	return s.insertStatement.Close()
+}
