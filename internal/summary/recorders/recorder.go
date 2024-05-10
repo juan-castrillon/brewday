@@ -1,5 +1,20 @@
 package recorders
 
+import (
+	"brewday/internal/summary/recorders/markdown"
+	"errors"
+)
+
+// RecorderFactory instantiates an concrete implementation of the recorder interface based on a type string
+func RecorderFactory(recorderType string) (SummaryRecorder, error) {
+	switch recorderType {
+	case "markdown":
+		return markdown.NewMarkdownSummaryRecorder(), nil
+	default:
+		return nil, errors.New("undefined summary recorder type: " + recorderType)
+	}
+}
+
 type SummaryRecorder interface {
 	// AddMashTemp adds a mash temperature to the summary and notes related to it
 	AddMashTemp(temp float64, notes string)

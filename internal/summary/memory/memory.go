@@ -17,14 +17,6 @@ func NewSummaryRecorderMemoryStore() *SummaryRecorderMemoryStore {
 	}
 }
 
-// recorderFactory instantiates an concrete implementation of the recorider interface based on a type string
-func recorderFactory(recorderType string) (recorders.SummaryRecorder, error) {
-	switch recorderType {
-	default:
-		return nil, errors.New("undefined summary recorder type: " + recorderType)
-	}
-}
-
 // getRecorder returns the summary recorder for the given recipe id
 func (s *SummaryRecorderMemoryStore) getRecorder(recipeID string) (recorders.SummaryRecorder, error) {
 	sr, ok := s.recorders[recipeID]
@@ -36,7 +28,7 @@ func (s *SummaryRecorderMemoryStore) getRecorder(recipeID string) (recorders.Sum
 
 // AddSummaryRecorder adds a summary recorder for the given recipe id
 func (s *SummaryRecorderMemoryStore) AddSummaryRecorder(recipeID string, recorderType string) error {
-	summaryRecorder, err := recorderFactory(recorderType)
+	summaryRecorder, err := recorders.RecorderFactory(recorderType)
 	if err != nil {
 		return err
 	}
