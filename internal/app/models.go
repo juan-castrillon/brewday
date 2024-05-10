@@ -60,7 +60,7 @@ type RecipeStore interface {
 // It represents a store that stores summary recorders
 type SummaryRecorderStore interface {
 	// AddSummaryRecorder adds a summary recorder to the store
-	AddSummaryRecorder(recipeID string, recorderType string)
+	AddSummaryRecorder(recipeID string, recorderType string) error
 	// AddMashTemp adds a mash temperature to the summary and notes related to it
 	AddMashTemp(id string, temp float64, notes string) error
 	// AddRast adds a rast to the summary and notes related to it
@@ -102,7 +102,7 @@ type SummaryRecorderStore interface {
 	// Close closes the summary recorder
 	Close(id string) error
 	// DeleteSummaryRecorder deletes the summary recorder for the given recipe id
-	DeleteSummaryRecorder(recipeID string)
+	DeleteSummaryRecorder(recipeID string) error
 }
 
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent

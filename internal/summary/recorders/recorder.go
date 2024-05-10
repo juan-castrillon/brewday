@@ -1,4 +1,4 @@
-package summaryrecorder
+package recorders
 
 type SummaryRecorder interface {
 	// AddMashTemp adds a mash temperature to the summary and notes related to it

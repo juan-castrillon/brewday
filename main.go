@@ -7,7 +7,7 @@ import (
 	"brewday/internal/render"
 	"brewday/internal/store/memory"
 	recipe_store_sql "brewday/internal/store/sql"
-	summaryrecorder "brewday/internal/summary_recorder"
+	summary_store_memory "brewday/internal/summary/memory"
 	tl_store_memory "brewday/internal/timeline/memory"
 	tl_store_sql "brewday/internal/timeline/sql"
 	"context"
@@ -70,7 +70,7 @@ func main() {
 	default:
 		log.Fatal().Msg("Invalid store type")
 	}
-	components.SummaryStore = summaryrecorder.NewSummaryRecorderStore()
+	components.SummaryStore = summary_store_memory.NewSummaryRecorderMemoryStore()
 	if config.Notification.Enabled {
 		n, err := notifications.NewGotifyNotifier(
 			config.Notification.GotifyURL,

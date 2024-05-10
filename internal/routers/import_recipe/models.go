@@ -19,7 +19,7 @@ type RecipeStore interface {
 // SummaryRecorderStore represents a component that stores summary recorders
 // The recipe id is used as key
 type SummaryRecorderStore interface {
-	AddSummaryRecorder(recipeID string, recorderType string)
+	AddSummaryRecorder(recipeID string, recorderType string) error
 }
 
 // TimelineStore represents a component that stores timelines

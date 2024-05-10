@@ -135,7 +135,10 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	// Once stored, we can delete it from the cache
 	delete(r.TempCache, decodedID)
 	// TODO: make this configurable probably via the UI
-	r.SummaryRecorderStore.AddSummaryRecorder(id, "markdown")
+	err = r.SummaryRecorderStore.AddSummaryRecorder(id, "markdown")
+	if err != nil {
+		return err
+	}
 	err = r.TLStore.AddTimeline(id)
 	if err != nil {
 		return err

@@ -16,7 +16,7 @@ type RecipeStore interface {
 // The recipe id is used as key
 type SummaryRecorderStore interface {
 	// DeleteSummaryRecorder deletes the summary recorder for the given recipe id
-	DeleteSummaryRecorder(recipeID string)
+	DeleteSummaryRecorder(recipeID string) error
 }
 
 // TimelineStore represents a component that stores timelines

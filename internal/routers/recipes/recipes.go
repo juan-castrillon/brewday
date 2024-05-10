@@ -91,7 +91,10 @@ func (r *RecipesRouter) deleteRecipeHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.SummaryStore.DeleteSummaryRecorder(id)
+	err = r.SummaryStore.DeleteSummaryRecorder(id)
+	if err != nil {
+		return err
+	}
 	err = r.TLStore.DeleteTimeline(id)
 	if err != nil {
 		return err
