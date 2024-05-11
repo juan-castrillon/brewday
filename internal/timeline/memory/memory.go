@@ -84,6 +84,7 @@ func (s *TimelineMemoryStore) AddEvent(id string, message string) error {
 }
 
 // GetTimeline returns the timeline as a slice of strings for the given recipe id
+// Events are represented in the format <Timestamp>@<Event>
 func (s *TimelineMemoryStore) GetTimeline(id string) ([]string, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
@@ -96,7 +97,7 @@ func (s *TimelineMemoryStore) GetTimeline(id string) ([]string, error) {
 	})
 	events := make([]string, len(tl.events))
 	for i, e := range tl.events {
-		events[i] = e.Timestamp.Format(time.RFC3339Nano) + " " + e.Message
+		events[i] = e.Timestamp.Format(time.RFC3339Nano) + "@" + e.Message
 	}
 	return events, nil
 }

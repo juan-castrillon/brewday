@@ -170,7 +170,7 @@ func TestGetTimeline(t *testing.T) {
 				require.NoError(err)
 				require.Equal(len(tc.Expected), len(tl))
 				for i, t := range times {
-					require.Equal(time.Unix(t, 0).Format(time.RFC3339Nano)+" "+tc.Expected[i], tl[i])
+					require.Equal(time.Unix(t, 0).Format(time.RFC3339Nano)+"@"+tc.Expected[i], tl[i])
 				}
 
 			}

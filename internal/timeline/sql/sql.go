@@ -42,6 +42,7 @@ func (s *TimelinePersistentStore) AddEvent(id, message string) error {
 }
 
 // GetTimeline returns a timeline of events
+// Events are represented in the format <Timestamp>@<Event>
 func (s *TimelinePersistentStore) GetTimeline(id string) ([]string, error) {
 	if id == "" {
 		return nil, errors.New("invalid empty recipe id for getting timeline")
@@ -59,7 +60,7 @@ func (s *TimelinePersistentStore) GetTimeline(id string) ([]string, error) {
 		if err != nil {
 			return nil, err
 		}
-		result = append(result, time.Unix(ts, 0).Format(time.RFC3339Nano)+" "+event)
+		result = append(result, time.Unix(ts, 0).Format(time.RFC3339Nano)+"@"+event)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, err
