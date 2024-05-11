@@ -317,8 +317,9 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	volumeBeforeSugar := req.RealVolume - req.Water
 	_, realAlcohol := tools.SugarForCarbonation(
-		req.RealVolume, re.Fermentation.Carbonation, req.Temperature,
+		volumeBeforeSugar, re.Fermentation.Carbonation, req.Temperature,
 		res.Alcohol, req.Water, req.SugarType,
 	)
 	realCO2 := tools.CarbonationForSugar(req.RealVolume, req.SugarAmount, req.Temperature, req.SugarType)
