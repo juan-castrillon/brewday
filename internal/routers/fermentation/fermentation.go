@@ -17,7 +17,7 @@ import (
 
 type FermentationRouter struct {
 	TLStore       TimelineStore
-	SummaryStore  SummaryRecorderStore
+	SummaryStore  SummaryStore
 	Store         RecipeStore
 	Notifier      Notifier
 	statusMapLock sync.Mutex
@@ -111,7 +111,7 @@ func (r *FermentationRouter) addTimelineEvent(id, message string) error {
 // addSummaryPreFermentation adds a pre fermentation summary
 func (r *FermentationRouter) addSummaryPreFermentation(id string, volume, sg float32, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddSummaryPreFermentation(id, volume, sg, notes)
+		return r.SummaryStore.AddPreFermentationVolume(id, volume, sg, notes)
 	}
 	return nil
 }
@@ -135,7 +135,7 @@ func (r *FermentationRouter) addSummaryYeastStart(id string, temperature, notes 
 // addSummarySGMeasurement adds a SG measurement to the summary
 func (r *FermentationRouter) addSummarySGMeasurement(id string, m SGMeasurement, final bool, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddSGMeasurement(id, m.Date, m.Gravity, final, notes)
+		return r.SummaryStore.AddMainFermentationSGMeasurement(id, m.Date, m.Gravity, final, notes)
 	}
 	return nil
 }
@@ -143,7 +143,7 @@ func (r *FermentationRouter) addSummarySGMeasurement(id string, m SGMeasurement,
 // addSummaryAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
 func (r *FermentationRouter) addSummaryAlcoholMainFermentation(id string, alcohol float32) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddAlcoholMainFermentation(id, alcohol)
+		return r.SummaryStore.AddMainFermentationAlcohol(id, alcohol)
 	}
 	return nil
 }

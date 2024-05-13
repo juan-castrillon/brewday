@@ -2,6 +2,7 @@ package app
 
 import (
 	"brewday/internal/recipe"
+	"brewday/internal/summary"
 	"io"
 	"io/fs"
 
@@ -56,53 +57,31 @@ type RecipeStore interface {
 	RetrieveResults(id string) (*recipe.RecipeResults, error)
 }
 
-// SummaryRecorderStore is the interface that helps decouple the summary recorder store from the application
-// It represents a store that stores summary recorders
-type SummaryRecorderStore interface {
-	// AddSummaryRecorder adds a summary recorder to the store
-	AddSummaryRecorder(recipeID string, recorderType string) error
-	// AddMashTemp adds a mash temperature to the summary and notes related to it
+// SummaryStore is the interface that helps decouple the summary store from the application
+// It represents a store that stores summaries
+type SummaryStore interface {
+	AddSummary(recipeID, title string) error
+	DeleteSummary(recipeID string) error
+	AddTitle(id, title string) error
 	AddMashTemp(id string, temp float64, notes string) error
-	// AddRast adds a rast to the summary and notes related to it
 	AddRast(id string, temp float64, duration float64, notes string) error
-	// AddLauternNotes adds lautern notes to the summary
-	AddLaunternNotes(id string, notes string) error
-	// AddHopping adds a hopping to the summary and notes related to it
+	AddLauternNotes(id, notes string) error
 	AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error
-	// AddMeasuredVolume adds a measured volume to the summary
-	AddMeasuredVolume(id string, name string, amount float32, notes string) error
-	// AddEvaporation adds an evaporation to the summary
-	AddEvaporation(id string, amount float32) error
-	// AddCooling adds a cooling to the summary and notes related to it
+	AddVolumeBeforeBoil(id string, amount float32, notes string) error
+	AddVolumeAfterBoil(id string, amount float32, notes string) error
 	AddCooling(id string, finalTemp, coolingTime float32, notes string) error
-	// AddSummaryPreFermentation adds a summary of the pre fermentation
-	AddSummaryPreFermentation(id string, volume float32, sg float32, notes string) error
-	// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
-	AddEfficiency(id string, efficiencyPercentage float32) error
-	// AddYeastStart adds the yeast start to the summary
+	AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error
 	AddYeastStart(id string, temperature, notes string) error
-	// AddSGMeasurement adds a SG measurement to the summary
-	AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
-	// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
-	AddAlcoholMainFermentation(id string, alcohol float32) error
-	// AddSummaryDryHop adds a summary of the dry hop
-	AddSummaryDryHop(id string, name string, amount float32) error
-	// AddSummaryPreBottle adds a summary of the pre bottling
-	AddSummaryPreBottle(id string, volume float32) error
-	// AddSummaryBottle adds a summary of the bottling
-	AddSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
-	// AddSummarySecondary adds a summary of the secondary fermentation
+	AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
+	AddMainFermentationAlcohol(id string, alcohol float32) error
+	AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error
+	AddPreBottlingVolume(id string, volume float32) error
+	AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
 	AddSummarySecondary(id string, days int, notes string) error
-	// AddTimeline adds a timeline to the summary
+	AddEvaporation(id string, amount float32) error
+	AddEfficiency(id string, efficiencyPercentage float32) error
 	AddTimeline(id string, timeline []string) error
-	// GetSummary returns the summary
-	GetSummary(id string) (string, error)
-	// GetExtension returns the extension of the summary
-	GetExtension(id string) (string, error)
-	// Close closes the summary recorder
-	Close(id string) error
-	// DeleteSummaryRecorder deletes the summary recorder for the given recipe id
-	DeleteSummaryRecorder(recipeID string) error
+	GetSummary(id string) (*summary.Summary, error)
 }
 
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent

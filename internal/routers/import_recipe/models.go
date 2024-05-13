@@ -16,10 +16,10 @@ type RecipeStore interface {
 	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
+// SummaryStore represents a component that stores summaries
 // The recipe id is used as key
-type SummaryRecorderStore interface {
-	AddSummaryRecorder(recipeID string, recorderType string) error
+type SummaryStore interface {
+	AddSummary(recipeID, title string) error
 }
 
 // TimelineStore represents a component that stores timelines

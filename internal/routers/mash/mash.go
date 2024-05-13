@@ -15,7 +15,7 @@ import (
 type MashRouter struct {
 	Store        RecipeStore
 	TLStore      TimelineStore
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
 }
 
 func (r *MashRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {

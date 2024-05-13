@@ -12,7 +12,7 @@ import (
 type CoolingRouter struct {
 	Store        RecipeStore
 	TLStore      TimelineStore
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
 }
 
 // addSummaryCooling adds a cooling to the summary and notes related to it

@@ -144,9 +144,9 @@ func (r *SecondaryFermentationRouter) calculateSugar(id string, volume, carbonat
 }
 
 // addSummaryDryHop adds a pre fermentation summary
-func (r *SecondaryFermentationRouter) addSummaryDryHop(id string, name string, amount float32) error {
+func (r *SecondaryFermentationRouter) addSummaryDryHop(id string, name string, amount, alpha, days float32, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddSummaryDryHop(id, name, amount)
+		return r.SummaryStore.AddMainFermentationDryHop(id, name, amount, alpha, days, notes)
 	}
 	return nil
 }
@@ -154,7 +154,7 @@ func (r *SecondaryFermentationRouter) addSummaryDryHop(id string, name string, a
 // addSummaryBottle adds a summary of the bottling
 func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, st, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddSummaryBottle(id, carbonation, alcohol, sugar, temp, vol, st, notes)
+		return r.SummaryStore.AddBottling(id, carbonation, alcohol, sugar, temp, vol, st, notes)
 	}
 	return nil
 }
@@ -162,7 +162,7 @@ func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, a
 // addSummaryPreBottle adds a summary of the pre bottling
 func (r *SecondaryFermentationRouter) addSummaryPreBottle(id string, volume float32) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddSummaryPreBottle(id, volume)
+		return r.SummaryStore.AddPreBottlingVolume(id, volume)
 	}
 	return nil
 }

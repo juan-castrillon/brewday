@@ -15,7 +15,7 @@ import (
 type HoppingRouter struct {
 	Store           RecipeStore
 	TLStore         TimelineStore
-	SummaryStore    SummaryRecorderStore
+	SummaryStore    SummaryStore
 	ingredientCache map[string]ingredientList
 	initialVolCache map[string]float32
 }
@@ -36,10 +36,18 @@ func (r *HoppingRouter) addSummaryHopping(id string, name string, amount float32
 	return nil
 }
 
-// addSummaryMeasuredVolume adds a measured volume to the summary
-func (r *HoppingRouter) addSummaryMeasuredVolume(id string, name string, amount float32, notes string) error {
+// addSummaryPreBoilVolume adds the measured pre-boil volume to the summary
+func (r *HoppingRouter) addSummaryPreBoilVolume(id string, amount float32, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddMeasuredVolume(id, name, amount, notes)
+		return r.SummaryStore.AddVolumeBeforeBoil(id, amount, notes)
+	}
+	return nil
+}
+
+// addSummaryAfterBoilVolume adds the measured volume after boil to the summary
+func (r *HoppingRouter) addSummaryAfterBoilVolume(id string, amount float32, notes string) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddVolumeAfterBoil(id, amount, notes)
 	}
 	return nil
 }
@@ -143,7 +151,7 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = r.addSummaryMeasuredVolume(id, "Measured volume before boiling", req.InitialVolume, req.Notes)
+	err = r.addSummaryPreBoilVolume(id, req.InitialVolume, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}
@@ -333,7 +341,7 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = r.addSummaryMeasuredVolume(id, "Measured volume after boiling", req.FinalVolume, req.Notes)
+	err = r.addSummaryAfterBoilVolume(id, req.FinalVolume, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}

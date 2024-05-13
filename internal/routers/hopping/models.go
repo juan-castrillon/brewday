@@ -18,13 +18,11 @@ type TimelineStore interface {
 	AddEvent(id, message string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
-type SummaryRecorderStore interface {
-	// AddHopping adds a hopping to the summary and notes related to it
+// SummaryStore represents a component that stores summaries
+type SummaryStore interface {
 	AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error
-	// AddMeasuredVolume adds a measured volume to the summary
-	AddMeasuredVolume(id string, name string, amount float32, notes string) error
-	// AddEvaporation adds an evaporation to the summary
+	AddVolumeBeforeBoil(id string, amount float32, notes string) error
+	AddVolumeAfterBoil(id string, amount float32, notes string) error
 	AddEvaporation(id string, amount float32) error
 }
 

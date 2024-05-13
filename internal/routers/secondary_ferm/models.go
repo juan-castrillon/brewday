@@ -11,15 +11,11 @@ type TimelineStore interface {
 	AddEvent(id, message string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
-type SummaryRecorderStore interface {
-	// AddSummaryDryHop adds a summary of the dry hop
-	AddSummaryDryHop(id string, name string, amount float32) error
-	// AddSummaryPreBottle adds a summary of the pre bottling
-	AddSummaryPreBottle(id string, volume float32) error
-	// AddSummaryBottle adds a summary of the bottling
-	AddSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
-	// AddSummarySecondary adds a summary of the secondary fermentation
+// SummaryStore represents a component that stores summaries
+type SummaryStore interface {
+	AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error
+	AddPreBottlingVolume(id string, volume float32) error
+	AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
 	AddSummarySecondary(id string, days int, notes string) error
 }
 
@@ -84,6 +80,9 @@ type ReqPostDryHopStart struct {
 type ReqPostDryHopConfirm struct {
 	ID     string  `json:"id" form:"id"`
 	Amount float32 `json:"real_amount" form:"real_amount"`
+	Alpha  float32 `json:"real_alpha" form:"real_alpha"`
+	Days   float32 `json:"days" form:"days"`
+	Notes  string  `json:"notes" form:"notes"`
 }
 
 type ReqPostPreBottle struct {

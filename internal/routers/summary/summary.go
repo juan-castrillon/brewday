@@ -2,30 +2,36 @@ package summary
 
 import (
 	"brewday/internal/routers/common"
+	"brewday/internal/summary"
+	"brewday/internal/summary/printer/markdown"
+	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 )
 
 type SummaryRouter struct {
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
 	TLStore      TimelineStore
 }
 
 // getSummary returns the summary
-func (r *SummaryRouter) getSummary(id string) (string, error) {
+func (r *SummaryRouter) getSummary(id string) (*summary.Summary, error) {
 	if r.SummaryStore != nil {
 		return r.SummaryStore.GetSummary(id)
 	}
-	return "", nil
+	return nil, nil
 }
 
 // getExtention returns the extension
-func (r *SummaryRouter) getExtension(id string) (string, error) {
-	if r.SummaryStore != nil {
-		return r.SummaryStore.GetExtension(id)
+func (r *SummaryRouter) getExtension(format string) string {
+	switch format {
+	case "markdown":
+		return "md"
+	default:
+		return "md"
 	}
-	return "", nil
 }
 
 // addTimeline adds a timeline
@@ -36,20 +42,24 @@ func (r *SummaryRouter) addTimeline(id string, tl []string) error {
 	return nil
 }
 
-// closeSummary closes the summary
-func (r *SummaryRouter) closeSummary(id string) error {
-	if r.SummaryStore != nil {
-		return r.SummaryStore.Close(id)
-	}
-	return nil
-}
-
 // getTimeline returns the timeline
 func (r *SummaryRouter) getTimeline(id string) ([]string, error) {
 	if r.TLStore != nil {
 		return r.TLStore.GetTimeline(id)
 	}
 	return []string{}, nil
+}
+
+// printSummary instanciates the correct summary printer based on the format and prints the summary as a string
+func (r *SummaryRouter) printSummary(format string, summ *summary.Summary) (string, error) {
+	var p SummaryPrinter
+	switch format {
+	case "markdown":
+		p = &markdown.MarkdownPrinter{}
+	default:
+		return "", errors.New("could not find suitable printer for format " + format)
+	}
+	return p.Print(summ)
 }
 
 // RegisterRoutes registers the routes for the summary router
@@ -74,21 +84,23 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 			return err
 		}
 	}
-	err = r.closeSummary(id)
-	if err != nil {
-		return err
+	format := c.Param("format")
+	if format == "" {
+		format = "markdown"
 	}
+	format = strings.ToLower(format)
 	summ, err := r.getSummary(id)
 	if err != nil {
 		return err
 	}
-	ext, err := r.getExtension(id)
+	ext := r.getExtension(format)
+	fileName := id + "." + ext
+	content, err := r.printSummary(format, summ)
 	if err != nil {
 		return err
 	}
-	fileName := id + "." + ext
 	c.Response().Header().Set("Content-Type", "application/octet-stream")
 	c.Response().Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
-	_, err = c.Response().Write([]byte(summ))
+	_, err = c.Response().Write([]byte(content))
 	return err
 }

@@ -43,7 +43,7 @@ type AppComponents struct {
 	TL           TimelineStore
 	Notifier     Notifier
 	Store        RecipeStore
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
 }
 
 // NewApp creates a new App

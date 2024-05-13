@@ -21,18 +21,14 @@ type TimelineStore interface {
 	AddEvent(id, message string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
-type SummaryRecorderStore interface {
-	// AddSummaryPreFermentation adds a summary of the pre fermentation
-	AddSummaryPreFermentation(id string, volume float32, sg float32, notes string) error
-	// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
-	AddEfficiency(id string, efficiencyPercentage float32) error
-	// AddYeastStart adds the yeast start to the summary
+// SummaryStore represents a component that stores summaries
+type SummaryStore interface {
+	AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error
 	AddYeastStart(id string, temperature, notes string) error
-	// AddSGMeasurement adds a SG measurement to the summary
-	AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
-	// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
-	AddAlcoholMainFermentation(id string, alcohol float32) error
+	AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
+	AddMainFermentationAlcohol(id string, alcohol float32) error
+	AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error
+	AddEfficiency(id string, efficiencyPercentage float32) error
 }
 
 // RecipeStore represents a component that stores recipes

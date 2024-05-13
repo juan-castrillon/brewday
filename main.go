@@ -70,7 +70,7 @@ func main() {
 	default:
 		log.Fatal().Msg("Invalid store type")
 	}
-	components.SummaryStore = summary_store_memory.NewSummaryRecorderMemoryStore()
+	components.SummaryStore = summary_store_memory.NewSummaryMemoryStore()
 	if config.Notification.Enabled {
 		n, err := notifications.NewGotifyNotifier(
 			config.Notification.GotifyURL,

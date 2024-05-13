@@ -14,7 +14,7 @@ import (
 type RecipesRouter struct {
 	Store        RecipeStore
 	TLStore      TimelineStore
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
 }
 
 func (r *RecipesRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
@@ -91,7 +91,7 @@ func (r *RecipesRouter) deleteRecipeHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = r.SummaryStore.DeleteSummaryRecorder(id)
+	err = r.SummaryStore.DeleteSummary(id)
 	if err != nil {
 		return err
 	}

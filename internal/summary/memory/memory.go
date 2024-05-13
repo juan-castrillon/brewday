@@ -1,285 +1,388 @@
 package memory
 
 import (
-	"brewday/internal/summary/recorders"
+	"brewday/internal/summary"
 	"errors"
 	"sync"
 )
 
-type SummaryRecorderMemoryStore struct {
+type SummaryMemoryStore struct {
 	lock      sync.Mutex
-	recorders map[string]recorders.SummaryRecorder
+	summaries map[string]*summary.Summary
 }
 
-func NewSummaryRecorderMemoryStore() *SummaryRecorderMemoryStore {
-	return &SummaryRecorderMemoryStore{
-		recorders: make(map[string]recorders.SummaryRecorder),
+func NewSummaryMemoryStore() *SummaryMemoryStore {
+	return &SummaryMemoryStore{
+		summaries: make(map[string]*summary.Summary),
 	}
 }
 
-// getRecorder returns the summary recorder for the given recipe id
-func (s *SummaryRecorderMemoryStore) getRecorder(recipeID string) (recorders.SummaryRecorder, error) {
-	sr, ok := s.recorders[recipeID]
+// getSummary returns the summary for the given recipe id
+func (s *SummaryMemoryStore) getSummary(recipeID string) (*summary.Summary, error) {
+	sr, ok := s.summaries[recipeID]
 	if !ok {
 		return nil, errors.New("no summary recorder found for recipe id " + recipeID)
 	}
 	return sr, nil
 }
 
-// AddSummaryRecorder adds a summary recorder for the given recipe id
-func (s *SummaryRecorderMemoryStore) AddSummaryRecorder(recipeID string, recorderType string) error {
-	summaryRecorder, err := recorders.RecorderFactory(recorderType)
-	if err != nil {
-		return err
-	}
+// AddSummary adds a summary for the given recipe id with the given title
+func (s *SummaryMemoryStore) AddSummary(recipeID, title string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	s.recorders[recipeID] = summaryRecorder
+	summ := summary.NewSummary()
+	summ.Title = title
+	s.summaries[recipeID] = summ
 	return nil
 }
 
-// DeleteSummaryRecorder deletes the summary recorder for the given recipe id
-func (s *SummaryRecorderMemoryStore) DeleteSummaryRecorder(recipeID string) error {
+// DeleteSummary deletes the summary for the given recipe id
+func (s *SummaryMemoryStore) DeleteSummary(recipeID string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	delete(s.recorders, recipeID)
+	delete(s.summaries, recipeID)
+	return nil
+}
+
+// AddTitle adds a title to the summary
+func (s *SummaryMemoryStore) AddTitle(id, title string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return err
+	}
+	sum.Title = title
 	return nil
 }
 
 // AddMashTemp adds a mash temperature to the summary and notes related to it
-func (s *SummaryRecorderMemoryStore) AddMashTemp(id string, temp float64, notes string) error {
+func (s *SummaryMemoryStore) AddMashTemp(id string, temp float64, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddMashTemp(temp, notes)
+	if sum.MashingInfo == nil {
+		sum.MashingInfo = &summary.MashingInfo{}
+	}
+	sum.MashingInfo.MashingTemperature = temp
+	sum.MashingInfo.MashingNotes = notes
 	return nil
 }
 
 // AddRast adds a rast to the summary and notes related to it
-func (s *SummaryRecorderMemoryStore) AddRast(id string, temp float64, duration float64, notes string) error {
+func (s *SummaryMemoryStore) AddRast(id string, temp float64, duration float64, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddRast(temp, duration, notes)
+	if sum.MashingInfo == nil {
+		sum.MashingInfo = &summary.MashingInfo{}
+	}
+	if sum.MashingInfo.RastInfos == nil {
+		sum.MashingInfo.RastInfos = make([]*summary.MashRastInfo, 0)
+	}
+	sum.MashingInfo.RastInfos = append(sum.MashingInfo.RastInfos, &summary.MashRastInfo{
+		Temperature: temp, Time: duration, Notes: notes,
+	})
 	return nil
 }
 
 // AddLauternNotes adds lautern notes to the summary
-func (s *SummaryRecorderMemoryStore) AddLaunternNotes(id, notes string) error {
+func (s *SummaryMemoryStore) AddLauternNotes(id, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddLaunternNotes(notes)
+	sum.LauternInfo = notes
 	return nil
 }
 
 // AddHopping adds a hopping to the summary and notes related to it
-func (s *SummaryRecorderMemoryStore) AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error {
+func (s *SummaryMemoryStore) AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddHopping(name, amount, alpha, duration, notes)
+	if sum.HoppingInfo == nil {
+		sum.HoppingInfo = &summary.HoppingInfo{}
+	}
+	if sum.HoppingInfo.HopInfos == nil {
+		sum.HoppingInfo.HopInfos = make([]*summary.HopInfo, 0)
+	}
+	sum.HoppingInfo.HopInfos = append(sum.HoppingInfo.HopInfos, &summary.HopInfo{
+		Name:     name,
+		Grams:    amount,
+		Alpha:    alpha,
+		Time:     duration,
+		TimeUnit: "minutes",
+		Notes:    notes,
+	})
 	return nil
 }
 
-// AddMeasuredVolume adds a measured volume to the summary
-func (s *SummaryRecorderMemoryStore) AddMeasuredVolume(id string, name string, amount float32, notes string) error {
+// AddVolumeBeforeBoil adds the measured volume before boiling the wort to the summary
+func (s *SummaryMemoryStore) AddVolumeBeforeBoil(id string, amount float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddMeasuredVolume(name, amount, notes)
+	if sum.HoppingInfo == nil {
+		sum.HoppingInfo = &summary.HoppingInfo{}
+	}
+	if sum.HoppingInfo.VolBeforeBoil == nil {
+		sum.HoppingInfo.VolBeforeBoil = &summary.VolMeasurement{}
+	}
+	sum.HoppingInfo.VolBeforeBoil.Volume = amount
+	sum.HoppingInfo.VolBeforeBoil.Notes = notes
 	return nil
 }
 
-// AddEvaporation adds an evaporation to the summary
-func (s *SummaryRecorderMemoryStore) AddEvaporation(id string, amount float32) error {
+// AddVolumeAfterBoil adds the measured volume after boiling the wort to the summary
+func (s *SummaryMemoryStore) AddVolumeAfterBoil(id string, amount float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddEvaporation(amount)
+	if sum.HoppingInfo == nil {
+		sum.HoppingInfo = &summary.HoppingInfo{}
+	}
+	if sum.HoppingInfo.VolAfterBoil == nil {
+		sum.HoppingInfo.VolAfterBoil = &summary.VolMeasurement{}
+	}
+	sum.HoppingInfo.VolAfterBoil.Volume = amount
+	sum.HoppingInfo.VolAfterBoil.Notes = notes
 	return nil
 }
 
 // AddCooling adds a cooling to the summary and notes related to it
-func (s *SummaryRecorderMemoryStore) AddCooling(id string, finalTemp, coolingTime float32, notes string) error {
+func (s *SummaryMemoryStore) AddCooling(id string, finalTemp, coolingTime float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddCooling(finalTemp, coolingTime, notes)
+	if sum.CoolingInfo == nil {
+		sum.CoolingInfo = &summary.CoolingInfo{}
+	}
+	sum.CoolingInfo.Notes = notes
+	sum.CoolingInfo.Temperature = finalTemp
+	sum.CoolingInfo.Time = coolingTime
 	return nil
 }
 
-// AddSummaryPreFermentation adds a summary of the pre fermentation
-func (s *SummaryRecorderMemoryStore) AddSummaryPreFermentation(id string, volume float32, sg float32, notes string) error {
+// AddPreFermentationVolume adds a summary of the pre fermentation
+func (s *SummaryMemoryStore) AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddSummaryPreFermentation(volume, sg, notes)
-	return nil
-}
-
-// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
-func (s *SummaryRecorderMemoryStore) AddEfficiency(id string, efficiencyPercentage float32) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
-	if err != nil {
-		return err
+	if sum.PreFermentationInfos == nil {
+		sum.PreFermentationInfos = make([]*summary.PreFermentationInfo, 0)
 	}
-	rec.AddEfficiency(efficiencyPercentage)
+	sum.PreFermentationInfos = append(sum.PreFermentationInfos, &summary.PreFermentationInfo{
+		Volume: volume,
+		SG:     sg,
+		Notes:  notes,
+	})
 	return nil
 }
 
 // AddYeastStart adds the yeast start to the summary
-func (s *SummaryRecorderMemoryStore) AddYeastStart(id string, temperature, notes string) error {
+func (s *SummaryMemoryStore) AddYeastStart(id string, temperature, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddYeastStart(temperature, notes)
+	if sum.YeastInfo == nil {
+		sum.YeastInfo = &summary.YeastInfo{}
+	}
+	sum.YeastInfo.Notes = notes
+	sum.YeastInfo.Temperature = temperature
 	return nil
 }
 
-// AddSGMeasurement adds a SG measurement to the summary
-func (s *SummaryRecorderMemoryStore) AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error {
+// AddMainFermentationSGMeasurement adds a SG measurement to the summary
+func (s *SummaryMemoryStore) AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddSGMeasurement(date, gravity, final, notes)
+	if sum.MainFermentationInfo == nil {
+		sum.MainFermentationInfo = &summary.MainFermentationInfo{}
+	}
+	if sum.MainFermentationInfo.SGs == nil {
+		sum.MainFermentationInfo.SGs = make([]*summary.SGMeasurement, 0)
+	}
+	sum.MainFermentationInfo.SGs = append(sum.MainFermentationInfo.SGs, &summary.SGMeasurement{
+		SG:    gravity,
+		Date:  date,
+		Final: final,
+		Notes: notes,
+	})
 	return nil
 }
 
-// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
-func (s *SummaryRecorderMemoryStore) AddAlcoholMainFermentation(id string, alcohol float32) error {
+// AddMainFermentationAlcohol adds the alcohol after the main fermentation to the summary
+func (s *SummaryMemoryStore) AddMainFermentationAlcohol(id string, alcohol float32) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddAlcoholMainFermentation(alcohol)
+	if sum.MainFermentationInfo == nil {
+		sum.MainFermentationInfo = &summary.MainFermentationInfo{}
+	}
+	sum.MainFermentationInfo.Alcohol = alcohol
 	return nil
 }
 
-// AddSummaryDryHop adds a summary of the dry hop
-func (s *SummaryRecorderMemoryStore) AddSummaryDryHop(id string, name string, amount float32) error {
+// AddMainFermentationDryHop adds a summary of the dry hop
+func (s *SummaryMemoryStore) AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddSummaryDryHop(name, amount)
+	if sum.MainFermentationInfo == nil {
+		sum.MainFermentationInfo = &summary.MainFermentationInfo{}
+	}
+	if sum.MainFermentationInfo.DryHopInfo == nil {
+		sum.MainFermentationInfo.DryHopInfo = make([]*summary.HopInfo, 0)
+	}
+	sum.MainFermentationInfo.DryHopInfo = append(sum.MainFermentationInfo.DryHopInfo, &summary.HopInfo{
+		Name:     name,
+		Grams:    amount,
+		Alpha:    alpha,
+		Time:     duration,
+		TimeUnit: "days",
+		Notes:    notes,
+	})
 	return nil
 }
 
-// AddSummaryPreBottle adds a summary of the pre bottling
-func (s *SummaryRecorderMemoryStore) AddSummaryPreBottle(id string, volume float32) error {
+// AddPreBottlingVolume adds the volume before bottling
+func (s *SummaryMemoryStore) AddPreBottlingVolume(id string, volume float32) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddSummaryPreBottle(volume)
+	if sum.BottlingInfo == nil {
+		sum.BottlingInfo = &summary.BottlingInfo{}
+	}
+	sum.BottlingInfo.PreBottleVolume = volume
 	return nil
 }
 
 // AddSummaryBottle adds a summary of the bottling
-func (s *SummaryRecorderMemoryStore) AddSummaryBottle(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error {
+func (s *SummaryMemoryStore) AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddSummaryBottle(carbonation, alcohol, sugar, temp, vol, sugarType, notes)
+	if sum.BottlingInfo == nil {
+		sum.BottlingInfo = &summary.BottlingInfo{}
+	}
+	sum.BottlingInfo.Alcohol = alcohol
+	sum.BottlingInfo.Carbonation = carbonation
+	sum.BottlingInfo.SugarAmount = sugar
+	sum.BottlingInfo.SugarType = sugarType
+	sum.BottlingInfo.Temperature = temp
+	sum.BottlingInfo.VolumeBottled = vol
+	sum.BottlingInfo.Notes = notes
 	return nil
 }
 
 // AddSummarySecondary adds a summary of the secondary fermentation
-func (s *SummaryRecorderMemoryStore) AddSummarySecondary(id string, days int, notes string) error {
+func (s *SummaryMemoryStore) AddSummarySecondary(id string, days int, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddSummarySecondary(days, notes)
+	if sum.SecondaryFermentationInfo == nil {
+		sum.SecondaryFermentationInfo = &summary.SecondaryFermentationInfo{}
+	}
+	sum.SecondaryFermentationInfo.Days = days
+	sum.SecondaryFermentationInfo.Notes = notes
+	return nil
+}
+
+// AddEvaporation adds an evaporation to the summary
+func (s *SummaryMemoryStore) AddEvaporation(id string, amount float32) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return err
+	}
+	if sum.Statistics == nil {
+		sum.Statistics = &summary.Statistics{}
+	}
+	sum.Statistics.Evaporation = amount
+	return nil
+}
+
+// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
+func (s *SummaryMemoryStore) AddEfficiency(id string, efficiencyPercentage float32) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return err
+	}
+	if sum.Statistics == nil {
+		sum.Statistics = &summary.Statistics{}
+	}
+	sum.Statistics.Efficiency = efficiencyPercentage
 	return nil
 }
 
 // AddTimeline adds a timeline to the summary
-func (s *SummaryRecorderMemoryStore) AddTimeline(id string, timeline []string) error {
+func (s *SummaryMemoryStore) AddTimeline(id string, timeline []string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	rec.AddTimeline(timeline)
+	sum.Timeline = timeline
 	return nil
 }
 
 // GetSummary returns the summary
-func (s *SummaryRecorderMemoryStore) GetSummary(id string) (string, error) {
+func (s *SummaryMemoryStore) GetSummary(id string) (*summary.Summary, error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
+	sum, err := s.getSummary(id)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return rec.GetSummary(), nil
-}
-
-// GetExtension returns the extension of the summary
-func (s *SummaryRecorderMemoryStore) GetExtension(id string) (string, error) {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
-	if err != nil {
-		return "", err
-	}
-	return rec.GetExtension(), nil
-}
-
-// Close closes the summary recorder
-func (s *SummaryRecorderMemoryStore) Close(id string) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	rec, err := s.getRecorder(id)
-	if err != nil {
-		return err
-	}
-	rec.Close()
-	return nil
+	return sum, nil
 }

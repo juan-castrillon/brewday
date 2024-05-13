@@ -21,7 +21,7 @@ var parsers = map[string]RecipeParser{
 
 type ImportRouter struct {
 	Store                RecipeStore
-	SummaryRecorderStore SummaryRecorderStore
+	SummaryRecorderStore SummaryStore
 	TLStore              TimelineStore
 	TempCache            map[string]*recipe.Recipe
 }
@@ -134,8 +134,7 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	}
 	// Once stored, we can delete it from the cache
 	delete(r.TempCache, decodedID)
-	// TODO: make this configurable probably via the UI
-	err = r.SummaryRecorderStore.AddSummaryRecorder(id, "markdown")
+	err = r.SummaryRecorderStore.AddSummary(id, re.Name)
 	if err != nil {
 		return err
 	}

@@ -8,8 +8,8 @@ type TimelineStore interface {
 	AddEvent(id, message string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
-type SummaryRecorderStore interface {
+// SummaryStore represents a component that stores summaries
+type SummaryStore interface {
 	// AddCooling adds a cooling to the summary and notes related to it
 	AddCooling(id string, finalTemp, coolingTime float32, notes string) error
 }

@@ -1,0 +1,95 @@
+# {{ .Title }}
+
+The following summary was generated on {{ .GenerationDate }}
+
+
+## Mash
+
+- **Mashing temperature**: {{printf "%.2f" .MashingInfo.MashingTemperature}}°C ({{.MashingInfo.MashingNotes}})
+{{ range .MashingInfo.RastInfos -}}
+- **Rast**: {{printf "%.2f" .Temperature}}°C for {{printf "%.2f" .Time}} minutes ({{.Notes}})
+{{ end }}
+
+## Lautern
+
+{{.LauternInfo}}
+
+
+## Hopping
+
+- **Measured volume - Measured volume before boiling**: {{printf "%.2f" .HoppingInfo.VolBeforeBoil.Volume}}L ({{.HoppingInfo.VolBeforeBoil.Notes}})
+{{ range .HoppingInfo.HopInfos -}}
+- **{{.Name}}**: {{printf "%.2f" .Grams}}g ({{printf "%.2f" .Alpha}}% alpha) [{{printf "%.2f" .Time}} {{.TimeUnit}}] ({{.Notes}})
+{{ end -}}
+
+- **Measured volume - Measured volume after boiling**: {{printf "%.2f" .HoppingInfo.VolAfterBoil.Volume}}L ({{.HoppingInfo.VolAfterBoil.Notes}})
+
+
+## Cooling
+
+Reached {{printf "%.2f" .CoolingInfo.Temperature}}°C in {{printf "%.2f" .CoolingInfo.Time}} minutes ({{.CoolingInfo.Notes}})
+
+
+## Pre-fermentation
+
+{{ range .PreFermentationInfos -}}
+- Measured {{printf "%.2f" .Volume}}L with SG: {{printf "%.3f" .SG}} ({{.Notes}})
+{{ end }}
+
+## Yeast start
+
+- **Temperature**: {{.YeastInfo.Temperature}}°C
+
+{{.YeastInfo.Notes}}
+
+
+## Main fermentation
+
+Date | SG | Final | Notes
+---|---|---|---
+{{ range .MainFermentationInfo.SGs -}}
+{{.Date}} | {{printf "%.3f" .SG}} | {{ if .Final}}Yes{{else}}No{{end}} | {{.Notes}}
+{{ end }}
+- Alcohol after main fermentation: {{printf "%.2f" .MainFermentationInfo.Alcohol}}%
+
+### Dry Hopping
+
+{{ range .MainFermentationInfo.DryHopInfo -}}
+- **{{.Name}}**: {{printf "%.2f" .Grams}}g ({{printf "%.2f" .Alpha}}% alpha) [{{printf "%.2f" .Time}} {{.TimeUnit}}] ({{.Notes}})
+{{ end }}
+
+## Bottling
+
+- **Volume in tank**: {{printf "%.2f" .BottlingInfo.PreBottleVolume}}L
+
+- **Sugar**: {{printf "%.2f" .BottlingInfo.SugarAmount}} g ({{.BottlingInfo.SugarType}})
+- **Temperature**: {{printf "%.2f" .BottlingInfo.Temperature}}°C
+
+- **Carbonation**: {{printf "%.2f" .BottlingInfo.Carbonation}} g/L
+- **Final Alcohol**: {{printf "%.2f" .BottlingInfo.Alcohol}}% vol
+- **Volume Bottled**: {{printf "%.2f" .BottlingInfo.VolumeBottled}}L
+
+{{.BottlingInfo.Notes}}
+
+
+## Secondary fermentation
+
+- **Days**: {{.SecondaryFermentationInfo.Days}}
+
+{{.SecondaryFermentationInfo.Notes}}
+
+
+## Calculations
+
+- **Evaporation**: {{printf "%.2f" .Statistics.Evaporation}}%/h
+- **Efficiency**: {{printf "%.2f" .Statistics.Efficiency}}%
+
+
+## Timeline
+
+Timestamp | Event
+--- | ---
+{{- range $entry := .Timeline -}}
+{{ $sl := SplitString $entry "@" }}
+{{ index $sl 0 }} | {{ index $sl 1 }}
+{{- end }}

@@ -16,7 +16,7 @@ import (
 
 type SecondaryFermentationRouter struct {
 	TLStore               TimelineStore
-	SummaryStore          SummaryRecorderStore
+	SummaryStore          SummaryStore
 	Store                 RecipeStore
 	Notifier              Notifier
 	hopWatchersLock       sync.Mutex
@@ -212,7 +212,7 @@ func (r *SecondaryFermentationRouter) postDryHopConfirmHandler(c echo.Context) e
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	err = r.addSummaryDryHop(id, dh.Name, req.Amount)
+	err = r.addSummaryDryHop(id, dh.Name, req.Amount, req.Alpha, req.Days, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add summary dry hop")
 	}

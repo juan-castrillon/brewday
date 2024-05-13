@@ -16,12 +16,10 @@ type TimelineStore interface {
 	AddEvent(id, message string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
+// SummaryStore represents a component that stores summaries
 // The recipe id is used as key
-type SummaryRecorderStore interface {
-	// AddMashTemp adds a mash temperature to the summary and notes related to it
+type SummaryStore interface {
 	AddMashTemp(id string, temp float64, notes string) error
-	// AddRast adds a rast to the summary and notes related to it
 	AddRast(id string, temp float64, duration float64, notes string) error
 }
 

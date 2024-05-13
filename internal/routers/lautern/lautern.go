@@ -10,7 +10,7 @@ import (
 
 type LauternRouter struct {
 	TLStore      TimelineStore
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
 	Store        RecipeStore
 }
 
@@ -32,7 +32,7 @@ func (r *LauternRouter) addTimelineEvent(id, message string) error {
 // addSummaryLauternNotes adds lautern notes to the summary
 func (r *LauternRouter) addSummaryLauternNotes(id, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddLaunternNotes(id, notes)
+		return r.SummaryStore.AddLauternNotes(id, notes)
 	}
 	return nil
 }
