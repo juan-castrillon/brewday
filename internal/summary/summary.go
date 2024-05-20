@@ -14,18 +14,19 @@ type Summary struct {
 	MainFermentationInfo      *MainFermentationInfo
 	SecondaryFermentationInfo *SecondaryFermentationInfo
 	Statistics                *Statistics
-	Timeline                  []string
+	//Timeline is automatically populated by the printer when creating the summary file
+	Timeline []string
 }
 
 type MashingInfo struct {
-	MashingTemperature float64
+	MashingTemperature float32
 	MashingNotes       string
 	RastInfos          []*MashRastInfo
 }
 
 type MashRastInfo struct {
-	Temperature float64 `json:"temperature,omitempty"`
-	Time        float64 `json:"time,omitempty"`
+	Temperature float32 `json:"temperature,omitempty"`
+	Time        float32 `json:"time,omitempty"`
 	Notes       string  `json:"notes,omitempty"`
 }
 

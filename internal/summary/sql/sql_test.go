@@ -193,7 +193,7 @@ func TestAddMashTemp(t *testing.T) {
 	require.NoError(err)
 	testCases := []struct {
 		Name     string
-		Temp     float64
+		Temp     float32
 		Notes    string
 		RecipeID string
 		SkipRead bool
@@ -1669,4 +1669,176 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestGetSummary(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Summ     *summary.Summary
+		Error    bool
+	}{
+		{
+			Name:     "Valid input",
+			RecipeID: "1",
+			Error:    false,
+			Summ: &summary.Summary{
+				Title: "summary 1",
+				MashingInfo: &summary.MashingInfo{
+					MashingTemperature: 57.5,
+					MashingNotes:       "notes 1",
+					RastInfos: []*summary.MashRastInfo{
+						{Temperature: 63, Time: 30, Notes: "notes 2"},
+						{Temperature: 72, Time: 45, Notes: "notes 3"},
+					},
+				},
+				LauternInfo: "lautern",
+				HoppingInfo: &summary.HoppingInfo{
+					VolBeforeBoil: &summary.VolMeasurement{Volume: 12.5, Notes: "notes 4"},
+					VolAfterBoil:  &summary.VolMeasurement{Volume: 9.4, Notes: "notes 5"},
+					HopInfos: []*summary.HopInfo{
+						{Name: "Amarillo", Grams: 20, Alpha: 6.8, Time: 60, TimeUnit: "minutes", Notes: "notes 6"},
+						{Name: "Galaxy", Grams: 40, Alpha: 5.8, Time: 10, TimeUnit: "minutes", Notes: "notes 7"},
+					},
+				},
+				CoolingInfo: &summary.CoolingInfo{Temperature: 21, Time: 58.789, Notes: "notes 8"},
+				PreFermentationInfos: []*summary.PreFermentationInfo{
+					{Volume: 7.5, SG: 1.098, Notes: "notes 9"},
+					{Volume: 12, SG: 1.54, Notes: "notes 10"},
+				},
+				YeastInfo: &summary.YeastInfo{
+					Temperature: "18-20", Notes: "notes 11",
+				},
+				MainFermentationInfo: &summary.MainFermentationInfo{
+					SGs: []*summary.SGMeasurement{
+						{SG: 1.013, Date: "2023-02-23 15:45:54", Final: false, Notes: "notes 12"},
+						{SG: 1.011, Date: "2023-02-24 15:45:54", Final: true, Notes: "notes 13"},
+					},
+					Alcohol: 5.89,
+					DryHopInfo: []*summary.HopInfo{
+						{Name: "Amarillo", Grams: 20, Alpha: 6.8, Time: 4, TimeUnit: "days", Notes: "notes 14"},
+						{Name: "Galaxy", Grams: 40, Alpha: 5.8, Time: 3, TimeUnit: "days", Notes: "notes 15"},
+					},
+				},
+				BottlingInfo: &summary.BottlingInfo{
+					PreBottleVolume: 12, Carbonation: 5.5, SugarAmount: 100, SugarType: "glucose",
+					Temperature: 19, Alcohol: 6.5, VolumeBottled: 11, Notes: "notes 16",
+				},
+				SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{
+					Days: 5, Notes: "notes 17",
+				},
+				Statistics: &summary.Statistics{
+					Evaporation: 16.66,
+					Efficiency:  58.32,
+				},
+			},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			require.NoError(storeSummary(tc.RecipeID, tc.Summ, store))
+			summ, err := store.GetSummary(tc.RecipeID)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				require.Equal(tc.Summ, summ)
+			}
+		})
+	}
+}
+
+func storeSummary(id string, summ *summary.Summary, store *SummaryRecorderPersistentStore) error {
+	err := store.AddSummary(id, summ.Title)
+	if err != nil {
+		return err
+	}
+	err = store.AddMashTemp(id, summ.MashingInfo.MashingTemperature, summ.MashingInfo.MashingNotes)
+	if err != nil {
+		return err
+	}
+	for _, rast := range summ.MashingInfo.RastInfos {
+		err = store.AddRast(id, rast.Temperature, rast.Time, rast.Notes)
+		if err != nil {
+			return err
+		}
+	}
+	err = store.AddLauternNotes(id, summ.LauternInfo)
+	if err != nil {
+		return err
+	}
+	for _, hop := range summ.HoppingInfo.HopInfos {
+		err = store.AddHopping(id, hop.Name, hop.Grams, hop.Alpha, hop.Time, hop.Notes)
+		if err != nil {
+			return err
+		}
+	}
+	err = store.AddVolumeBeforeBoil(id, summ.HoppingInfo.VolBeforeBoil.Volume, summ.HoppingInfo.VolBeforeBoil.Notes)
+	if err != nil {
+		return err
+	}
+	err = store.AddVolumeAfterBoil(id, summ.HoppingInfo.VolAfterBoil.Volume, summ.HoppingInfo.VolAfterBoil.Notes)
+	if err != nil {
+		return err
+	}
+	err = store.AddCooling(id, summ.CoolingInfo.Temperature, summ.CoolingInfo.Time, summ.CoolingInfo.Notes)
+	if err != nil {
+		return err
+	}
+	for _, preferm := range summ.PreFermentationInfos {
+		err = store.AddPreFermentationVolume(id, preferm.Volume, preferm.SG, preferm.Notes)
+		if err != nil {
+			return err
+		}
+	}
+	err = store.AddYeastStart(id, summ.YeastInfo.Temperature, summ.YeastInfo.Notes)
+	if err != nil {
+		return err
+	}
+	for _, sg := range summ.MainFermentationInfo.SGs {
+		err = store.AddMainFermentationSGMeasurement(id, sg.Date, sg.SG, sg.Final, sg.Notes)
+		if err != nil {
+			return err
+		}
+	}
+	err = store.AddMainFermentationAlcohol(id, summ.MainFermentationInfo.Alcohol)
+	if err != nil {
+		return err
+	}
+	for _, dh := range summ.MainFermentationInfo.DryHopInfo {
+		err = store.AddMainFermentationDryHop(id, dh.Name, dh.Grams, dh.Alpha, dh.Time, dh.Notes)
+		if err != nil {
+			return err
+		}
+	}
+	err = store.AddPreBottlingVolume(id, summ.BottlingInfo.PreBottleVolume)
+	if err != nil {
+		return err
+	}
+	err = store.AddBottling(id, summ.BottlingInfo.Carbonation, summ.BottlingInfo.Alcohol, summ.BottlingInfo.SugarAmount,
+		summ.BottlingInfo.Temperature, summ.BottlingInfo.VolumeBottled, summ.BottlingInfo.SugarType, summ.BottlingInfo.Notes)
+	if err != nil {
+		return err
+	}
+	err = store.AddSummarySecondary(id, summ.SecondaryFermentationInfo.Days, summ.SecondaryFermentationInfo.Notes)
+	if err != nil {
+		return err
+	}
+	err = store.AddEfficiency(id, summ.Statistics.Efficiency)
+	if err != nil {
+		return err
+	}
+	err = store.AddEvaporation(id, summ.Statistics.Evaporation)
+	if err != nil {
+		return err
+	}
+	return nil
 }

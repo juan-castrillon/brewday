@@ -34,7 +34,7 @@ func (r *MashRouter) addTimelineEvent(id, message string) error {
 }
 
 // addSummaryMashTemp adds a mash temperature to the summary and notes related to it
-func (r *MashRouter) addSummaryMashTemp(id string, temp float64, notes string) error {
+func (r *MashRouter) addSummaryMashTemp(id string, temp float32, notes string) error {
 	if r.SummaryStore != nil {
 		return r.SummaryStore.AddMashTemp(id, temp, notes)
 	}
@@ -42,7 +42,7 @@ func (r *MashRouter) addSummaryMashTemp(id string, temp float64, notes string) e
 }
 
 // addSummaryRast adds a rast to the summary and notes related to it
-func (r *MashRouter) addSummaryRast(id string, temp float64, duration float64, notes string) error {
+func (r *MashRouter) addSummaryRast(id string, temp float32, duration float32, notes string) error {
 	if r.SummaryStore != nil {
 		return r.SummaryStore.AddRast(id, temp, duration, notes)
 	}

@@ -45,7 +45,7 @@ func (s *SummaryMemoryStore) DeleteSummary(recipeID string) error {
 }
 
 // AddMashTemp adds a mash temperature to the summary and notes related to it
-func (s *SummaryMemoryStore) AddMashTemp(id string, temp float64, notes string) error {
+func (s *SummaryMemoryStore) AddMashTemp(id string, temp float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sum, err := s.getSummary(id)
@@ -61,7 +61,7 @@ func (s *SummaryMemoryStore) AddMashTemp(id string, temp float64, notes string) 
 }
 
 // AddRast adds a rast to the summary and notes related to it
-func (s *SummaryMemoryStore) AddRast(id string, temp float64, duration float64, notes string) error {
+func (s *SummaryMemoryStore) AddRast(id string, temp float32, duration float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sum, err := s.getSummary(id)

@@ -19,18 +19,18 @@ type TimelineStore interface {
 // SummaryStore represents a component that stores summaries
 // The recipe id is used as key
 type SummaryStore interface {
-	AddMashTemp(id string, temp float64, notes string) error
-	AddRast(id string, temp float64, duration float64, notes string) error
+	AddMashTemp(id string, temp float32, notes string) error
+	AddRast(id string, temp float32, duration float32, notes string) error
 }
 
 // ReqPostRasts represents the request body for the postRastsHandler
 type ReqPostRasts struct {
-	RealTemperature float64 `json:"real_temperature" form:"real_temp"`
-	RealDuration    float64 `json:"real_duration" form:"real_duration"`
+	RealTemperature float32 `json:"real_temperature" form:"real_temp"`
+	RealDuration    float32 `json:"real_duration" form:"real_duration"`
 	Notes           string  `json:"notes" form:"notes"`
 }
 
 type ReqPostFirstRast struct {
-	RealMashTemperature float64 `json:"real_mash_temperature" form:"real_mash_temp"`
+	RealMashTemperature float32 `json:"real_mash_temperature" form:"real_mash_temp"`
 	Notes               string  `json:"notes" form:"notes"`
 }

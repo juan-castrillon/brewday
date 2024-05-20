@@ -23,3 +23,24 @@ func (s *SummaryRecorderPersistentStore) addToMarshalledArray(id, columnName, st
 	_, err = s.dbClient.Exec(updateQuery, newValue, id)
 	return err
 }
+
+func (s *SummaryRecorderPersistentStore) ValueFromNullString(value sql.NullString) string {
+	if value.Valid {
+		return value.String
+	}
+	return ""
+}
+
+func (s *SummaryRecorderPersistentStore) ValueFromNullFloat(value sql.NullFloat64) float32 {
+	if value.Valid {
+		return float32(value.Float64)
+	}
+	return 0
+}
+
+func (s *SummaryRecorderPersistentStore) ValueFromNullInt(value sql.NullInt32) int {
+	if value.Valid {
+		return int(value.Int32)
+	}
+	return 0
+}

@@ -39,7 +39,7 @@ func (s *SummaryRecorderPersistentStore) DeleteSummary(recipeID string) error {
 }
 
 // AddMashTemp adds a mash temperature to the summary and notes related to it
-func (s *SummaryRecorderPersistentStore) AddMashTemp(id string, temp float64, notes string) error {
+func (s *SummaryRecorderPersistentStore) AddMashTemp(id string, temp float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -47,7 +47,7 @@ func (s *SummaryRecorderPersistentStore) AddMashTemp(id string, temp float64, no
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddRast(id string, temp float64, duration float64, notes string) error {
+func (s *SummaryRecorderPersistentStore) AddRast(id string, temp float32, duration float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -172,7 +172,7 @@ func (s *SummaryRecorderPersistentStore) AddMainFermentationDryHop(id string, na
 		Grams:    amount,
 		Alpha:    alpha,
 		Time:     duration,
-		TimeUnit: "minutes",
+		TimeUnit: "days",
 		Notes:    notes,
 	}
 	newHopBytes, err := json.Marshal(newHop)
@@ -234,5 +234,107 @@ func (s *SummaryRecorderPersistentStore) GetSummary(id string) (*summary.Summary
 	if id == "" {
 		return nil, errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	var title string
+	var mash_notes, mash_rasts, lautern_info, hopping_vol_bb_notes, hopping_hops, hopping_vol_ab_notes, cooling_notes, pre_ferm_vols, yeast_start_temp, yeast_start_notes, main_ferm_sgs, main_ferm_dry_hops, bottling_sugar_type, bottling_notes, sec_ferm_notes sql.NullString
+	var mash_temp, hopping_vol_bb, hopping_vol_ab, cooling_temp, cooling_time, main_ferm_alcohol, bottling_pre_bottle_volume, bottling_carbonation, bottling_sugar_amount, bottling_temperature, bottling_alcohol, bottling_volume_bottled, stats_evaporation, stats_effiency sql.NullFloat64
+	var sec_ferm_days sql.NullInt32
+	err := s.dbClient.QueryRow(
+		`SELECT title, mash_temp, mash_notes, mash_rasts,
+		lautern_info, hopping_vol_bb, hopping_vol_bb_notes, hopping_hops,
+		hopping_vol_ab, hopping_vol_ab_notes, cooling_temp, cooling_time,
+		cooling_notes, pre_ferm_vols, yeast_start_temp, yeast_start_notes,
+		main_ferm_sgs, main_ferm_alcohol, main_ferm_dry_hops, bottling_pre_bottle_volume,
+		bottling_carbonation, bottling_sugar_amount, bottling_sugar_type, bottling_temperature,
+		bottling_alcohol, bottling_volume_bottled, bottling_notes, sec_ferm_days,
+		sec_ferm_notes, stats_evaporation, stats_effiency FROM summaries WHERE recipe_id == ?`, id).Scan(
+		&title, &mash_temp, &mash_notes, &mash_rasts,
+		&lautern_info, &hopping_vol_bb, &hopping_vol_bb_notes, &hopping_hops,
+		&hopping_vol_ab, &hopping_vol_ab_notes, &cooling_temp, &cooling_time,
+		&cooling_notes, &pre_ferm_vols, &yeast_start_temp, &yeast_start_notes,
+		&main_ferm_sgs, &main_ferm_alcohol, &main_ferm_dry_hops, &bottling_pre_bottle_volume,
+		&bottling_carbonation, &bottling_sugar_amount, &bottling_sugar_type, &bottling_temperature,
+		&bottling_alcohol, &bottling_volume_bottled, &bottling_notes, &sec_ferm_days,
+		&sec_ferm_notes, &stats_evaporation, &stats_effiency,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var rastInfos []*summary.MashRastInfo
+	err = json.Unmarshal([]byte(s.ValueFromNullString(mash_rasts)), &rastInfos)
+	if err != nil {
+		return nil, err
+	}
+	var hopInfos, dryHopInfos []*summary.HopInfo
+	err = json.Unmarshal([]byte(s.ValueFromNullString(hopping_hops)), &hopInfos)
+	if err != nil {
+		return nil, err
+	}
+	err = json.Unmarshal([]byte(s.ValueFromNullString(main_ferm_dry_hops)), &dryHopInfos)
+	if err != nil {
+		return nil, err
+	}
+	var preFermentationInfos []*summary.PreFermentationInfo
+	err = json.Unmarshal([]byte(s.ValueFromNullString(pre_ferm_vols)), &preFermentationInfos)
+	if err != nil {
+		return nil, err
+	}
+	var sgs []*summary.SGMeasurement
+	err = json.Unmarshal([]byte(s.ValueFromNullString(main_ferm_sgs)), &sgs)
+	if err != nil {
+		return nil, err
+	}
+	return &summary.Summary{
+		Title: title,
+		MashingInfo: &summary.MashingInfo{
+			MashingTemperature: s.ValueFromNullFloat(mash_temp),
+			MashingNotes:       s.ValueFromNullString(mash_notes),
+			RastInfos:          rastInfos,
+		},
+		LauternInfo: s.ValueFromNullString(lautern_info),
+		HoppingInfo: &summary.HoppingInfo{
+			VolBeforeBoil: &summary.VolMeasurement{
+				Volume: s.ValueFromNullFloat(hopping_vol_bb),
+				Notes:  s.ValueFromNullString(hopping_vol_bb_notes),
+			},
+			VolAfterBoil: &summary.VolMeasurement{
+				Volume: s.ValueFromNullFloat(hopping_vol_ab),
+				Notes:  s.ValueFromNullString(hopping_vol_ab_notes),
+			},
+			HopInfos: hopInfos,
+		},
+		CoolingInfo: &summary.CoolingInfo{
+			Temperature: s.ValueFromNullFloat(cooling_temp),
+			Time:        s.ValueFromNullFloat(cooling_time),
+			Notes:       s.ValueFromNullString(cooling_notes),
+		},
+		PreFermentationInfos: preFermentationInfos,
+		YeastInfo: &summary.YeastInfo{
+			Temperature: s.ValueFromNullString(yeast_start_temp),
+			Notes:       s.ValueFromNullString(yeast_start_notes),
+		},
+		MainFermentationInfo: &summary.MainFermentationInfo{
+			SGs:        sgs,
+			DryHopInfo: dryHopInfos,
+			Alcohol:    s.ValueFromNullFloat(main_ferm_alcohol),
+		},
+		BottlingInfo: &summary.BottlingInfo{
+			PreBottleVolume: s.ValueFromNullFloat(bottling_pre_bottle_volume),
+			Carbonation:     s.ValueFromNullFloat(bottling_carbonation),
+			SugarAmount:     s.ValueFromNullFloat(bottling_sugar_amount),
+			SugarType:       s.ValueFromNullString(bottling_sugar_type),
+			Temperature:     s.ValueFromNullFloat(bottling_temperature),
+			Alcohol:         s.ValueFromNullFloat(bottling_alcohol),
+			VolumeBottled:   s.ValueFromNullFloat(bottling_volume_bottled),
+			Notes:           s.ValueFromNullString(bottling_notes),
+		},
+		SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{
+			Days:  s.ValueFromNullInt(sec_ferm_days),
+			Notes: s.ValueFromNullString(sec_ferm_notes),
+		},
+		Statistics: &summary.Statistics{
+			Evaporation: s.ValueFromNullFloat(stats_evaporation),
+			Efficiency:  s.ValueFromNullFloat(stats_effiency),
+		},
+	}, nil
+
 }

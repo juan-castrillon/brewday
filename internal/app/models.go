@@ -62,8 +62,8 @@ type RecipeStore interface {
 type SummaryStore interface {
 	AddSummary(recipeID, title string) error
 	DeleteSummary(recipeID string) error
-	AddMashTemp(id string, temp float64, notes string) error
-	AddRast(id string, temp float64, duration float64, notes string) error
+	AddMashTemp(id string, temp float32, notes string) error
+	AddRast(id string, temp float32, duration float32, notes string) error
 	AddLauternNotes(id, notes string) error
 	AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error
 	AddVolumeBeforeBoil(id string, amount float32, notes string) error
