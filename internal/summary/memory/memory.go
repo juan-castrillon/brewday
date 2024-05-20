@@ -352,18 +352,6 @@ func (s *SummaryMemoryStore) AddEfficiency(id string, efficiencyPercentage float
 	return nil
 }
 
-// AddTimeline adds a timeline to the summary
-func (s *SummaryMemoryStore) AddTimeline(id string, timeline []string) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	sum, err := s.getSummary(id)
-	if err != nil {
-		return err
-	}
-	sum.Timeline = timeline
-	return nil
-}
-
 // GetSummary returns the summary
 func (s *SummaryMemoryStore) GetSummary(id string) (*summary.Summary, error) {
 	s.lock.Lock()

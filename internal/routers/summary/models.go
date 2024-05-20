@@ -4,7 +4,6 @@ import "brewday/internal/summary"
 
 // SummaryStore represents a component that stores summaries
 type SummaryStore interface {
-	AddTimeline(id string, timeline []string) error
 	GetSummary(id string) (*summary.Summary, error)
 }
 
@@ -16,5 +15,5 @@ type TimelineStore interface {
 
 // SummaryPrinter represents a component that outputs a summary as a certain document (string)
 type SummaryPrinter interface {
-	Print(s *summary.Summary) (string, error)
+	Print(s *summary.Summary, timeline []string) (string, error)
 }

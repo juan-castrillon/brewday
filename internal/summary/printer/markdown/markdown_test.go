@@ -29,11 +29,17 @@ func TestPrint(t *testing.T) {
 	testCases := []struct {
 		Name     string
 		Summ     *summary.Summary
+		Timeline []string
 		Expected string
 		Error    bool
 	}{
 		{
 			Name: "",
+			Timeline: []string{
+				"2024-02-14T07:39:20.732108778Z@Started mashing",
+				"2024-02-14T07:39:28.454239024Z@Finished Einmaischen",
+				"2024-02-14T07:39:31.412846385Z@Started Rast 0",
+			},
 			Summ: &summary.Summary{
 				Title:          "My Title",
 				GenerationDate: "date",
@@ -108,11 +114,6 @@ func TestPrint(t *testing.T) {
 				Statistics: &summary.Statistics{
 					Evaporation: 25.19,
 					Efficiency:  49.11,
-				},
-				Timeline: []string{
-					"2024-02-14T07:39:20.732108778Z@Started mashing",
-					"2024-02-14T07:39:28.454239024Z@Finished Einmaischen",
-					"2024-02-14T07:39:31.412846385Z@Started Rast 0",
 				},
 			},
 			Expected: `# My Title
@@ -218,7 +219,7 @@ Timestamp | Event
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			p := &MarkdownPrinter{}
-			actual, err := p.Print(tc.Summ)
+			actual, err := p.Print(tc.Summ, tc.Timeline)
 			if tc.Error {
 				require.Error(err)
 			} else {

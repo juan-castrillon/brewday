@@ -230,13 +230,6 @@ func (s *SummaryRecorderPersistentStore) AddEfficiency(id string, efficiencyPerc
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddTimeline(id string, timeline []string) error {
-	if id == "" {
-		return errors.New("invalid empty recipe id")
-	}
-	panic("Implement me!")
-}
-
 func (s *SummaryRecorderPersistentStore) GetSummary(id string) (*summary.Summary, error) {
 	if id == "" {
 		return nil, errors.New("invalid empty recipe id")

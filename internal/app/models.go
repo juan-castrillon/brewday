@@ -79,7 +79,6 @@ type SummaryStore interface {
 	AddSummarySecondary(id string, days int, notes string) error
 	AddEvaporation(id string, amount float32) error
 	AddEfficiency(id string, efficiencyPercentage float32) error
-	AddTimeline(id string, timeline []string) error
 	GetSummary(id string) (*summary.Summary, error)
 }
 

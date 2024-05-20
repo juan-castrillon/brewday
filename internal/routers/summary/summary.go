@@ -34,14 +34,6 @@ func (r *SummaryRouter) getExtension(format string) string {
 	}
 }
 
-// addTimeline adds a timeline
-func (r *SummaryRouter) addTimeline(id string, tl []string) error {
-	if r.SummaryStore != nil {
-		return r.SummaryStore.AddTimeline(id, tl)
-	}
-	return nil
-}
-
 // getTimeline returns the timeline
 func (r *SummaryRouter) getTimeline(id string) ([]string, error) {
 	if r.TLStore != nil {
@@ -51,7 +43,7 @@ func (r *SummaryRouter) getTimeline(id string) ([]string, error) {
 }
 
 // printSummary instanciates the correct summary printer based on the format and prints the summary as a string
-func (r *SummaryRouter) printSummary(format string, summ *summary.Summary) (string, error) {
+func (r *SummaryRouter) printSummary(format string, summ *summary.Summary, tl []string) (string, error) {
 	var p SummaryPrinter
 	switch format {
 	case "markdown":
@@ -59,7 +51,7 @@ func (r *SummaryRouter) printSummary(format string, summ *summary.Summary) (stri
 	default:
 		return "", errors.New("could not find suitable printer for format " + format)
 	}
-	return p.Print(summ)
+	return p.Print(summ, tl)
 }
 
 // RegisterRoutes registers the routes for the summary router
@@ -78,12 +70,6 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	if len(tl) > 0 {
-		err := r.addTimeline(id, tl)
-		if err != nil {
-			return err
-		}
-	}
 	format := c.Param("format")
 	if format == "" {
 		format = "markdown"
@@ -95,7 +81,7 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	}
 	ext := r.getExtension(format)
 	fileName := id + "." + ext
-	content, err := r.printSummary(format, summ)
+	content, err := r.printSummary(format, summ, tl)
 	if err != nil {
 		return err
 	}
