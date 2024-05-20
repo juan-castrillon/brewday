@@ -657,10 +657,45 @@ func TestAddVolumeAfterBoil(t *testing.T) {
 		RecipeID string
 		Volume   float32
 		Notes    string
+		SkipRead bool
 		Error    bool
 	}{
 		{
-			Name: "Normal case",
+			Name:     "Valid Inputs",
+			RecipeID: "1",
+			Volume:   10.0,
+			Notes:    "Some notes",
+			Error:    false,
+		},
+		{
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			Volume:   10.0,
+			Notes:    "Some notes",
+			Error:    true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "3; DROP TABLE summaries;",
+			Volume:   10.0,
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
+		},
+		{
+			Name:     "SQL Injection in Notes",
+			RecipeID: "3",
+			Volume:   10.0,
+			Notes:    "Some notes; DROP TABLE summaries;",
+			Error:    false,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			Volume:   10.0,
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
 		},
 	}
 	for _, tc := range testCases {
@@ -670,11 +705,13 @@ func TestAddVolumeAfterBoil(t *testing.T) {
 				require.Error(err)
 			} else {
 				require.NoError(err)
-				var vol float32
-				var notes string
-				require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&vol, &notes))
-				require.Equal(tc.Notes, notes)
-				require.InDelta(tc.Volume, vol, 0.001)
+				if !tc.SkipRead {
+					var vol float32
+					var notes string
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&vol, &notes))
+					require.Equal(tc.Notes, notes)
+					require.InDelta(tc.Volume, vol, 0.001)
+				}
 			}
 		})
 	}
