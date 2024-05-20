@@ -8,6 +8,7 @@ import (
 	"brewday/internal/store/memory"
 	recipe_store_sql "brewday/internal/store/sql"
 	summary_store_memory "brewday/internal/summary/memory"
+	summary_store_sql "brewday/internal/summary/sql"
 	tl_store_memory "brewday/internal/timeline/memory"
 	tl_store_sql "brewday/internal/timeline/sql"
 	"context"
@@ -54,23 +55,28 @@ func main() {
 		defer db.Close()
 		s, err := recipe_store_sql.NewPersistentStore(db)
 		if err != nil {
-			log.Fatal().Err(err).Msg("Error while initializing db store")
+			log.Fatal().Err(err).Msg("Error while initializing recipe db store")
 		}
 		defer s.Close()
 		components.Store = s
 		tls, err := tl_store_sql.NewTimelinePersistentStore(db)
 		if err != nil {
-			log.Fatal().Err(err).Msg("Error while initializing db store")
+			log.Fatal().Err(err).Msg("Error while initializing timeline db store")
 		}
 		defer tls.Close()
 		components.TL = tls
+		ss, err := summary_store_sql.NewSummaryPersistentStore(db)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while initializing summary db store")
+		}
+		components.SummaryStore = ss
 	case "memory":
 		components.Store = memory.NewMemoryStore()
 		components.TL = tl_store_memory.NewTimelineMemoryStore()
+		components.SummaryStore = summary_store_memory.NewSummaryMemoryStore()
 	default:
 		log.Fatal().Msg("Invalid store type")
 	}
-	components.SummaryStore = summary_store_memory.NewSummaryMemoryStore()
 	if config.Notification.Enabled {
 		n, err := notifications.NewGotifyNotifier(
 			config.Notification.GotifyURL,

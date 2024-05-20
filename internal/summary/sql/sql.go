@@ -9,28 +9,28 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type SummaryRecorderPersistentStore struct {
+type SummaryPersistentStore struct {
 	dbClient *sql.DB
 }
 
-func NewSummaryRecorderPersistentStore(db *sql.DB) (*SummaryRecorderPersistentStore, error) {
+func NewSummaryPersistentStore(db *sql.DB) (*SummaryPersistentStore, error) {
 	err := createTable(db)
 	if err != nil {
 		return nil, err
 	}
-	return &SummaryRecorderPersistentStore{
+	return &SummaryPersistentStore{
 		dbClient: db,
 	}, nil
 }
 
 // AddSummary adds a summary for the given recipe id with the given title
-func (s *SummaryRecorderPersistentStore) AddSummary(recipeID, title string) error {
+func (s *SummaryPersistentStore) AddSummary(recipeID, title string) error {
 	_, err := s.dbClient.Exec(`INSERT INTO summaries (title, recipe_id) VALUES (?, ?)`, title, recipeID)
 	return err
 }
 
 // DeleteSummary deletes the summary for the given recipe id
-func (s *SummaryRecorderPersistentStore) DeleteSummary(recipeID string) error {
+func (s *SummaryPersistentStore) DeleteSummary(recipeID string) error {
 	if recipeID == "" {
 		return errors.New("invalid empty recipe id for deleting summary")
 	}
@@ -39,7 +39,7 @@ func (s *SummaryRecorderPersistentStore) DeleteSummary(recipeID string) error {
 }
 
 // AddMashTemp adds a mash temperature to the summary and notes related to it
-func (s *SummaryRecorderPersistentStore) AddMashTemp(id string, temp float32, notes string) error {
+func (s *SummaryPersistentStore) AddMashTemp(id string, temp float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -47,7 +47,7 @@ func (s *SummaryRecorderPersistentStore) AddMashTemp(id string, temp float32, no
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddRast(id string, temp float32, duration float32, notes string) error {
+func (s *SummaryPersistentStore) AddRast(id string, temp float32, duration float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -63,7 +63,7 @@ func (s *SummaryRecorderPersistentStore) AddRast(id string, temp float32, durati
 	return s.addToMarshalledArray(id, "mash_rasts", string(newRastBytes))
 }
 
-func (s *SummaryRecorderPersistentStore) AddLauternNotes(id, notes string) error {
+func (s *SummaryPersistentStore) AddLauternNotes(id, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -71,7 +71,7 @@ func (s *SummaryRecorderPersistentStore) AddLauternNotes(id, notes string) error
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error {
+func (s *SummaryPersistentStore) AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -90,7 +90,7 @@ func (s *SummaryRecorderPersistentStore) AddHopping(id string, name string, amou
 	return s.addToMarshalledArray(id, "hopping_hops", string(newHopBytes))
 }
 
-func (s *SummaryRecorderPersistentStore) AddVolumeBeforeBoil(id string, amount float32, notes string) error {
+func (s *SummaryPersistentStore) AddVolumeBeforeBoil(id string, amount float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -98,7 +98,7 @@ func (s *SummaryRecorderPersistentStore) AddVolumeBeforeBoil(id string, amount f
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddVolumeAfterBoil(id string, amount float32, notes string) error {
+func (s *SummaryPersistentStore) AddVolumeAfterBoil(id string, amount float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -106,7 +106,7 @@ func (s *SummaryRecorderPersistentStore) AddVolumeAfterBoil(id string, amount fl
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddCooling(id string, finalTemp, coolingTime float32, notes string) error {
+func (s *SummaryPersistentStore) AddCooling(id string, finalTemp, coolingTime float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -114,7 +114,7 @@ func (s *SummaryRecorderPersistentStore) AddCooling(id string, finalTemp, coolin
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error {
+func (s *SummaryPersistentStore) AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -130,7 +130,7 @@ func (s *SummaryRecorderPersistentStore) AddPreFermentationVolume(id string, vol
 	return s.addToMarshalledArray(id, "pre_ferm_vols", string(newVolBytes))
 }
 
-func (s *SummaryRecorderPersistentStore) AddYeastStart(id string, temperature, notes string) error {
+func (s *SummaryPersistentStore) AddYeastStart(id string, temperature, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -138,7 +138,7 @@ func (s *SummaryRecorderPersistentStore) AddYeastStart(id string, temperature, n
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error {
+func (s *SummaryPersistentStore) AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -155,7 +155,7 @@ func (s *SummaryRecorderPersistentStore) AddMainFermentationSGMeasurement(id str
 	return s.addToMarshalledArray(id, "main_ferm_sgs", string(newSGBytes))
 }
 
-func (s *SummaryRecorderPersistentStore) AddMainFermentationAlcohol(id string, alcohol float32) error {
+func (s *SummaryPersistentStore) AddMainFermentationAlcohol(id string, alcohol float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -163,7 +163,7 @@ func (s *SummaryRecorderPersistentStore) AddMainFermentationAlcohol(id string, a
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error {
+func (s *SummaryPersistentStore) AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -182,7 +182,7 @@ func (s *SummaryRecorderPersistentStore) AddMainFermentationDryHop(id string, na
 	return s.addToMarshalledArray(id, "main_ferm_dry_hops", string(newHopBytes))
 }
 
-func (s *SummaryRecorderPersistentStore) AddPreBottlingVolume(id string, volume float32) error {
+func (s *SummaryPersistentStore) AddPreBottlingVolume(id string, volume float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -190,7 +190,7 @@ func (s *SummaryRecorderPersistentStore) AddPreBottlingVolume(id string, volume 
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error {
+func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -206,7 +206,7 @@ func (s *SummaryRecorderPersistentStore) AddBottling(id string, carbonation, alc
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddSummarySecondary(id string, days int, notes string) error {
+func (s *SummaryPersistentStore) AddSummarySecondary(id string, days int, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -214,7 +214,7 @@ func (s *SummaryRecorderPersistentStore) AddSummarySecondary(id string, days int
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddEvaporation(id string, amount float32) error {
+func (s *SummaryPersistentStore) AddEvaporation(id string, amount float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -222,7 +222,7 @@ func (s *SummaryRecorderPersistentStore) AddEvaporation(id string, amount float3
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) AddEfficiency(id string, efficiencyPercentage float32) error {
+func (s *SummaryPersistentStore) AddEfficiency(id string, efficiencyPercentage float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -230,7 +230,7 @@ func (s *SummaryRecorderPersistentStore) AddEfficiency(id string, efficiencyPerc
 	return err
 }
 
-func (s *SummaryRecorderPersistentStore) GetSummary(id string) (*summary.Summary, error) {
+func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error) {
 	if id == "" {
 		return nil, errors.New("invalid empty recipe id")
 	}

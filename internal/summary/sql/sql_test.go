@@ -32,7 +32,7 @@ func TestAddSummary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	getSt, err := db.Prepare(`SELECT title FROM summaries WHERE recipe_id = ?`)
@@ -108,7 +108,7 @@ func TestDeleteSummary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	getSt, err := db.Prepare(`SELECT title FROM summaries WHERE recipe_id = ?`)
@@ -181,7 +181,7 @@ func TestAddMashTemp(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -263,7 +263,7 @@ func TestAddRast(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -369,7 +369,7 @@ func TestAddLauternNotes(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -447,7 +447,7 @@ func TestAddHopping(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -560,7 +560,7 @@ func TestAddVolumeBeforeBoil(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -642,7 +642,7 @@ func TestAddVolumeAfterBoil(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -723,7 +723,7 @@ func TestAddCooling(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -809,7 +809,7 @@ func TestAddPreFermentationVolume(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -902,7 +902,7 @@ func TestAddYeastStart(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -987,7 +987,7 @@ func TestAddMainFermentationAlcohol(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1052,7 +1052,7 @@ func TestAddPreBottlingVolume(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1117,7 +1117,7 @@ func TestAddBottling(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1249,7 +1249,7 @@ func TestAddSummarySecondary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1328,7 +1328,7 @@ func TestAddEvaporation(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1393,7 +1393,7 @@ func TestAddEfficency(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1458,7 +1458,7 @@ func TestAddMainFermentationSGMeasurement(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1564,7 +1564,7 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	for i := 1; i <= 3; i++ {
@@ -1677,7 +1677,7 @@ func TestGetSummary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
-	store, err := NewSummaryRecorderPersistentStore(db)
+	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
 	testCases := []struct {
@@ -1756,7 +1756,7 @@ func TestGetSummary(t *testing.T) {
 	}
 }
 
-func storeSummary(id string, summ *summary.Summary, store *SummaryRecorderPersistentStore) error {
+func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStore) error {
 	err := store.AddSummary(id, summ.Title)
 	if err != nil {
 		return err
