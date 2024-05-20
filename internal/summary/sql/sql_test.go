@@ -895,3 +895,559 @@ func TestAddPreFermentationVolume(t *testing.T) {
 		})
 	}
 }
+
+func TestAddYeastStart(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT yeast_start_temp, yeast_start_notes FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Temp     string
+		Notes    string
+		SkipRead bool
+		Error    bool
+	}{
+		{
+			Name:     "Valid Inputs",
+			RecipeID: "1",
+			Temp:     "20.0",
+			Notes:    "Some notes",
+			Error:    false,
+		}, {
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			Temp:     "20",
+			Notes:    "Some notes",
+			Error:    true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "3; DROP TABLE summaries;",
+			Temp:     "20",
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
+		},
+		{
+			Name:     "SQL Injection in Notes",
+			RecipeID: "2",
+			Temp:     "20",
+			Notes:    "Some notes; DROP TABLE summaries;",
+			Error:    false,
+		},
+		{
+			Name:     "SQL Injection in temp",
+			RecipeID: "3",
+			Temp:     "3; DROP TABLE summaries;",
+			Notes:    "oe",
+			Error:    false,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			Temp:     "20",
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddYeastStart(tc.RecipeID, tc.Temp, tc.Notes)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var temp, notes string
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&temp, &notes))
+					require.Equal(tc.Notes, notes)
+					require.Equal(tc.Temp, temp)
+				}
+			}
+		})
+	}
+}
+
+func TestAddMainFermentationAlcohol(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT main_ferm_alcohol FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Alcohol  float32
+		SkipRead bool
+		Error    bool
+	}{
+		{
+			Name:     "Valid Inputs",
+			RecipeID: "1",
+			Alcohol:  5.5,
+			Error:    false,
+		}, {
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			Alcohol:  5.5,
+			Error:    true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "123; DROP TABLE summaries;",
+			Alcohol:  5.5,
+			Error:    false,
+			SkipRead: true,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			Alcohol:  5.5,
+			Error:    false,
+			SkipRead: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddMainFermentationAlcohol(tc.RecipeID, tc.Alcohol)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var alcohol float32
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&alcohol))
+					require.InDelta(tc.Alcohol, alcohol, 0.001)
+				}
+			}
+		})
+	}
+}
+
+func TestAddPreBottlingVolume(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT bottling_pre_bottle_volume FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Volume   float32
+		SkipRead bool
+		Error    bool
+	}{
+		{
+			Name:     "Valid Inputs",
+			RecipeID: "1",
+			Volume:   10.3,
+			Error:    false,
+		}, {
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			Volume:   10.3,
+			Error:    true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "123; DROP TABLE summaries;",
+			Volume:   10.3,
+			Error:    false,
+			SkipRead: true,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			Volume:   10.3,
+			Error:    false,
+			SkipRead: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddPreBottlingVolume(tc.RecipeID, tc.Volume)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var vol float32
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&vol))
+					require.InDelta(tc.Volume, vol, 0.001)
+				}
+			}
+		})
+	}
+}
+
+func TestAddBottling(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT bottling_carbonation  ,
+	bottling_sugar_amount  ,
+	bottling_sugar_type  ,
+	bottling_temperature  ,
+	bottling_alcohol  ,
+	bottling_volume_bottled  ,
+	bottling_notes FROM summaries WHERE recipe_id == ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name        string
+		RecipeID    string
+		Carbonation float32
+		Sugar       float32
+		SugarType   string
+		Temp        float32
+		Alcohol     float32
+		Volume      float32
+		Notes       string
+		SkipRead    bool
+		Error       bool
+	}{
+		{
+			Name:        "Valid Inputs",
+			RecipeID:    "1",
+			Temp:        20.0,
+			Carbonation: 5.5,
+			Sugar:       100,
+			SugarType:   "glucose",
+			Alcohol:     5.69,
+			Volume:      10.3,
+			Notes:       "Some notes",
+			Error:       false,
+		}, {
+			Name:        "Empty RecipeID",
+			RecipeID:    "",
+			Temp:        20.0,
+			Carbonation: 5.5,
+			Sugar:       100,
+			SugarType:   "glucose",
+			Alcohol:     5.69,
+			Volume:      10.3,
+			Notes:       "Some notes",
+			Error:       true,
+		},
+		{
+			Name:        "SQL Injection in RecipeID",
+			RecipeID:    "2; DROP TABLE summaries;",
+			Temp:        20.0,
+			Carbonation: 5.5,
+			Sugar:       100,
+			SugarType:   "glucose",
+			Alcohol:     5.69,
+			Volume:      10.3,
+			Notes:       "Some notes",
+			Error:       false,
+			SkipRead:    true,
+		},
+		{
+			Name:        "SQL Injection in Notes",
+			RecipeID:    "2",
+			Temp:        20.0,
+			Carbonation: 5.5,
+			Sugar:       100,
+			SugarType:   "glucose",
+			Alcohol:     5.69,
+			Volume:      10.3,
+			Notes:       "Some notes; DROP TABLE summaries;",
+			Error:       false,
+		},
+		{
+			Name:        "SQL Injection in sugar type",
+			SugarType:   "glucose; DROP TABLE summaries;",
+			RecipeID:    "3",
+			Temp:        20.0,
+			Carbonation: 5.5,
+			Sugar:       100,
+			Alcohol:     5.69,
+			Volume:      10.3,
+			Notes:       "Some notes",
+			Error:       false,
+		},
+		{
+			Name:        "Non-Existing RecipeID",
+			RecipeID:    "999",
+			Temp:        20.0,
+			Carbonation: 5.5,
+			Sugar:       100,
+			SugarType:   "glucose",
+			Alcohol:     5.69,
+			Volume:      10.3,
+			Notes:       "Some notes",
+			Error:       false,
+			SkipRead:    true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddBottling(tc.RecipeID, tc.Carbonation, tc.Alcohol, tc.Sugar, tc.Temp, tc.Volume, tc.SugarType, tc.Notes)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var temp, carbonation, alcohol, vol, sugar float32
+					var st, notes string
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&carbonation, &sugar, &st, &temp, &alcohol, &vol, &notes))
+					require.Equal(tc.Notes, notes)
+					require.Equal(tc.SugarType, st)
+					require.InDelta(tc.Carbonation, carbonation, 0.001)
+					require.InDelta(tc.Temp, temp, 0.001)
+					require.InDelta(tc.Sugar, sugar, 0.001)
+					require.InDelta(tc.Alcohol, alcohol, 0.001)
+					require.InDelta(tc.Volume, vol, 0.001)
+				}
+			}
+		})
+	}
+}
+
+func TestAddSummarySecondary(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT sec_ferm_days, sec_ferm_notes FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Days     int
+		Notes    string
+		SkipRead bool
+		Error    bool
+	}{
+		{
+			Name:     "Valid Inputs",
+			RecipeID: "1",
+			Days:     5,
+			Notes:    "Some notes",
+			Error:    false,
+		}, {
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			Days:     5,
+			Notes:    "Some notes",
+			Error:    true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "123; DROP TABLE summaries;",
+			Days:     5,
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
+		},
+		{
+			Name:     "SQL Injection in Notes",
+			RecipeID: "2",
+			Days:     5,
+			Notes:    "Some notes; DROP TABLE summaries;",
+			Error:    false,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			Days:     5,
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddSummarySecondary(tc.RecipeID, tc.Days, tc.Notes)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var days int
+					var notes string
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&days, &notes))
+					require.Equal(tc.Notes, notes)
+					require.Equal(tc.Days, days)
+				}
+			}
+		})
+	}
+}
+
+func TestAddEvaporation(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT stats_evaporation FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name        string
+		RecipeID    string
+		Evaporation float32
+		SkipRead    bool
+		Error       bool
+	}{
+		{
+			Name:        "Valid Inputs",
+			RecipeID:    "1",
+			Evaporation: 16.66,
+			Error:       false,
+		}, {
+			Name:        "Empty RecipeID",
+			RecipeID:    "",
+			Evaporation: 16.66,
+			Error:       true,
+		},
+		{
+			Name:        "SQL Injection in RecipeID",
+			RecipeID:    "123; DROP TABLE summaries;",
+			Evaporation: 16.66,
+			Error:       false,
+			SkipRead:    true,
+		},
+		{
+			Name:        "Non-Existing RecipeID",
+			RecipeID:    "999",
+			Evaporation: 16.66,
+			Error:       false,
+			SkipRead:    true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddEvaporation(tc.RecipeID, tc.Evaporation)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var evap float32
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&evap))
+					require.InDelta(tc.Evaporation, evap, 0.001)
+				}
+			}
+		})
+	}
+}
+
+func TestAddEfficency(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT stats_effiency FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name      string
+		RecipeID  string
+		Efficency float32
+		SkipRead  bool
+		Error     bool
+	}{
+		{
+			Name:      "Valid Inputs",
+			RecipeID:  "1",
+			Efficency: 16.66,
+			Error:     false,
+		}, {
+			Name:      "Empty RecipeID",
+			RecipeID:  "",
+			Efficency: 16.66,
+			Error:     true,
+		},
+		{
+			Name:      "SQL Injection in RecipeID",
+			RecipeID:  "123; DROP TABLE summaries;",
+			Efficency: 16.66,
+			Error:     false,
+			SkipRead:  true,
+		},
+		{
+			Name:      "Non-Existing RecipeID",
+			RecipeID:  "999",
+			Efficency: 16.66,
+			Error:     false,
+			SkipRead:  true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddEfficiency(tc.RecipeID, tc.Efficency)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var eff float32
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&eff))
+					require.InDelta(tc.Efficency, eff, 0.001)
+				}
+			}
+		})
+	}
+}

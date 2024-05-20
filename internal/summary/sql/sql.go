@@ -134,7 +134,8 @@ func (s *SummaryRecorderPersistentStore) AddYeastStart(id string, temperature, n
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET yeast_start_temp = ? , yeast_start_notes = ? WHERE recipe_id == ?`, temperature, notes, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error {
@@ -148,7 +149,8 @@ func (s *SummaryRecorderPersistentStore) AddMainFermentationAlcohol(id string, a
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET main_ferm_alcohol = ? WHERE recipe_id == ?`, alcohol, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error {
@@ -162,35 +164,48 @@ func (s *SummaryRecorderPersistentStore) AddPreBottlingVolume(id string, volume 
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET bottling_pre_bottle_volume = ? WHERE recipe_id == ?`, volume, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET  
+		bottling_carbonation = ? ,
+		bottling_sugar_amount = ? ,
+		bottling_sugar_type = ? ,
+		bottling_temperature = ? ,
+		bottling_alcohol = ? ,
+		bottling_volume_bottled = ? ,
+		bottling_notes = ? 
+	WHERE recipe_id == ?`, carbonation, sugar, sugarType, temp, alcohol, vol, notes, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddSummarySecondary(id string, days int, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET sec_ferm_days = ?, sec_ferm_notes = ? WHERE recipe_id == ?`, days, notes, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddEvaporation(id string, amount float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET stats_evaporation = ? WHERE recipe_id == ?`, amount, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddEfficiency(id string, efficiencyPercentage float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET stats_effiency = ? WHERE recipe_id == ?`, efficiencyPercentage, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddTimeline(id string, timeline []string) error {
