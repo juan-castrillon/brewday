@@ -1,20 +1,20 @@
 package summary
 
 type Summary struct {
-	Title string
+	Title string `json:"title,omitempty"`
 	//GenerationDate is automatically populated by the printer when creating the summary file
-	GenerationDate            string
-	MashingInfo               *MashingInfo
-	LauternInfo               string
-	HoppingInfo               *HoppingInfo
-	CoolingInfo               *CoolingInfo
-	PreFermentationInfos      []*PreFermentationInfo
-	YeastInfo                 *YeastInfo
-	BottlingInfo              *BottlingInfo
-	MainFermentationInfo      *MainFermentationInfo
-	SecondaryFermentationInfo *SecondaryFermentationInfo
-	Statistics                *Statistics
-	Timeline                  []string
+	GenerationDate            string                     `json:"-"`
+	MashingInfo               *MashingInfo               `json:"mashing_info,omitempty"`
+	LauternInfo               string                     `json:"lautern_info,omitempty"`
+	HoppingInfo               *HoppingInfo               `json:"hopping_info,omitempty"`
+	CoolingInfo               *CoolingInfo               `json:"cooling_info,omitempty"`
+	PreFermentationInfos      []*PreFermentationInfo     `json:"pre_fermentation_infos,omitempty"`
+	YeastInfo                 *YeastInfo                 `json:"yeast_info,omitempty"`
+	BottlingInfo              *BottlingInfo              `json:"bottling_info,omitempty"`
+	MainFermentationInfo      *MainFermentationInfo      `json:"main_fermentation_info,omitempty"`
+	SecondaryFermentationInfo *SecondaryFermentationInfo `json:"secondary_fermentation_info,omitempty"`
+	Statistics                *Statistics                `json:"statistics,omitempty"`
+	Timeline                  []string                   `json:"timeline,omitempty"`
 }
 
 type MashingInfo struct {
@@ -24,9 +24,9 @@ type MashingInfo struct {
 }
 
 type MashRastInfo struct {
-	Temperature float64
-	Time        float64
-	Notes       string
+	Temperature float64 `json:"temperature,omitempty"`
+	Time        float64 `json:"time,omitempty"`
+	Notes       string  `json:"notes,omitempty"`
 }
 
 type HoppingInfo struct {
@@ -36,17 +36,17 @@ type HoppingInfo struct {
 }
 
 type VolMeasurement struct {
-	Volume float32
-	Notes  string
+	Volume float32 `json:"volume,omitempty"`
+	Notes  string  `json:"notes,omitempty"`
 }
 
 type HopInfo struct {
-	Name     string
-	Grams    float32
-	Alpha    float32
-	Time     float32
-	TimeUnit string
-	Notes    string
+	Name     string  `json:"name,omitempty"`
+	Grams    float32 `json:"grams,omitempty"`
+	Alpha    float32 `json:"alpha,omitempty"`
+	Time     float32 `json:"time,omitempty"`
+	TimeUnit string  `json:"time_unit,omitempty"`
+	Notes    string  `json:"notes,omitempty"`
 }
 
 type CoolingInfo struct {

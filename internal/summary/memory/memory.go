@@ -44,18 +44,6 @@ func (s *SummaryMemoryStore) DeleteSummary(recipeID string) error {
 	return nil
 }
 
-// AddTitle adds a title to the summary
-func (s *SummaryMemoryStore) AddTitle(id, title string) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
-	sum, err := s.getSummary(id)
-	if err != nil {
-		return err
-	}
-	sum.Title = title
-	return nil
-}
-
 // AddMashTemp adds a mash temperature to the summary and notes related to it
 func (s *SummaryMemoryStore) AddMashTemp(id string, temp float64, notes string) error {
 	s.lock.Lock()
