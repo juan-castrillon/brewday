@@ -1451,3 +1451,222 @@ func TestAddEfficency(t *testing.T) {
 		})
 	}
 }
+
+func TestAddMainFermentationSGMeasurement(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+
+	getSt, err := db.Prepare(`SELECT main_ferm_sgs FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		SGs      []*summary.SGMeasurement
+		RecipeID string
+		SkipRead bool
+		Error    bool
+	}{
+		{
+			Name: "Normal case",
+			SGs: []*summary.SGMeasurement{
+				{SG: 1.063, Date: "2013-02-21 13:45:43", Final: false, Notes: "some notes"},
+			},
+			RecipeID: "1",
+			Error:    false,
+		},
+		{
+			Name: "Multiple sgs",
+			SGs: []*summary.SGMeasurement{
+				{SG: 1.063, Date: "2013-02-21 13:45:43", Final: false, Notes: "some notes"},
+				{SG: 1.010, Date: "2013-02-23 13:45:43", Final: true, Notes: "some notes2"},
+			},
+			RecipeID: "2",
+			Error:    false,
+		},
+		{
+			Name: "SQL Injection in notes",
+			SGs: []*summary.SGMeasurement{
+				{SG: 1.063, Date: "2013-02-21 13:45:43", Final: false, Notes: "5'; DROP TABLE summaries; --"},
+			},
+			RecipeID: "3",
+			Error:    false,
+		},
+		{
+			Name: "SQL Injection in recipe_id",
+			SGs: []*summary.SGMeasurement{
+				{SG: 1.063, Date: "2013-02-21 13:45:43", Final: false, Notes: "some notes"},
+			},
+			RecipeID: "5'; DROP TABLE summaries; --",
+			Error:    true,
+		},
+		{
+			Name: "Non existing recipe_id",
+			SGs: []*summary.SGMeasurement{
+				{SG: 1.063, Date: "2013-02-21 13:45:43", Final: false, Notes: "some notes"},
+			},
+			RecipeID: "10",
+			Error:    true,
+		},
+		{
+			Name: "Empty recipe_id",
+			SGs: []*summary.SGMeasurement{
+				{SG: 1.063, Date: "2013-02-21 13:45:43", Final: false, Notes: "some notes"},
+			},
+			RecipeID: "",
+			Error:    true,
+		},
+		{
+			Name: "Summary not created",
+			SGs: []*summary.SGMeasurement{
+				{SG: 1.063, Date: "2013-02-21 13:45:43", Final: false, Notes: "some notes"},
+			},
+			RecipeID: "4",
+			Error:    true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			for _, sg := range tc.SGs {
+				err = store.AddMainFermentationSGMeasurement(tc.RecipeID, sg.Date, sg.SG, sg.Final, sg.Notes)
+				if tc.Error {
+					require.Error(err)
+				}
+			}
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var sgs string
+					err = getSt.QueryRow(tc.RecipeID).Scan(&sgs)
+					require.NoError(err)
+					expected, err := json.Marshal(tc.SGs)
+					require.NoError(err)
+					require.Equal(string(expected), sgs)
+				}
+			}
+		})
+	}
+}
+
+func TestAddMainFermentationDryHop(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT main_ferm_dry_hops FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Hops     []*summary.HopInfo
+		Error    bool
+	}{
+		{
+			Name:     "Valid Input",
+			RecipeID: "1",
+			Hops: []*summary.HopInfo{
+				{
+					Name:     "Hop1",
+					Grams:    10,
+					Alpha:    5,
+					Time:     60,
+					TimeUnit: "minutes",
+					Notes:    "Some notes",
+				},
+			},
+			Error: false,
+		},
+		{
+			Name:     "Multiple hops",
+			RecipeID: "2",
+			Hops: []*summary.HopInfo{
+				{Name: "hop1", Grams: 10, Alpha: 3.2, Time: 50, TimeUnit: "minutes", Notes: "notes 1"},
+				{Name: "hop2", Grams: 20, Alpha: 5.2, Time: 70, TimeUnit: "minutes", Notes: "notes 2"},
+			},
+			Error: false,
+		},
+		{
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			Hops: []*summary.HopInfo{
+				{
+					Name:     "Hop1",
+					Grams:    10,
+					Alpha:    5,
+					Time:     60,
+					TimeUnit: "minutes",
+					Notes:    "Some notes",
+				},
+			},
+			Error: true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "123; DROP TABLE summaries;",
+			Hops: []*summary.HopInfo{
+				{
+					Name:     "Hop1",
+					Grams:    10,
+					Alpha:    5,
+					Time:     60,
+					TimeUnit: "minutes",
+					Notes:    "Some notes",
+				},
+			},
+			Error: true,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			Hops: []*summary.HopInfo{
+				{
+					Name:     "Hop1",
+					Grams:    10,
+					Alpha:    5,
+					Time:     60,
+					TimeUnit: "minutes",
+					Notes:    "Some notes",
+				},
+			},
+			Error: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			for _, hop := range tc.Hops {
+				err = store.AddMainFermentationDryHop(tc.RecipeID, hop.Name, hop.Grams, hop.Alpha, hop.Time, hop.Notes)
+				if tc.Error {
+					require.Error(err)
+				}
+			}
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				var hops string
+				require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&hops))
+				expected, err := json.Marshal(tc.Hops)
+				require.NoError(err)
+				require.Equal(string(expected), hops)
+			}
+		})
+	}
+}

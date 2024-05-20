@@ -73,10 +73,10 @@ type MainFermentationInfo struct {
 }
 
 type SGMeasurement struct {
-	SG    float32
-	Date  string
-	Final bool
-	Notes string
+	SG    float32 `json:"sg,omitempty"`
+	Date  string  `json:"date,omitempty"`
+	Final bool    `json:"final,omitempty"`
+	Notes string  `json:"notes,omitempty"`
 }
 
 type BottlingInfo struct {

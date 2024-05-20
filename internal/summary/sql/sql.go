@@ -142,7 +142,17 @@ func (s *SummaryRecorderPersistentStore) AddMainFermentationSGMeasurement(id str
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	newSG := summary.SGMeasurement{
+		SG:    gravity,
+		Date:  date,
+		Final: final,
+		Notes: notes,
+	}
+	newSGBytes, err := json.Marshal(newSG)
+	if err != nil {
+		return err
+	}
+	return s.addToMarshalledArray(id, "main_ferm_sgs", string(newSGBytes))
 }
 
 func (s *SummaryRecorderPersistentStore) AddMainFermentationAlcohol(id string, alcohol float32) error {
@@ -157,7 +167,19 @@ func (s *SummaryRecorderPersistentStore) AddMainFermentationDryHop(id string, na
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	newHop := summary.HopInfo{
+		Name:     name,
+		Grams:    amount,
+		Alpha:    alpha,
+		Time:     duration,
+		TimeUnit: "minutes",
+		Notes:    notes,
+	}
+	newHopBytes, err := json.Marshal(newHop)
+	if err != nil {
+		return err
+	}
+	return s.addToMarshalledArray(id, "main_ferm_dry_hops", string(newHopBytes))
 }
 
 func (s *SummaryRecorderPersistentStore) AddPreBottlingVolume(id string, volume float32) error {
