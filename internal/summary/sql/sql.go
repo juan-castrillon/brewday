@@ -47,6 +47,7 @@ func (s *SummaryPersistentStore) AddMashTemp(id string, temp float32, notes stri
 	return err
 }
 
+// AddRast adds a rast to the summary and notes related to it
 func (s *SummaryPersistentStore) AddRast(id string, temp float32, duration float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -63,6 +64,7 @@ func (s *SummaryPersistentStore) AddRast(id string, temp float32, duration float
 	return s.addToMarshalledArray(id, "mash_rasts", string(newRastBytes))
 }
 
+// AddLauternNotes adds lautern notes to the summary
 func (s *SummaryPersistentStore) AddLauternNotes(id, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -71,6 +73,7 @@ func (s *SummaryPersistentStore) AddLauternNotes(id, notes string) error {
 	return err
 }
 
+// AddHopping adds a hopping to the summary and notes related to it
 func (s *SummaryPersistentStore) AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -90,6 +93,7 @@ func (s *SummaryPersistentStore) AddHopping(id string, name string, amount float
 	return s.addToMarshalledArray(id, "hopping_hops", string(newHopBytes))
 }
 
+// AddVolumeAfterBoil adds the measured volume before boiling the wort to the summary
 func (s *SummaryPersistentStore) AddVolumeBeforeBoil(id string, amount float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -98,6 +102,7 @@ func (s *SummaryPersistentStore) AddVolumeBeforeBoil(id string, amount float32, 
 	return err
 }
 
+// AddVolumeBeforeBoil adds the measured volume after boiling the wort to the summary
 func (s *SummaryPersistentStore) AddVolumeAfterBoil(id string, amount float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -106,6 +111,7 @@ func (s *SummaryPersistentStore) AddVolumeAfterBoil(id string, amount float32, n
 	return err
 }
 
+// AddCooling adds a cooling to the summary and notes related to it
 func (s *SummaryPersistentStore) AddCooling(id string, finalTemp, coolingTime float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -114,6 +120,7 @@ func (s *SummaryPersistentStore) AddCooling(id string, finalTemp, coolingTime fl
 	return err
 }
 
+// AddPreFermentationVolume adds a summary of the pre fermentation
 func (s *SummaryPersistentStore) AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -130,6 +137,7 @@ func (s *SummaryPersistentStore) AddPreFermentationVolume(id string, volume floa
 	return s.addToMarshalledArray(id, "pre_ferm_vols", string(newVolBytes))
 }
 
+// AddYeastStart adds the yeast start to the summary
 func (s *SummaryPersistentStore) AddYeastStart(id string, temperature, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -138,6 +146,7 @@ func (s *SummaryPersistentStore) AddYeastStart(id string, temperature, notes str
 	return err
 }
 
+// AddMainFermentationSGMeasurement adds a SG measurement to the summary
 func (s *SummaryPersistentStore) AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -155,6 +164,7 @@ func (s *SummaryPersistentStore) AddMainFermentationSGMeasurement(id string, dat
 	return s.addToMarshalledArray(id, "main_ferm_sgs", string(newSGBytes))
 }
 
+// AddMainFermentationAlcohol adds the alcohol after the main fermentation to the summary
 func (s *SummaryPersistentStore) AddMainFermentationAlcohol(id string, alcohol float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -163,6 +173,7 @@ func (s *SummaryPersistentStore) AddMainFermentationAlcohol(id string, alcohol f
 	return err
 }
 
+// AddMainFermentationDryHop adds a summary of the dry hop
 func (s *SummaryPersistentStore) AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -182,6 +193,7 @@ func (s *SummaryPersistentStore) AddMainFermentationDryHop(id string, name strin
 	return s.addToMarshalledArray(id, "main_ferm_dry_hops", string(newHopBytes))
 }
 
+// AddPreBottlingVolume adds the volume before bottling
 func (s *SummaryPersistentStore) AddPreBottlingVolume(id string, volume float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -190,6 +202,7 @@ func (s *SummaryPersistentStore) AddPreBottlingVolume(id string, volume float32)
 	return err
 }
 
+// AddBottling adds a summary of the bottling
 func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -206,6 +219,7 @@ func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, su
 	return err
 }
 
+// AddSummarySecondary adds a summary of the secondary fermentation
 func (s *SummaryPersistentStore) AddSummarySecondary(id string, days int, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -214,6 +228,7 @@ func (s *SummaryPersistentStore) AddSummarySecondary(id string, days int, notes 
 	return err
 }
 
+// AddEvaporation adds an evaporation to the summary
 func (s *SummaryPersistentStore) AddEvaporation(id string, amount float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -222,6 +237,7 @@ func (s *SummaryPersistentStore) AddEvaporation(id string, amount float32) error
 	return err
 }
 
+// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
 func (s *SummaryPersistentStore) AddEfficiency(id string, efficiencyPercentage float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -230,6 +246,7 @@ func (s *SummaryPersistentStore) AddEfficiency(id string, efficiencyPercentage f
 	return err
 }
 
+// GetSummary returns the summary
 func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error) {
 	if id == "" {
 		return nil, errors.New("invalid empty recipe id")
@@ -260,80 +277,80 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 		return nil, err
 	}
 	var rastInfos []*summary.MashRastInfo
-	err = json.Unmarshal([]byte(s.ValueFromNullString(mash_rasts)), &rastInfos)
+	err = json.Unmarshal([]byte(s.valueFromNullString(mash_rasts)), &rastInfos)
 	if err != nil {
 		return nil, err
 	}
 	var hopInfos, dryHopInfos []*summary.HopInfo
-	err = json.Unmarshal([]byte(s.ValueFromNullString(hopping_hops)), &hopInfos)
+	err = json.Unmarshal([]byte(s.valueFromNullString(hopping_hops)), &hopInfos)
 	if err != nil {
 		return nil, err
 	}
-	err = json.Unmarshal([]byte(s.ValueFromNullString(main_ferm_dry_hops)), &dryHopInfos)
+	err = json.Unmarshal([]byte(s.valueFromNullString(main_ferm_dry_hops)), &dryHopInfos)
 	if err != nil {
 		return nil, err
 	}
 	var preFermentationInfos []*summary.PreFermentationInfo
-	err = json.Unmarshal([]byte(s.ValueFromNullString(pre_ferm_vols)), &preFermentationInfos)
+	err = json.Unmarshal([]byte(s.valueFromNullString(pre_ferm_vols)), &preFermentationInfos)
 	if err != nil {
 		return nil, err
 	}
 	var sgs []*summary.SGMeasurement
-	err = json.Unmarshal([]byte(s.ValueFromNullString(main_ferm_sgs)), &sgs)
+	err = json.Unmarshal([]byte(s.valueFromNullString(main_ferm_sgs)), &sgs)
 	if err != nil {
 		return nil, err
 	}
 	return &summary.Summary{
 		Title: title,
 		MashingInfo: &summary.MashingInfo{
-			MashingTemperature: s.ValueFromNullFloat(mash_temp),
-			MashingNotes:       s.ValueFromNullString(mash_notes),
+			MashingTemperature: s.valueFromNullFloat(mash_temp),
+			MashingNotes:       s.valueFromNullString(mash_notes),
 			RastInfos:          rastInfos,
 		},
-		LauternInfo: s.ValueFromNullString(lautern_info),
+		LauternInfo: s.valueFromNullString(lautern_info),
 		HoppingInfo: &summary.HoppingInfo{
 			VolBeforeBoil: &summary.VolMeasurement{
-				Volume: s.ValueFromNullFloat(hopping_vol_bb),
-				Notes:  s.ValueFromNullString(hopping_vol_bb_notes),
+				Volume: s.valueFromNullFloat(hopping_vol_bb),
+				Notes:  s.valueFromNullString(hopping_vol_bb_notes),
 			},
 			VolAfterBoil: &summary.VolMeasurement{
-				Volume: s.ValueFromNullFloat(hopping_vol_ab),
-				Notes:  s.ValueFromNullString(hopping_vol_ab_notes),
+				Volume: s.valueFromNullFloat(hopping_vol_ab),
+				Notes:  s.valueFromNullString(hopping_vol_ab_notes),
 			},
 			HopInfos: hopInfos,
 		},
 		CoolingInfo: &summary.CoolingInfo{
-			Temperature: s.ValueFromNullFloat(cooling_temp),
-			Time:        s.ValueFromNullFloat(cooling_time),
-			Notes:       s.ValueFromNullString(cooling_notes),
+			Temperature: s.valueFromNullFloat(cooling_temp),
+			Time:        s.valueFromNullFloat(cooling_time),
+			Notes:       s.valueFromNullString(cooling_notes),
 		},
 		PreFermentationInfos: preFermentationInfos,
 		YeastInfo: &summary.YeastInfo{
-			Temperature: s.ValueFromNullString(yeast_start_temp),
-			Notes:       s.ValueFromNullString(yeast_start_notes),
+			Temperature: s.valueFromNullString(yeast_start_temp),
+			Notes:       s.valueFromNullString(yeast_start_notes),
 		},
 		MainFermentationInfo: &summary.MainFermentationInfo{
 			SGs:        sgs,
 			DryHopInfo: dryHopInfos,
-			Alcohol:    s.ValueFromNullFloat(main_ferm_alcohol),
+			Alcohol:    s.valueFromNullFloat(main_ferm_alcohol),
 		},
 		BottlingInfo: &summary.BottlingInfo{
-			PreBottleVolume: s.ValueFromNullFloat(bottling_pre_bottle_volume),
-			Carbonation:     s.ValueFromNullFloat(bottling_carbonation),
-			SugarAmount:     s.ValueFromNullFloat(bottling_sugar_amount),
-			SugarType:       s.ValueFromNullString(bottling_sugar_type),
-			Temperature:     s.ValueFromNullFloat(bottling_temperature),
-			Alcohol:         s.ValueFromNullFloat(bottling_alcohol),
-			VolumeBottled:   s.ValueFromNullFloat(bottling_volume_bottled),
-			Notes:           s.ValueFromNullString(bottling_notes),
+			PreBottleVolume: s.valueFromNullFloat(bottling_pre_bottle_volume),
+			Carbonation:     s.valueFromNullFloat(bottling_carbonation),
+			SugarAmount:     s.valueFromNullFloat(bottling_sugar_amount),
+			SugarType:       s.valueFromNullString(bottling_sugar_type),
+			Temperature:     s.valueFromNullFloat(bottling_temperature),
+			Alcohol:         s.valueFromNullFloat(bottling_alcohol),
+			VolumeBottled:   s.valueFromNullFloat(bottling_volume_bottled),
+			Notes:           s.valueFromNullString(bottling_notes),
 		},
 		SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{
-			Days:  s.ValueFromNullInt(sec_ferm_days),
-			Notes: s.ValueFromNullString(sec_ferm_notes),
+			Days:  s.valueFromNullInt(sec_ferm_days),
+			Notes: s.valueFromNullString(sec_ferm_notes),
 		},
 		Statistics: &summary.Statistics{
-			Evaporation: s.ValueFromNullFloat(stats_evaporation),
-			Efficiency:  s.ValueFromNullFloat(stats_effiency),
+			Evaporation: s.valueFromNullFloat(stats_evaporation),
+			Efficiency:  s.valueFromNullFloat(stats_effiency),
 		},
 	}, nil
 

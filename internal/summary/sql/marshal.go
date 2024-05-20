@@ -6,6 +6,8 @@ import (
 	"strings"
 )
 
+// addToMarshalledArray is a helper method that will append a new object to a json array stored as TEXT in SQLite
+// It accepts the column name where the array is stored and the string representation of the new object to add
 func (s *SummaryPersistentStore) addToMarshalledArray(id, columnName, stringRep string) error {
 	var current sql.NullString
 	query := fmt.Sprintf(`SELECT %s FROM summaries WHERE recipe_id == ?`, columnName)
@@ -24,21 +26,27 @@ func (s *SummaryPersistentStore) addToMarshalledArray(id, columnName, stringRep 
 	return err
 }
 
-func (s *SummaryPersistentStore) ValueFromNullString(value sql.NullString) string {
+// valueFromNullString is a helper method that will retrieve the value of a string stored in SQLite if not NULL
+// If the value is null in the db it will return an empty string
+func (s *SummaryPersistentStore) valueFromNullString(value sql.NullString) string {
 	if value.Valid {
 		return value.String
 	}
 	return ""
 }
 
-func (s *SummaryPersistentStore) ValueFromNullFloat(value sql.NullFloat64) float32 {
+// valueFromNullFloat is a helper method that will retrieve the value of a float stored in SQLite if not NULL
+// If the value is null in the db it will return 0
+func (s *SummaryPersistentStore) valueFromNullFloat(value sql.NullFloat64) float32 {
 	if value.Valid {
 		return float32(value.Float64)
 	}
 	return 0
 }
 
-func (s *SummaryPersistentStore) ValueFromNullInt(value sql.NullInt32) int {
+// valueFromNullInt is a helper method that will retrieve the value of an int stored in SQLite if not NULL
+// If the value is null in the db it will return 0
+func (s *SummaryPersistentStore) valueFromNullInt(value sql.NullInt32) int {
 	if value.Valid {
 		return int(value.Int32)
 	}
