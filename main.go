@@ -5,7 +5,7 @@ import (
 	"brewday/internal/config"
 	"brewday/internal/notifications"
 	"brewday/internal/render"
-	"brewday/internal/store/memory"
+	recipe_store_memory "brewday/internal/store/memory"
 	recipe_store_sql "brewday/internal/store/sql"
 	summary_store_memory "brewday/internal/summary/memory"
 	summary_store_sql "brewday/internal/summary/sql"
@@ -71,7 +71,7 @@ func main() {
 		}
 		components.SummaryStore = ss
 	case "memory":
-		components.Store = memory.NewMemoryStore()
+		components.Store = recipe_store_memory.NewMemoryStore()
 		components.TL = tl_store_memory.NewTimelineMemoryStore()
 		components.SummaryStore = summary_store_memory.NewSummaryMemoryStore()
 	default:
