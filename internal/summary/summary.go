@@ -1,20 +1,20 @@
 package summary
 
 type Summary struct {
-	Title string `json:"title,omitempty"`
+	Title string
 	//GenerationDate is automatically populated by the printer when creating the summary file
-	GenerationDate            string                     `json:"-"`
-	MashingInfo               *MashingInfo               `json:"mashing_info,omitempty"`
-	LauternInfo               string                     `json:"lautern_info,omitempty"`
-	HoppingInfo               *HoppingInfo               `json:"hopping_info,omitempty"`
-	CoolingInfo               *CoolingInfo               `json:"cooling_info,omitempty"`
-	PreFermentationInfos      []*PreFermentationInfo     `json:"pre_fermentation_infos,omitempty"`
-	YeastInfo                 *YeastInfo                 `json:"yeast_info,omitempty"`
-	BottlingInfo              *BottlingInfo              `json:"bottling_info,omitempty"`
-	MainFermentationInfo      *MainFermentationInfo      `json:"main_fermentation_info,omitempty"`
-	SecondaryFermentationInfo *SecondaryFermentationInfo `json:"secondary_fermentation_info,omitempty"`
-	Statistics                *Statistics                `json:"statistics,omitempty"`
-	Timeline                  []string                   `json:"timeline,omitempty"`
+	GenerationDate            string
+	MashingInfo               *MashingInfo
+	LauternInfo               string
+	HoppingInfo               *HoppingInfo
+	CoolingInfo               *CoolingInfo
+	PreFermentationInfos      []*PreFermentationInfo
+	YeastInfo                 *YeastInfo
+	BottlingInfo              *BottlingInfo
+	MainFermentationInfo      *MainFermentationInfo
+	SecondaryFermentationInfo *SecondaryFermentationInfo
+	Statistics                *Statistics
+	Timeline                  []string
 }
 
 type MashingInfo struct {
@@ -36,8 +36,8 @@ type HoppingInfo struct {
 }
 
 type VolMeasurement struct {
-	Volume float32 `json:"volume,omitempty"`
-	Notes  string  `json:"notes,omitempty"`
+	Volume float32
+	Notes  string
 }
 
 type HopInfo struct {

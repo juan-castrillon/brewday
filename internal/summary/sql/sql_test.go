@@ -102,7 +102,7 @@ func TestAddSummary(t *testing.T) {
 	}
 }
 
-func Test(t *testing.T) {
+func TestDeleteSummary(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
@@ -712,6 +712,185 @@ func TestAddVolumeAfterBoil(t *testing.T) {
 					require.Equal(tc.Notes, notes)
 					require.InDelta(tc.Volume, vol, 0.001)
 				}
+			}
+		})
+	}
+}
+
+func TestAddCooling(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT cooling_temp, cooling_time, cooling_notes FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Temp     float32
+		Time     float32
+		Notes    string
+		SkipRead bool
+		Error    bool
+	}{
+		{
+			Name:     "Valid Inputs",
+			RecipeID: "1",
+			Temp:     20.0,
+			Time:     10.0,
+			Notes:    "Some notes",
+			Error:    false,
+		}, {
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			Temp:     20.0,
+			Time:     10.0,
+			Notes:    "Some notes",
+			Error:    true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "123; DROP TABLE summaries;",
+			Temp:     20.0,
+			Time:     10.0,
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
+		},
+		{
+			Name:     "SQL Injection in Notes",
+			RecipeID: "2",
+			Temp:     20.0,
+			Time:     10.0,
+			Notes:    "Some notes; DROP TABLE summaries;",
+			Error:    false,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			Temp:     20.0,
+			Time:     10.0,
+			Notes:    "Some notes",
+			Error:    false,
+			SkipRead: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddCooling(tc.RecipeID, tc.Temp, tc.Time, tc.Notes)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var temp, time float32
+					var notes string
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&temp, &time, &notes))
+					require.Equal(tc.Notes, notes)
+					require.InDelta(tc.Temp, temp, 0.001)
+					require.InDelta(tc.Time, time, 0.001)
+				}
+			}
+		})
+	}
+}
+
+func TestAddPreFermentationVolume(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryRecorderPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT pre_ferm_vols FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		Vols     []*summary.PreFermentationInfo
+		Error    bool
+	}{
+		{
+			Name:     "Normal case",
+			RecipeID: "1",
+			Vols: []*summary.PreFermentationInfo{
+				{Volume: 10, SG: 1.054, Notes: "notes 1"},
+			},
+			Error: false,
+		},
+		{
+			Name:     "Multiple vols",
+			RecipeID: "2",
+			Vols: []*summary.PreFermentationInfo{
+				{Volume: 10, SG: 1.054, Notes: "notes 1"},
+				{Volume: 12, SG: 1.067, Notes: "notes 2"},
+			},
+			Error: false,
+		},
+		{
+			Name:     "SQL Injection in notes",
+			RecipeID: "3",
+			Vols: []*summary.PreFermentationInfo{
+				{Volume: 10, SG: 1.054, Notes: "3; DROP TABLE summaries;"},
+			},
+			Error: false,
+		},
+		{
+			Name:     "SQL Injection in recipe_id",
+			RecipeID: "2; DROP TABLE summaries;",
+			Vols: []*summary.PreFermentationInfo{
+				{Volume: 10, SG: 1.054, Notes: "notes 1"},
+			},
+			Error: true,
+		},
+		{
+			Name:     "Non existing recipe_id",
+			RecipeID: "15",
+			Vols: []*summary.PreFermentationInfo{
+				{Volume: 10, SG: 1.054, Notes: "notes 1"},
+			},
+			Error: true,
+		},
+		{
+			Name:     "Empty recipe_id",
+			RecipeID: "",
+			Vols: []*summary.PreFermentationInfo{
+				{Volume: 10, SG: 1.054, Notes: "notes 1"},
+			},
+			Error: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			for _, vol := range tc.Vols {
+				err = store.AddPreFermentationVolume(tc.RecipeID, vol.Volume, vol.SG, vol.Notes)
+				if tc.Error {
+					require.Error(err)
+				}
+			}
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				var vols string
+				require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&vols))
+				expected, err := json.Marshal(tc.Vols)
+				require.NoError(err)
+				require.Equal(string(expected), vols)
 			}
 		})
 	}

@@ -110,14 +110,24 @@ func (s *SummaryRecorderPersistentStore) AddCooling(id string, finalTemp, coolin
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	_, err := s.dbClient.Exec(`UPDATE summaries SET cooling_temp = ? , cooling_time = ? , cooling_notes = ? WHERE recipe_id == ?`, finalTemp, coolingTime, notes, id)
+	return err
 }
 
 func (s *SummaryRecorderPersistentStore) AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	panic("Implement me!")
+	newVol := summary.PreFermentationInfo{
+		Volume: volume,
+		SG:     sg,
+		Notes:  notes,
+	}
+	newVolBytes, err := json.Marshal(newVol)
+	if err != nil {
+		return err
+	}
+	return s.addToMarshalledArray(id, "pre_ferm_vols", string(newVolBytes))
 }
 
 func (s *SummaryRecorderPersistentStore) AddYeastStart(id string, temperature, notes string) error {
