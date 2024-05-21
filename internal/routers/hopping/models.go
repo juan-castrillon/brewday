@@ -43,4 +43,5 @@ type ReqPostHopping struct {
 	RealAmount   float32 `json:"real_amount" form:"real_amount"`
 	RealDuration float32 `json:"real_duration" form:"real_duration"`
 	RealAlpha    float32 `json:"real_alpha" form:"real_alpha"`
+	Notes        string  `json:"notes" form:"notes"`
 }

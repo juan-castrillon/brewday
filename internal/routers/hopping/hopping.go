@@ -280,7 +280,7 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 			if err != nil {
 				log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
 			}
-			err = r.addSummaryHopping(id, ingredient.Name, req.RealAmount, req.RealAlpha, req.RealDuration, "")
+			err = r.addSummaryHopping(id, ingredient.Name, req.RealAmount, req.RealAlpha, req.RealDuration, req.Notes)
 			if err != nil {
 				log.Error().Str("id", id).Err(err).Msg("could not add hopping to summary")
 			}
