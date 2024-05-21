@@ -70,7 +70,7 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	format := c.Param("format")
+	format := c.QueryParam("format")
 	if format == "" {
 		format = "markdown"
 	}
