@@ -213,6 +213,7 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
 	}
+	// TODO: is this right? I am asking for the yeast lose somewhere else
 	volumeDiff := req.Volume - (re.BatchSize + 1) // +1 for the 1l of yeast
 	sgDiff := re.InitialSG - req.SG
 	redirect := "getPreFermentationWater"
