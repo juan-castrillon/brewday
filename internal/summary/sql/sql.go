@@ -277,26 +277,26 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 		return nil, err
 	}
 	var rastInfos []*summary.MashRastInfo
-	err = json.Unmarshal([]byte(s.valueFromNullString(mash_rasts)), &rastInfos)
+	err = json.Unmarshal([]byte(s.sliceFromNullString(mash_rasts)), &rastInfos)
 	if err != nil {
 		return nil, err
 	}
 	var hopInfos, dryHopInfos []*summary.HopInfo
-	err = json.Unmarshal([]byte(s.valueFromNullString(hopping_hops)), &hopInfos)
+	err = json.Unmarshal([]byte(s.sliceFromNullString(hopping_hops)), &hopInfos)
 	if err != nil {
 		return nil, err
 	}
-	err = json.Unmarshal([]byte(s.valueFromNullString(main_ferm_dry_hops)), &dryHopInfos)
+	err = json.Unmarshal([]byte(s.sliceFromNullString(main_ferm_dry_hops)), &dryHopInfos)
 	if err != nil {
 		return nil, err
 	}
 	var preFermentationInfos []*summary.PreFermentationInfo
-	err = json.Unmarshal([]byte(s.valueFromNullString(pre_ferm_vols)), &preFermentationInfos)
+	err = json.Unmarshal([]byte(s.sliceFromNullString(pre_ferm_vols)), &preFermentationInfos)
 	if err != nil {
 		return nil, err
 	}
 	var sgs []*summary.SGMeasurement
-	err = json.Unmarshal([]byte(s.valueFromNullString(main_ferm_sgs)), &sgs)
+	err = json.Unmarshal([]byte(s.sliceFromNullString(main_ferm_sgs)), &sgs)
 	if err != nil {
 		return nil, err
 	}

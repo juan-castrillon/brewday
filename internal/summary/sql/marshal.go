@@ -35,6 +35,15 @@ func (s *SummaryPersistentStore) valueFromNullString(value sql.NullString) strin
 	return ""
 }
 
+// sliceFromNullString is a helper method that will retrieve the value of a slice stored as a json string in SQLite if not NULL
+// If the value is null in the db it will return the json representation of an empty slice
+func (s *SummaryPersistentStore) sliceFromNullString(value sql.NullString) string {
+	if value.Valid {
+		return value.String
+	}
+	return "[]"
+}
+
 // valueFromNullFloat is a helper method that will retrieve the value of a float stored in SQLite if not NULL
 // If the value is null in the db it will return 0
 func (s *SummaryPersistentStore) valueFromNullFloat(value sql.NullFloat64) float32 {
