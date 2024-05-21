@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- Option in frontend to select summary format
+- Option to add notes in each hop
+- Persistent storage option based on `sqlite` to enable application restarts without data loss
+
 ## [1.0.1] - 2024-02-02
 
 ### Added
