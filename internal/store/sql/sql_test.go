@@ -327,7 +327,7 @@ func TestUpdateStatus(t *testing.T) {
 	}
 }
 
-func TestUpdateResults(t *testing.T) {
+func TestUpdateResult(t *testing.T) {
 	require := require.New(t)
 	testCases := []struct {
 		Name        string
@@ -387,6 +387,16 @@ func TestUpdateResults(t *testing.T) {
 			},
 			Error: false,
 		},
+		{
+			Name:        "Update vol before boil",
+			RecipeID:    "test",
+			UpdateType:  recipe.ResultVolumeBeforeBoil,
+			UpdateValue: 12,
+			Expected: &recipe.RecipeResults{
+				VolumeBeforeBoil: 12,
+			},
+			Error: false,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
@@ -401,7 +411,7 @@ func TestUpdateResults(t *testing.T) {
 			if tc.RecipeID == "test" {
 				tc.RecipeID = id
 			}
-			err = store.UpdateResults(tc.RecipeID, tc.UpdateType, tc.UpdateValue)
+			err = store.UpdateResult(tc.RecipeID, tc.UpdateType, tc.UpdateValue)
 			if tc.Error {
 				require.Error(err)
 			} else {
@@ -409,6 +419,9 @@ func TestUpdateResults(t *testing.T) {
 				actual, err := store.RetrieveResults(tc.RecipeID)
 				require.NoError(err)
 				require.Equal(tc.Expected, actual)
+				val, err := store.RetrieveResult(tc.RecipeID, tc.UpdateType)
+				require.NoError(err)
+				require.InDelta(tc.UpdateValue, val, 0.0001)
 			}
 		})
 	}

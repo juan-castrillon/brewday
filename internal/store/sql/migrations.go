@@ -44,6 +44,7 @@ func createResultsTable(db *sql.DB) error {
 		final_sg REAL,
 		alcohol REAL,
 		main_ferm_vol REAL,
+		vol_bb REAL,
 		recipe_id INTEGER NOT NULL,
 		FOREIGN KEY (recipe_id) 
 			REFERENCES recipes (id)

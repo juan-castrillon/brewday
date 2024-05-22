@@ -4,6 +4,7 @@ import (
 	"brewday/internal/recipe"
 	"database/sql"
 	"errors"
+	"fmt"
 	"strconv"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -88,11 +89,11 @@ func (s *PersistentStore) Store(r *recipe.Recipe) (string, error) {
 	r.InitResults()
 	initialResults := r.GetResults()
 	_, err = s.dbClient.Exec(`INSERT INTO recipe_results 
-		(hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol, recipe_id)
-		VALUES ( ?, ?, ?, ?, ?, ?)
+		(hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol, vol_bb, recipe_id)
+		VALUES ( ?, ?, ?, ?, ?, ?, ?)
 	`, initialResults.HotWortVolume, initialResults.OriginalGravity,
 		initialResults.FinalGravity, initialResults.Alcohol,
-		initialResults.MainFermentationVolume, idString)
+		initialResults.MainFermentationVolume, initialResults.VolumeBeforeBoil, idString)
 	if err != nil {
 		return "", err
 	}
@@ -194,35 +195,58 @@ func (s *PersistentStore) UpdateStatus(id string, status recipe.RecipeStatus, st
 	return err
 }
 
-// UpdateResults updates a certain result of a recipe
-func (s *PersistentStore) UpdateResults(id string, resultType recipe.ResultType, value float32) error {
-	var columnName string
+func (s *PersistentStore) columnNameFromType(resultType recipe.ResultType) string {
 	switch resultType {
 	case recipe.ResultHotWortVolume:
-		columnName = "hot_wort_vol"
+		return "hot_wort_vol"
 	case recipe.ResultOriginalGravity:
-		columnName = "original_sg"
+		return "original_sg"
 	case recipe.ResultFinalGravity:
-		columnName = "final_sg"
+		return "final_sg"
 	case recipe.ResultAlcohol:
-		columnName = "alcohol"
+		return "alcohol"
 	case recipe.ResultMainFermentationVolume:
-		columnName = "main_ferm_vol"
+		return "main_ferm_vol"
+	case recipe.ResultVolumeBeforeBoil:
+		return "vol_bb"
 	default:
+		return ""
+	}
+}
+
+// UpdateResult updates a certain result of a recipe
+func (s *PersistentStore) UpdateResult(id string, resultType recipe.ResultType, value float32) error {
+	columnName := s.columnNameFromType(resultType)
+	if columnName == "" {
 		return errors.New("invalid result not present in schema: " + strconv.Itoa(int(resultType)))
 	}
 	_, err := s.dbClient.Exec("UPDATE recipe_results SET "+columnName+" = ? WHERE recipe_id == ?", value, id)
 	return err
 }
 
-// RetrieveResults gets the results from a certain recipe
+// RetrieveResult gets a certain result value from a recipe
+func (s *PersistentStore) RetrieveResult(id string, resultType recipe.ResultType) (float32, error) {
+	columnName := s.columnNameFromType(resultType)
+	if columnName == "" {
+		return 0, errors.New("invalid result not present in schema: " + strconv.Itoa(int(resultType)))
+	}
+	var val float32
+	err := s.dbClient.QueryRow(fmt.Sprintf(`SELECT %s FROM recipe_results WHERE recipe_id == ?`, columnName), id).Scan(&val)
+	if err != nil {
+		return 0, err
+	}
+	return val, nil
+}
+
+// RetrieveResults gets all the results from a certain recipe
 func (s *PersistentStore) RetrieveResults(id string) (*recipe.RecipeResults, error) {
 	var actual recipe.RecipeResults
 	err := s.dbClient.QueryRow(`
-		SELECT hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol
+		SELECT hot_wort_vol, original_sg, final_sg, alcohol, main_ferm_vol, vol_bb
 		FROM recipe_results WHERE recipe_id == ?`, id).Scan(
 		&actual.HotWortVolume, &actual.OriginalGravity,
 		&actual.FinalGravity, &actual.Alcohol, &actual.MainFermentationVolume,
+		&actual.VolumeBeforeBoil,
 	)
 	if err != nil {
 		return nil, err

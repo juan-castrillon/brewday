@@ -51,8 +51,10 @@ type RecipeStore interface {
 	Delete(id string) error
 	// UpdateStatus updates the status of a recipe in the store
 	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
-	// UpdateResults updates a certain result of a recipe
-	UpdateResults(id string, resultType recipe.ResultType, value float32) error
+	// UpdateResult updates a certain result of a recipe
+	UpdateResult(id string, resultType recipe.ResultType, value float32) error
+	// RetrieveResult gets a certain result value from a recipe
+	RetrieveResult(id string, resultType recipe.ResultType) (float32, error)
 	// RetrieveResults gets the results from a certain recipe
 	RetrieveResults(id string) (*recipe.RecipeResults, error)
 }

@@ -327,7 +327,7 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add summary bottle")
 	}
-	err = r.Store.UpdateResults(id, recipe.ResultAlcohol, realAlcohol)
+	err = r.Store.UpdateResult(id, recipe.ResultAlcohol, realAlcohol)
 	if err != nil {
 		return err
 	}

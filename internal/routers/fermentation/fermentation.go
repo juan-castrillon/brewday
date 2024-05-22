@@ -301,11 +301,11 @@ func (r *FermentationRouter) postPreFermentationWaterHandler(c echo.Context) err
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
 	}
-	err = r.Store.UpdateResults(id, recipe.ResultOriginalGravity, req.FinalSG)
+	err = r.Store.UpdateResult(id, recipe.ResultOriginalGravity, req.FinalSG)
 	if err != nil {
 		return err
 	}
-	err = r.Store.UpdateResults(id, recipe.ResultMainFermentationVolume, req.FinalVolume)
+	err = r.Store.UpdateResult(id, recipe.ResultMainFermentationVolume, req.FinalVolume)
 	if err != nil {
 		return err
 	}
@@ -500,7 +500,7 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		log.Error().Str("id", id).Err(err).Msg("could not add sg measurement to summary")
 	}
 	if req.Final {
-		err = r.Store.UpdateResults(id, recipe.ResultFinalGravity, req.SG)
+		err = r.Store.UpdateResult(id, recipe.ResultFinalGravity, req.SG)
 		if err != nil {
 			return err
 		}
@@ -510,7 +510,7 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		}
 		og := results.OriginalGravity
 		alc := tools.CalculateAlcohol(og, req.SG)
-		err = r.Store.UpdateResults(id, recipe.ResultAlcohol, alc)
+		err = r.Store.UpdateResult(id, recipe.ResultAlcohol, alc)
 		if err != nil {
 			return err
 		}

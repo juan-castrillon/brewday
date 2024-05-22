@@ -84,8 +84,8 @@ func (s *MemoryStore) UpdateStatus(id string, status recipe.RecipeStatus, status
 	return nil
 }
 
-// UpdateResults updates a certain result of a recipe
-func (s *MemoryStore) UpdateResults(id string, resultType recipe.ResultType, value float32) error {
+// UpdateResult updates a certain result of a recipe
+func (s *MemoryStore) UpdateResult(id string, resultType recipe.ResultType, value float32) error {
 	r, err := s.Retrieve(id)
 	if err != nil {
 		return err
@@ -101,10 +101,36 @@ func (s *MemoryStore) UpdateResults(id string, resultType recipe.ResultType, val
 		r.SetAlcohol(value)
 	case recipe.ResultMainFermentationVolume:
 		r.SetMainFermentationVolume(value)
+	case recipe.ResultVolumeBeforeBoil:
+		r.SetVolumeBeforeBoil(value)
 	default:
 		return errors.New("invalid result not present in struct: " + strconv.Itoa(int(resultType)))
 	}
 	return nil
+}
+
+// RetrieveResult gets a certain result value from a recipe
+func (s *MemoryStore) RetrieveResult(id string, resultType recipe.ResultType) (float32, error) {
+	res, err := s.RetrieveResults(id)
+	if err != nil {
+		return 0, err
+	}
+	switch resultType {
+	case recipe.ResultHotWortVolume:
+		return res.HotWortVolume, nil
+	case recipe.ResultOriginalGravity:
+		return res.OriginalGravity, nil
+	case recipe.ResultFinalGravity:
+		return res.FinalGravity, nil
+	case recipe.ResultAlcohol:
+		return res.Alcohol, nil
+	case recipe.ResultMainFermentationVolume:
+		return res.MainFermentationVolume, nil
+	case recipe.ResultVolumeBeforeBoil:
+		return res.VolumeBeforeBoil, nil
+	default:
+		return 0, errors.New("invalid result not present in struct: " + strconv.Itoa(int(resultType)))
+	}
 }
 
 // RetrieveResults gets the results from a certain recipe

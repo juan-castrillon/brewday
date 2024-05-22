@@ -80,25 +80,6 @@ func (r *HoppingRouter) getIngredients(id string, re *recipe.Recipe) ingredientL
 	return ings
 }
 
-// storeInitialVolume stores the initial volume in the router
-// It initializes the initial volume map if it is nil
-func (r *HoppingRouter) storeInitialVolume(id string, vol float32) {
-	if r.initialVolCache == nil {
-		r.initialVolCache = make(map[string]float32)
-	}
-	r.initialVolCache[id] = vol
-}
-
-// getInitialVolume returns the initial volume for the given recipe from the cache
-// If the initial volume is not in the cache, it returns an error
-func (r *HoppingRouter) getInitialVolume(id string) (float32, error) {
-	vol, ok := r.initialVolCache[id]
-	if !ok {
-		return 0, errors.New("initial volume not found for recipe")
-	}
-	return vol, nil
-}
-
 // RegisterRoutes registers the routes for the hopping router
 func (r *HoppingRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	hopping := parent.Group("/hopping")
@@ -155,7 +136,10 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}
-	r.storeInitialVolume(id, req.InitialVolume)
+	err = r.Store.UpdateResult(id, recipe.ResultVolumeBeforeBoil, req.InitialVolume)
+	if err != nil {
+		return err
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getBoiling", id))
 }
 
@@ -299,10 +283,6 @@ func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	_, err = r.getInitialVolume(id)
-	if err != nil {
-		return err
-	}
 	err = r.Store.UpdateStatus(id, recipe.RecipeStatusBoiling, "finalVol")
 	if err != nil {
 		return err
@@ -337,7 +317,7 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	initialVol, err := r.getInitialVolume(id)
+	initialVol, err := r.Store.RetrieveResult(id, recipe.ResultVolumeBeforeBoil)
 	if err != nil {
 		return err
 	}
@@ -345,7 +325,7 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}
-	err = r.Store.UpdateResults(id, recipe.ResultHotWortVolume, req.FinalVolume)
+	err = r.Store.UpdateResult(id, recipe.ResultHotWortVolume, req.FinalVolume)
 	if err != nil {
 		return err
 	}

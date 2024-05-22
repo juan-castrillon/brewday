@@ -22,9 +22,11 @@ const (
 	ResultFinalGravity
 	ResultAlcohol
 	ResultMainFermentationVolume
+	ResultVolumeBeforeBoil
 )
 
 type RecipeResults struct {
+	VolumeBeforeBoil       float32
 	HotWortVolume          float32
 	OriginalGravity        float32
 	FinalGravity           float32
@@ -267,4 +269,11 @@ func (r *Recipe) SetMainFermentationVolume(volume float32) {
 	r.resultsLock.Lock()
 	defer r.resultsLock.Unlock()
 	r.results.MainFermentationVolume = volume
+}
+
+// SetVolumeBeforeBoil sets the volume measured before boiling the wort
+func (r *Recipe) SetVolumeBeforeBoil(volume float32) {
+	r.resultsLock.Lock()
+	defer r.resultsLock.Unlock()
+	r.results.VolumeBeforeBoil = volume
 }
