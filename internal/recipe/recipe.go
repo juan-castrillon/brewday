@@ -25,6 +25,11 @@ const (
 	ResultVolumeBeforeBoil
 )
 
+type SGMeasurement struct {
+	Value float32 `json:"value,omitempty"`
+	Date  string  `json:"date,omitempty"`
+}
+
 type RecipeResults struct {
 	VolumeBeforeBoil       float32
 	HotWortVolume          float32
@@ -66,8 +71,12 @@ type Recipe struct {
 	ID string `json:"ID"`
 	// results is the results of the recipe. This is populated by the appropriate handlers and should not be set manually
 	results RecipeResults `json:"-"`
+	// mainFermSGs is the measured specific gravities during the main fermentation process. This is populated by the appropriate handlers and should not be set manually
+	mainFermSGs []*SGMeasurement `json:"-"`
 	// resultsLock is the lock for the results
 	resultsLock sync.Mutex `json:"-"`
+	// mainFermSGsLock is the lock for the mainFermSGs
+	mainFermSGsLock sync.Mutex `json:"-"`
 }
 
 // MashInstructions is the struct for the mashing instructions
@@ -276,4 +285,21 @@ func (r *Recipe) SetVolumeBeforeBoil(volume float32) {
 	r.resultsLock.Lock()
 	defer r.resultsLock.Unlock()
 	r.results.VolumeBeforeBoil = volume
+}
+
+// SetSGMeasurement adds an sg measurement to the results of the recipe
+func (r *Recipe) SetSGMeasurement(measurement *SGMeasurement) {
+	r.mainFermSGsLock.Lock()
+	defer r.mainFermSGsLock.Unlock()
+	if r.mainFermSGs == nil {
+		r.mainFermSGs = make([]*SGMeasurement, 0)
+	}
+	r.mainFermSGs = append(r.mainFermSGs, measurement)
+}
+
+// GetSGMeasurements returns all main fermentation sg measurements for this recipe
+func (r *Recipe) GetSGMeasurements() []*SGMeasurement {
+	r.mainFermSGsLock.Lock()
+	defer r.mainFermSGsLock.Unlock()
+	return r.mainFermSGs
 }

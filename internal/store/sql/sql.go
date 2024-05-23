@@ -25,6 +25,10 @@ func NewPersistentStore(db *sql.DB) (*PersistentStore, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = createSGsTable(db)
+	if err != nil {
+		return nil, err
+	}
 	rs, err := db.Prepare(`SELECT 
 		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
 		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,
@@ -252,4 +256,29 @@ func (s *PersistentStore) RetrieveResults(id string) (*recipe.RecipeResults, err
 		return nil, err
 	}
 	return &actual, nil
+}
+
+// AddMainFermSG adds a new specific gravity measurement to a given recipe
+func (s *PersistentStore) AddMainFermSG(id string, m *recipe.SGMeasurement) error {
+	_, err := s.dbClient.Exec(`INSERT INTO main_ferm_sgs (sg, date, recipe_id) VALUES (?, ?, ?)`, m.Value, m.Date, id)
+	return err
+}
+
+// RetrieveMainFermSGs returns all measured sgs for a recipe
+func (s *PersistentStore) RetrieveMainFermSGs(id string) ([]*recipe.SGMeasurement, error) {
+	rows, err := s.dbClient.Query(`SELECT sg, date FROM main_ferm_sgs WHERE recipe_id == ? ORDER BY id ASC`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	results := make([]*recipe.SGMeasurement, 0)
+	for rows.Next() {
+		var m recipe.SGMeasurement
+		err = rows.Scan(&m.Value, &m.Date)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, &m)
+	}
+	return results, nil
 }

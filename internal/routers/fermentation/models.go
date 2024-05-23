@@ -41,6 +41,10 @@ type RecipeStore interface {
 	UpdateResult(id string, resultType recipe.ResultType, value float32) error
 	// RetrieveResults gets the results from a certain recipe
 	RetrieveResults(id string) (*recipe.RecipeResults, error)
+	// AddMainFermSG adds a new specific gravity measurement to a given recipe
+	AddMainFermSG(id string, m *recipe.SGMeasurement) error
+	// RetrieveMainFermSGs returns all measured sgs for a recipe
+	RetrieveMainFermSGs(id string) ([]*recipe.SGMeasurement, error)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application

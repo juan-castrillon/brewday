@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"database/sql"
 
@@ -422,6 +423,89 @@ func TestUpdateResult(t *testing.T) {
 				val, err := store.RetrieveResult(tc.RecipeID, tc.UpdateType)
 				require.NoError(err)
 				require.InDelta(tc.UpdateValue, val, 0.0001)
+			}
+		})
+	}
+}
+
+func TestUpdateSGs(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name  string
+		ToAdd map[string][]*recipe.SGMeasurement
+		Error bool
+	}{
+		{
+			Name: "Single sg",
+			ToAdd: map[string][]*recipe.SGMeasurement{
+				"recipe1": {
+					{Value: 1.013, Date: time.Now().Format("2006-01-02")},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Multiple sg",
+			ToAdd: map[string][]*recipe.SGMeasurement{
+				"recipe1": {
+					{Value: 1.013, Date: time.Now().Format("2006-01-02")},
+					{Value: 1.011, Date: time.Now().Add(10 * time.Second).Format("2006-01-02")},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Multiple sg multiple recipes",
+			ToAdd: map[string][]*recipe.SGMeasurement{
+				"recipe1": {
+					{Value: 1.013, Date: time.Now().Format("2006-01-02")},
+					{Value: 1.011, Date: time.Now().Add(10 * time.Second).Format("2006-01-02")},
+				},
+				"recipe2": {
+					{Value: 1.013, Date: time.Now().Format("2006-01-02")},
+					{Value: 1.011, Date: time.Now().Add(10 * time.Second).Format("2006-01-02")},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Order is respected",
+			ToAdd: map[string][]*recipe.SGMeasurement{
+				"recipe1": {
+					{Value: 1.013, Date: time.Now().Format("2006-01-02")},
+					{Value: 1.011, Date: time.Now().Add(10 * time.Second).Format("2006-01-02")},
+					{Value: 1.011, Date: time.Now().Add(-10 * time.Second).Format("2006-01-02")},
+				},
+			},
+			Error: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			for recipeTitle, sgs := range tc.ToAdd {
+				id, err := store.Store(&recipe.Recipe{Name: recipeTitle})
+				require.NoError(err)
+				for _, sg := range sgs {
+					err = store.AddMainFermSG(id, sg)
+					if tc.Error {
+						require.Error(err)
+					} else {
+						require.NoError(err)
+					}
+				}
+				if !tc.Error {
+					realSGs, err := store.RetrieveMainFermSGs(id)
+					require.NoError(err)
+					for i := 0; i < len(tc.ToAdd[recipeTitle]); i++ {
+						require.Equal(tc.ToAdd[recipeTitle][i], realSGs[i])
+					}
+				}
 			}
 		})
 	}

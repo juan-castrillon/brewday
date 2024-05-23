@@ -21,11 +21,8 @@ type FermentationRouter struct {
 	Store         RecipeStore
 	Notifier      Notifier
 	statusMapLock sync.Mutex
-	sgMapLock     sync.Mutex
 	// MainFermentationStatus is a map of recipe id to whether the main fermentation minimum days have passed
 	MainFermentationStatus map[string]*FermentationStatus
-	// SGMeasurements is a map of recipe id to the SG measurements
-	SGMeasurements map[string][]SGMeasurement
 }
 
 // sendNotification sends a notification if the notifier is available
@@ -75,31 +72,6 @@ func (r *FermentationRouter) getMainFermentationStatus(id string) (*Fermentation
 	return status, nil
 }
 
-// addSGMeasurement adds an SG measurement to a recipe id
-func (r *FermentationRouter) addSGMeasurement(id string, sg SGMeasurement) {
-	r.sgMapLock.Lock()
-	defer r.sgMapLock.Unlock()
-	if r.SGMeasurements == nil {
-		r.SGMeasurements = make(map[string][]SGMeasurement)
-	}
-	_, ok := r.SGMeasurements[id]
-	if !ok {
-		r.SGMeasurements[id] = []SGMeasurement{}
-	}
-	r.SGMeasurements[id] = append(r.SGMeasurements[id], sg)
-}
-
-// getSGMeasurements returns the SG measurements for a recipe id
-func (r *FermentationRouter) getSGMeasurements(id string) ([]SGMeasurement, error) {
-	r.sgMapLock.Lock()
-	defer r.sgMapLock.Unlock()
-	sgs, ok := r.SGMeasurements[id]
-	if !ok {
-		return []SGMeasurement{}, nil
-	}
-	return sgs, nil
-}
-
 // addTimelineEvent adds an event to the timeline
 func (r *FermentationRouter) addTimelineEvent(id, message string) error {
 	if r.TLStore != nil {
@@ -133,9 +105,9 @@ func (r *FermentationRouter) addSummaryYeastStart(id string, temperature, notes 
 }
 
 // addSummarySGMeasurement adds a SG measurement to the summary
-func (r *FermentationRouter) addSummarySGMeasurement(id string, m SGMeasurement, final bool, notes string) error {
+func (r *FermentationRouter) addSummarySGMeasurement(id string, sg float32, date string, final bool, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddMainFermentationSGMeasurement(id, m.Date, m.Gravity, final, notes)
+		return r.SummaryStore.AddMainFermentationSGMeasurement(id, date, sg, final, notes)
 	}
 	return nil
 }
@@ -462,7 +434,7 @@ func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
 		if err != nil {
 			return err
 		}
-		measurements, err := r.getSGMeasurements(id)
+		measurements, err := r.Store.RetrieveMainFermSGs(id)
 		if err != nil {
 			return err
 		}
@@ -490,12 +462,15 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	m := SGMeasurement{
-		Date:    time.Now().Format("2006-01-02"),
-		Gravity: req.SG,
+	m := recipe.SGMeasurement{
+		Date:  time.Now().Format("2006-01-02"),
+		Value: req.SG,
 	}
-	r.addSGMeasurement(id, m)
-	err = r.addSummarySGMeasurement(id, m, req.Final, req.Notes)
+	err = r.Store.AddMainFermSG(id, &m)
+	if err != nil {
+		return err
+	}
+	err = r.addSummarySGMeasurement(id, m.Value, m.Date, req.Final, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add sg measurement to summary")
 	}

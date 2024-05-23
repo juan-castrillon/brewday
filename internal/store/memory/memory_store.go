@@ -142,3 +142,22 @@ func (s *MemoryStore) RetrieveResults(id string) (*recipe.RecipeResults, error) 
 	res := r.GetResults()
 	return &res, nil
 }
+
+// AddMainFermSG adds a new specific gravity measurement to a given recipe
+func (s *MemoryStore) AddMainFermSG(id string, m *recipe.SGMeasurement) error {
+	r, err := s.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	r.SetSGMeasurement(m)
+	return nil
+}
+
+// RetrieveMainFermSGs returns all measured sgs for a recipe
+func (s *MemoryStore) RetrieveMainFermSGs(id string) ([]*recipe.SGMeasurement, error) {
+	r, err := s.Retrieve(id)
+	if err != nil {
+		return nil, err
+	}
+	return r.GetSGMeasurements(), nil
+}

@@ -45,11 +45,31 @@ func createResultsTable(db *sql.DB) error {
 		alcohol REAL,
 		main_ferm_vol REAL,
 		vol_bb REAL,
+		main_ferm_sgs TEXT,
 		recipe_id INTEGER NOT NULL,
 		FOREIGN KEY (recipe_id) 
 			REFERENCES recipes (id)
 				ON DELETE CASCADE
 				ON UPDATE CASCADE
 	)`)
+	return err
+}
+
+func createSGsTable(db *sql.DB) error {
+	_, err := db.Exec(`
+	CREATE TABLE IF NOT EXISTS main_ferm_sgs (
+		id INTEGER NOT NULL PRIMARY KEY,
+		sg REAL,
+		date TEXT,
+		recipe_id INTEGER NOT NULL,
+		FOREIGN KEY (recipe_id) 
+			REFERENCES recipes (id)
+				ON DELETE CASCADE
+				ON UPDATE CASCADE
+	)`)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_main_ferm_sgs ON main_ferm_sgs (recipe_id, id)`)
 	return err
 }
