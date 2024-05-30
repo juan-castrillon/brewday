@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"strings"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -26,6 +28,10 @@ func NewPersistentStore(db *sql.DB) (*PersistentStore, error) {
 		return nil, err
 	}
 	err = createSGsTable(db)
+	if err != nil {
+		return nil, err
+	}
+	err = createTimeTable(db)
 	if err != nil {
 		return nil, err
 	}
@@ -279,6 +285,38 @@ func (s *PersistentStore) RetrieveMainFermSGs(id string) ([]*recipe.SGMeasuremen
 			return nil, err
 		}
 		results = append(results, &m)
+	}
+	return results, nil
+}
+
+// AddDate allows to store a date with a certain purpose. It can be used to store notification dates, or timers
+func (s *PersistentStore) AddDate(id string, date *time.Time, name string) error {
+	dateString := date.Format(time.RFC3339)
+	_, err := s.dbClient.Exec(`INSERT INTO dates (date, name, recipe_id) VALUES (?, ?, ?)`, dateString, name, id)
+	return err
+}
+
+// RetrieveDates allows to retreive stored dates with its purpose (name).It can be used to store notification dates, or timers
+// It supports pattern in the name to retrieve multiple values
+func (s *PersistentStore) RetrieveDates(id, namePattern string) ([]*time.Time, error) {
+	sanitizedPattern := strings.ReplaceAll(strings.ReplaceAll(namePattern, "_", "!_"), "%", "!%") + "%"
+	rows, err := s.dbClient.Query(`SELECT date FROM dates WHERE recipe_id == ? AND name LIKE ? ESCAPE '!'`, id, sanitizedPattern)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	results := make([]*time.Time, 0)
+	for rows.Next() {
+		var date string
+		err = rows.Scan(&date)
+		if err != nil {
+			return nil, err
+		}
+		t, err := time.Parse(time.RFC3339, date)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, &t)
 	}
 	return results, nil
 }

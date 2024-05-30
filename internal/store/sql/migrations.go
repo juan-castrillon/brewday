@@ -73,3 +73,22 @@ func createSGsTable(db *sql.DB) error {
 	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_main_ferm_sgs ON main_ferm_sgs (recipe_id, id)`)
 	return err
 }
+
+func createTimeTable(db *sql.DB) error {
+	_, err := db.Exec(`
+	CREATE TABLE IF NOT EXISTS dates (
+		id INTEGER NOT NULL PRIMARY KEY,
+		date TEXT,
+		name TEXT,
+		recipe_id INTEGER NOT NULL,
+		FOREIGN KEY (recipe_id) 
+			REFERENCES recipes (id)
+				ON DELETE CASCADE
+				ON UPDATE CASCADE
+	)`)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_dates ON dates (recipe_id)`)
+	return err
+}

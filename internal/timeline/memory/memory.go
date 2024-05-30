@@ -53,8 +53,8 @@ func (s *TimelineMemoryStore) getTimelineFromStore(recipeID string) (*BasicTimel
 func (s *TimelineMemoryStore) AddTimeline(recipeID string) error {
 	timeline := NewBasicTimeline()
 	s.lock.Lock()
-	defer s.lock.Unlock()
 	s.timelines[recipeID] = timeline
+	s.lock.Unlock()
 	return s.AddEvent(recipeID, "Initialized Recipe")
 }
 

@@ -62,7 +62,7 @@
             labels: [{{ range $d := .PastMeasurements }}'{{ $d.Date }}', {{ end }}],
             datasets: [{
                 label: 'SG',
-                data: [{{ range $d := .PastMeasurements }}{{ $d.Gravity }}, {{ end }}],
+                data: [{{ range $d := .PastMeasurements }}{{ $d.Value }}, {{ end }}],
                 fill: true,
             }]
         },

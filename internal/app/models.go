@@ -5,6 +5,7 @@ import (
 	"brewday/internal/summary"
 	"io"
 	"io/fs"
+	"time"
 
 	"github.com/labstack/echo/v4"
 )
@@ -61,6 +62,11 @@ type RecipeStore interface {
 	AddMainFermSG(id string, m *recipe.SGMeasurement) error
 	// RetrieveMainFermSGs returns all measured sgs for a recipe
 	RetrieveMainFermSGs(id string) ([]*recipe.SGMeasurement, error)
+	// AddDate allows to store a date with a certain purpose. It can be used to store notification dates, or timers
+	AddDate(id string, date *time.Time, name string) error
+	// RetrieveDates allows to retreive stored dates with its purpose (name).It can be used to store notification dates, or timers
+	// It supports pattern in the name to retrieve multiple values
+	RetrieveDates(id, namePattern string) ([]*time.Time, error)
 }
 
 // SummaryStore is the interface that helps decouple the summary store from the application

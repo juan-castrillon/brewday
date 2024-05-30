@@ -5,13 +5,22 @@ import (
 	"encoding/hex"
 	"errors"
 	"strconv"
+	"strings"
 	"sync"
+	"time"
 )
+
+type Date struct {
+	date *time.Time
+	name string
+}
 
 // MemoryStore is a store that stores data in memory
 type MemoryStore struct {
-	lock    sync.Mutex
-	recipes map[string]*recipe.Recipe
+	lock      sync.Mutex
+	recipes   map[string]*recipe.Recipe
+	datesLock sync.Mutex
+	dates     map[string][]*Date
 }
 
 // NewMemoryStore creates a new MemoryStore
@@ -160,4 +169,38 @@ func (s *MemoryStore) RetrieveMainFermSGs(id string) ([]*recipe.SGMeasurement, e
 		return nil, err
 	}
 	return r.GetSGMeasurements(), nil
+}
+
+// AddDate allows to store a date with a certain purpose. It can be used to store notification dates, or timers
+func (s *MemoryStore) AddDate(id string, date *time.Time, name string) error {
+	s.datesLock.Lock()
+	defer s.datesLock.Unlock()
+	if s.dates == nil {
+		s.dates = make(map[string][]*Date)
+	}
+	_, ok := s.dates[id]
+	if !ok {
+		s.dates[id] = make([]*Date, 0)
+	}
+	d := &Date{
+		date: date,
+		name: name,
+	}
+	s.dates[id] = append(s.dates[id], d)
+	return nil
+}
+
+// RetrieveDates allows to retreive stored dates with its purpose (name).It can be used to store notification dates, or timers
+// It supports pattern in the name to retrieve multiple values
+// The pattern is searched in the names with strings.Contains
+func (s *MemoryStore) RetrieveDates(id, namePattern string) ([]*time.Time, error) {
+	s.datesLock.Lock()
+	defer s.datesLock.Unlock()
+	results := make([]*time.Time, 0)
+	for _, d := range s.dates[id] {
+		if strings.Contains(d.name, namePattern) {
+			results = append(results, d.date)
+		}
+	}
+	return results, nil
 }

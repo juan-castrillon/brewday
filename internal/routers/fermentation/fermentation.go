@@ -5,24 +5,78 @@ import (
 	"brewday/internal/routers/common"
 	"brewday/internal/tools"
 	"brewday/internal/watcher"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
 )
 
+const notificationNamePattern = "main_ferm_notification_"
+
 type FermentationRouter struct {
-	TLStore       TimelineStore
-	SummaryStore  SummaryStore
-	Store         RecipeStore
-	Notifier      Notifier
-	statusMapLock sync.Mutex
-	// MainFermentationStatus is a map of recipe id to whether the main fermentation minimum days have passed
-	MainFermentationStatus map[string]*FermentationStatus
+	TLStore      TimelineStore
+	SummaryStore SummaryStore
+	Store        RecipeStore
+	Notifier     Notifier
+	watchersSet  map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
+}
+
+// checkWatchers will check it watchers were set for a given recipe.
+// If they were not, it will fetch the notification dates from the store and set them up again
+// This method helps notifications be persistent in case of restarts.
+// It should be called in handlers after the initial watcher setup (where a watcher set up is assumed)
+func (r *FermentationRouter) checkWatchers(id string) error {
+	reset := false
+	if r.watchersSet == nil {
+		reset = true
+	} else {
+		val, ok := r.watchersSet[id]
+		if !ok {
+			// In this case, the map exists but the recipe is not there
+			// It could hae been that it got wiped, then restored by other recipe
+			reset = true
+		} else if !val {
+			return errors.New("attempting to get watchers of recipe that does not expect them yet")
+		}
+	}
+	if reset { // If the map is nil its been wiped, set up the watchers again
+		re, err := r.Store.Retrieve(id)
+		if err != nil {
+			return err
+		}
+		dates, err := r.Store.RetrieveDates(id, notificationNamePattern)
+		if err != nil {
+			return err
+		}
+		var logMessage, notMessage string
+		for _, date := range dates {
+			if time.Until(*date) < 0 {
+				logMessage = "Sending expired notification for recipe " + id
+				notMessage = "Expired SG Measurement Notification. You should have measured on " + date.Format("2006-01-02")
+			} else {
+				logMessage = "notification"
+				notMessage = "Measure SG"
+			}
+			watcher.NewWatcher(*date, func() error {
+				log.Info().Str("id", id).Msg(logMessage)
+				r.sendNotification(notMessage, "Main Fermentation "+re.Name, nil)
+				return nil
+			}).Start()
+		}
+		r.addWatchersSet(id)
+	}
+	return nil
+}
+
+func (r *FermentationRouter) addWatchersSet(id string) {
+	if r.watchersSet == nil {
+		r.watchersSet = make(map[string]bool)
+	}
+	r.watchersSet[id] = true
 }
 
 // sendNotification sends a notification if the notifier is available
@@ -31,45 +85,6 @@ func (r *FermentationRouter) sendNotification(message, title string, opts map[st
 		return r.Notifier.Send(message, title, opts)
 	}
 	return nil
-}
-
-// addMainFermentationStatus adds a main fermentation status to a recipe id
-func (r *FermentationRouter) addMainFermentationStatus(id string, status bool) {
-	r.statusMapLock.Lock()
-	defer r.statusMapLock.Unlock()
-	if r.MainFermentationStatus == nil {
-		r.MainFermentationStatus = make(map[string]*FermentationStatus)
-	}
-	_, ok := r.MainFermentationStatus[id]
-	if !ok {
-		r.MainFermentationStatus[id] = &FermentationStatus{}
-	}
-	r.MainFermentationStatus[id].MinDaysPassed = status
-}
-
-// addMainFermentationWatcher adds a watcher to a recipe id
-func (r *FermentationRouter) addMainFermentationWatcher(id string, w *watcher.Watcher) {
-	r.statusMapLock.Lock()
-	defer r.statusMapLock.Unlock()
-	if r.MainFermentationStatus == nil {
-		r.MainFermentationStatus = make(map[string]*FermentationStatus)
-	}
-	_, ok := r.MainFermentationStatus[id]
-	if !ok {
-		r.MainFermentationStatus[id] = &FermentationStatus{}
-	}
-	r.MainFermentationStatus[id].InitialWatch = w
-}
-
-// getMainFermentationStatus returns the main fermentation status for a recipe id
-func (r *FermentationRouter) getMainFermentationStatus(id string) (*FermentationStatus, error) {
-	r.statusMapLock.Lock()
-	defer r.statusMapLock.Unlock()
-	status, ok := r.MainFermentationStatus[id]
-	if !ok {
-		return nil, fmt.Errorf("no status for id %s", id)
-	}
-	return status, nil
 }
 
 // addTimelineEvent adds an event to the timeline
@@ -347,7 +362,6 @@ func (r *FermentationRouter) getMainFermentationStartHandler(c echo.Context) err
 	if err != nil {
 		return err
 	}
-	r.addMainFermentationStatus(id, false)
 	return c.Render(http.StatusOK, "fermentation_start.html", map[string]interface{}{
 		"Title":              "Fermentation",
 		"Subtitle":           "Set notification",
@@ -384,23 +398,24 @@ func (r *FermentationRouter) postMainFermentationStartHandler(c echo.Context) er
 		default:
 			return fmt.Errorf("unknown time unit %s", req.TimeUnit)
 		}
-		var w *watcher.Watcher
-		if i == 0 {
-			w = watcher.NewWatcher(notificationDate, func() error {
-				log.Info().Str("id", id).Msg("first notification")
-				r.sendNotification("Measure SG for the first time", "Main Fermentation "+re.Name, nil)
-				r.addMainFermentationStatus(id, true)
-				return nil
-			})
-			r.addMainFermentationWatcher(id, w)
-		} else {
-			w = watcher.NewWatcher(notificationDate, func() error {
-				log.Info().Str("id", id).Msg("notification")
-				r.sendNotification("Measure SG", "Main Fermentation "+re.Name, nil)
-				return nil
-			})
+		err = r.Store.AddDate(id, &notificationDate, fmt.Sprintf(notificationNamePattern+"%d", i))
+		if err != nil {
+			return err
 		}
-		w.Start()
+		var logMessage, notMessage string
+		if i == 0 {
+			logMessage = "first notification"
+			notMessage = "Measure SG for the first time"
+		} else {
+			logMessage = "notification"
+			notMessage = "Measure SG"
+		}
+		watcher.NewWatcher(notificationDate, func() error {
+			log.Info().Str("id", id).Msg(logMessage)
+			r.sendNotification(notMessage, "Main Fermentation "+re.Name, nil)
+			return nil
+		}).Start()
+		r.addWatchersSet(id)
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))
 }
@@ -411,21 +426,25 @@ func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	status, err := r.getMainFermentationStatus(id)
+	err := r.checkWatchers(id)
 	if err != nil {
 		return err
 	}
-	if !status.MinDaysPassed {
+	minDate, err := r.Store.RetrieveDates(id, notificationNamePattern+"0")
+	if err != nil {
+		return err
+	}
+	missing := time.Until(*minDate[0])
+	if missing > 0 {
 		err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "wait")
 		if err != nil {
 			return err
 		}
-		wt := status.InitialWatch.MissingTime()
 		return c.Render(http.StatusOK, "fermentation_wait.html", map[string]interface{}{
 			"Title":       "Fermentation",
 			"Subtitle":    "Main Fermentation",
 			"RecipeID":    id,
-			"MissingTime": wt.String(),
+			"MissingTime": missing.String(),
 		})
 	} else {
 		// This should ask for the SGs and once user clicks on its stable for me lead to

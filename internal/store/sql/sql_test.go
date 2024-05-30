@@ -510,3 +510,75 @@ func TestUpdateSGs(t *testing.T) {
 		})
 	}
 }
+
+func TestDates(t *testing.T) {
+	require := require.New(t)
+	t1 := time.Now().Add(1 * time.Second)
+	t2 := time.Now().Add(2 * time.Second)
+	t3 := time.Now().Add(3 * time.Second)
+	t4 := time.Now().Add(4 * time.Second)
+	testCases := []struct {
+		Name  string
+		ToAdd map[string][]time.Time
+		Error bool
+	}{
+		{
+			Name: "Single date",
+			ToAdd: map[string][]time.Time{
+				"recipe_1": {t1},
+			},
+			Error: false,
+		},
+		{
+			Name: "Multiple dates",
+			ToAdd: map[string][]time.Time{
+				"recipe_1": {t1, t2},
+			},
+			Error: false,
+		},
+		{
+			Name: "Multiple dates and recipes",
+			ToAdd: map[string][]time.Time{
+				"recipe_1": {t1, t2},
+				"recipe_2": {t3, t4},
+			},
+			Error: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			for recipeTitle, dates := range tc.ToAdd {
+				id, err := store.Store(&recipe.Recipe{Name: recipeTitle})
+				require.NoError(err)
+				for i, date := range dates {
+					err = store.AddDate(id, &date, fmt.Sprintf("%s_%d", recipeTitle, i))
+					if tc.Error {
+						require.Error(err)
+					} else {
+						require.NoError(err)
+					}
+				}
+				if !tc.Error {
+					realDates, err := store.RetrieveDates(id, recipeTitle)
+					require.NotEmpty(realDates)
+					require.NoError(err)
+					realDatesString := make([]string, len(realDates))
+					for i, d := range realDates {
+						realDatesString[i] = d.Format(time.RFC3339)
+					}
+					datesString := make([]string, len(dates))
+					for i, d := range dates {
+						datesString[i] = d.Format(time.RFC3339)
+					}
+					require.ElementsMatch(datesString, realDatesString)
+				}
+			}
+		})
+	}
+}
