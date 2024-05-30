@@ -5,6 +5,9 @@ import (
 	"brewday/internal/tools"
 	"brewday/internal/watcher"
 	"errors"
+	"time"
+
+	"github.com/rs/zerolog/log"
 )
 
 // addTimelineEvent adds a timeline event if the timeline store is available
@@ -79,31 +82,6 @@ func (r *SecondaryFermentationRouter) getDryHopNotifications(id string) (DryHopN
 	return list, nil
 }
 
-// addSecondaryWatcher adds a watcher for the secondary fermentation
-func (r *SecondaryFermentationRouter) addSecondaryWatcher(id string, watcher *watcher.Watcher) error {
-	r.secondaryWatchersLock.Lock()
-	defer r.secondaryWatchersLock.Unlock()
-	if r.SecondaryWatchers == nil {
-		r.SecondaryWatchers = make(map[string]SecondaryFermentationWatcher)
-	}
-	r.SecondaryWatchers[id] = SecondaryFermentationWatcher{
-		watch: watcher,
-	}
-	return nil
-}
-
-// getSecondaryWatcher retrieves a watcher for the secondary fermentation
-// if none is found, it returns nil
-func (r *SecondaryFermentationRouter) getSecondaryWatcher(id string) *watcher.Watcher {
-	r.secondaryWatchersLock.Lock()
-	defer r.secondaryWatchersLock.Unlock()
-	w, ok := r.SecondaryWatchers[id]
-	if !ok {
-		return nil
-	}
-	return w.watch
-}
-
 // calculateSugar calculates the amount of sugar needed for a certain carbonation level
 // It makes several calculations varying the water amount and stores all the results
 // Values calculated are 0.1..0.5 liters of water (each 0.1)
@@ -153,4 +131,56 @@ func (r *SecondaryFermentationRouter) addSummarySecondaryFermentation(id string,
 		return r.SummaryStore.AddSummarySecondary(id, days, notes)
 	}
 	return nil
+}
+
+// checkWatchers will check it watchers were set for a given recipe.
+// If they were not, it will fetch the notification dates from the store and set them up again
+// This method helps notifications be persistent in case of restarts.
+// It should be called in handlers after the initial watcher setup (where a watcher set up is assumed)
+func (r *SecondaryFermentationRouter) checkWatchers(id string) error {
+	reset := false
+	if r.watchersSet == nil {
+		reset = true
+	} else {
+		val, ok := r.watchersSet[id]
+		if !ok {
+			// In this case, the map exists but the recipe is not there
+			// It could hae been that it got wiped, then restored by other recipe
+			reset = true
+		} else if !val {
+			return errors.New("attempting to get watchers of recipe that does not expect them yet")
+		}
+	}
+	if reset { // If the map is nil its been wiped, set up the watchers again
+		re, err := r.Store.Retrieve(id)
+		if err != nil {
+			return err
+		}
+		dates, err := r.Store.RetrieveDates(id, "secondary_ferm_notification")
+		if err != nil {
+			return err
+		}
+		date := *dates[0]
+		var logMessage, notMessage string
+		if time.Until(date) < 0 {
+			logMessage = "Sending expired secondary_ferm notification for recipe " + id
+			notMessage = "Expired Secondary Fermentation Notification. You should have put in the fridge on " + date.Format("2006-01-02")
+		} else {
+			logMessage = "secondary fermentation notification triggered"
+			notMessage = "Time to put bottles in the fridge"
+		}
+		watcher.NewWatcher(*dates[0], func() error {
+			log.Info().Msgf(logMessage)
+			return r.sendNotification(notMessage, "Secondary Fermentation "+re.Name, nil)
+		}).Start()
+		r.addWatchersSet(id)
+	}
+	return nil
+}
+
+func (r *SecondaryFermentationRouter) addWatchersSet(id string) {
+	if r.watchersSet == nil {
+		r.watchersSet = make(map[string]bool)
+	}
+	r.watchersSet[id] = true
 }

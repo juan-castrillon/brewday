@@ -15,19 +15,17 @@ import (
 )
 
 type SecondaryFermentationRouter struct {
-	TLStore               TimelineStore
-	SummaryStore          SummaryStore
-	Store                 RecipeStore
-	Notifier              Notifier
-	hopWatchersLock       sync.Mutex
-	secondaryWatchersLock sync.Mutex
-	dryHopsLock           sync.Mutex
+	TLStore         TimelineStore
+	SummaryStore    SummaryStore
+	Store           RecipeStore
+	Notifier        Notifier
+	hopWatchersLock sync.Mutex
+	dryHopsLock     sync.Mutex
 	// HopWatchers stores all dry hop watchers for a recipe id
 	HopWatchers map[string]DryHopNotification
 	// DryHops relates a list of dry hops with a recipe id
-	DryHops map[string]DryHopMap
-	// SecondaryWatchers stores the watchers for the secondary fermentation
-	SecondaryWatchers map[string]SecondaryFermentationWatcher
+	DryHops     map[string]DryHopMap
+	watchersSet map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
 }
 
 // RegisterRoutes adds routes to the web server
@@ -45,6 +43,7 @@ func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *ec
 	sf.POST("/bottle/:recipe_id", r.postBottleHandler).Name = "postBottle"
 	sf.GET("/start/:recipe_id", r.getSecondaryFermentationStartHandler).Name = "getSecondaryFermentationStart"
 	sf.POST("/start/:recipe_id", r.postSecondaryFermentationStartHandler).Name = "postSecondaryFermentationStart"
+	sf.GET("/end/:recipe_id", r.getSecondaryFermentationEndHandler).Name = "getSecondaryFermentationEnd"
 	sf.POST("/end/:recipe_id", r.postSecondaryFermentationEndHandler).Name = "postSecondaryFermentationEnd"
 	root.GET("/end/:recipe_id", r.getEndHandler).Name = "getEnd"
 }
@@ -341,18 +340,6 @@ func (r *SecondaryFermentationRouter) getSecondaryFermentationStartHandler(c ech
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	watch := r.getSecondaryWatcher(id)
-	missingTime := ""
-	isDone := false
-	isSet := false
-	if watch != nil {
-		isSet = true
-		if watch.IsDone() {
-			isDone = true
-		} else {
-			missingTime = watch.MissingTime().String()
-		}
-	}
 	err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "start_secondary")
 	if err != nil {
 		return err
@@ -361,10 +348,7 @@ func (r *SecondaryFermentationRouter) getSecondaryFermentationStartHandler(c ech
 		"Title":    "Start Secondary Fermentation",
 		"RecipeID": id,
 		"Subtitle": "First, let the bottles at warm temperature",
-		"MinDays":  5,
-		"Missing":  missingTime,
-		"IsDone":   isDone,
-		"IsSet":    isSet,
+		"MinDays":  5, //TODO: make configurable
 	})
 }
 
@@ -391,15 +375,55 @@ func (r *SecondaryFermentationRouter) postSecondaryFermentationStartHandler(c ec
 	}
 	w := watcher.NewWatcher(notificationDate, func() error {
 		log.Info().Msgf("secondary fermentation notification triggered")
-		return r.sendNotification("Secondary Fermentation", "Time to put bottles in the fridge", nil)
+		return r.sendNotification("Time to put bottles in the fridge", "Secondary Fermentation", nil)
 	})
 	w.Start()
-	err = r.addSecondaryWatcher(id, w)
+	err = r.Store.AddDate(id, &notificationDate, "secondary_ferm_notification")
 	if err != nil {
 		return err
 	}
 	r.addTimelineEvent(id, "Secondary Fermentation Started")
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationStart", id))
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationEnd", id))
+}
+
+// getSecondaryFermentationEndHandler handles serving the end page for the secondary fermentation
+func (r *SecondaryFermentationRouter) getSecondaryFermentationEndHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	err := r.checkWatchers(id) // TODO: maybe move this and fermentation to its own function/handler so it can be called on app start
+	if err != nil {
+		return err
+	}
+	notDates, err := r.Store.RetrieveDates(id, "secondary_ferm_notification")
+	if err != nil {
+		return err
+	}
+	missing := time.Until(*notDates[0])
+	if missing > 0 {
+		// Not finished yet
+		err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "wait_secondary")
+		if err != nil {
+			return err
+		}
+		return c.Render(http.StatusOK, "secondary_wait.html", map[string]interface{}{
+			"Title":    "Wait for Secondary Fermentation",
+			"RecipeID": id,
+			"Subtitle": "Let the bottles at warm temperature",
+			"Missing":  missing.String(),
+		})
+	} else {
+		err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "end_secondary")
+		if err != nil {
+			return err
+		}
+		return c.Render(http.StatusOK, "secondary_notes.html", map[string]interface{}{
+			"Title":    "End Secondary Fermentation",
+			"RecipeID": id,
+			"Subtitle": "Enter your notes",
+		})
+	}
 }
 
 // postSecondaryFermentationEndHandler is the handler for the secondary fermentation end page

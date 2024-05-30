@@ -3,6 +3,7 @@ package secondaryferm
 import (
 	"brewday/internal/recipe"
 	"brewday/internal/watcher"
+	"time"
 )
 
 // TimelineStore represents a component that stores timelines
@@ -33,6 +34,11 @@ type RecipeStore interface {
 	AddSugarResult(id string, r *recipe.PrimingSugarResult) error
 	// RetrieveSugarResults returns all sugar results for a recipe
 	RetrieveSugarResults(id string) ([]*recipe.PrimingSugarResult, error)
+	// AddDate allows to store a date with a certain purpose. It can be used to store notification dates, or timers
+	AddDate(id string, date *time.Time, name string) error
+	// RetrieveDates allows to retreive stored dates with its purpose (name).It can be used to store notification dates, or timers
+	// It supports pattern in the name to retrieve multiple values
+	RetrieveDates(id, namePattern string) ([]*time.Time, error)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application
@@ -69,10 +75,6 @@ type SugarResult struct {
 	Amount float32
 	// Alcohol is the estimated final alcohol content
 	Alcohol float32
-}
-
-type SecondaryFermentationWatcher struct {
-	watch *watcher.Watcher
 }
 
 type ReqPostDryHopStart struct {

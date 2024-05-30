@@ -165,6 +165,8 @@ func (r *RecipesRouter) statusRedirectURL(c echo.Context, re *recipe.Recipe, id 
 			return c.Echo().Reverse("getBottle", id) + queryParams, nil
 		case "start_secondary":
 			return c.Echo().Reverse("getSecondaryFermentationStart", id), nil
+		case "wait_secondary", "end_secondary":
+			return c.Echo().Reverse("getSecondaryFermentationEnd", id), nil
 		default:
 			return "", errors.New("invalid parameter for fermentation status")
 		}
