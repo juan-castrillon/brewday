@@ -1,6 +1,7 @@
 package secondaryferm
 
 import (
+	"brewday/internal/recipe"
 	"brewday/internal/tools"
 	"brewday/internal/watcher"
 	"errors"
@@ -78,31 +79,6 @@ func (r *SecondaryFermentationRouter) getDryHopNotifications(id string) (DryHopN
 	return list, nil
 }
 
-// addSugarResult adds a sugar result to a recipe
-func (r *SecondaryFermentationRouter) addSugarResult(id string, result *SugarResult) {
-	r.sugarResultsLock.Lock()
-	defer r.sugarResultsLock.Unlock()
-	if r.SugarResults == nil {
-		r.SugarResults = make(map[string][]SugarResult)
-	}
-	_, ok := r.SugarResults[id]
-	if !ok {
-		r.SugarResults[id] = []SugarResult{}
-	}
-	r.SugarResults[id] = append(r.SugarResults[id], *result)
-}
-
-// getSugarResults retrieves the sugar results for a recipe
-func (r *SecondaryFermentationRouter) getSugarResults(id string) ([]SugarResult, error) {
-	r.sugarResultsLock.Lock()
-	defer r.sugarResultsLock.Unlock()
-	list, ok := r.SugarResults[id]
-	if !ok {
-		return nil, errors.New("no sugar results found for recipe")
-	}
-	return list, nil
-}
-
 // addSecondaryWatcher adds a watcher for the secondary fermentation
 func (r *SecondaryFermentationRouter) addSecondaryWatcher(id string, watcher *watcher.Watcher) error {
 	r.secondaryWatchersLock.Lock()
@@ -131,16 +107,20 @@ func (r *SecondaryFermentationRouter) getSecondaryWatcher(id string) *watcher.Wa
 // calculateSugar calculates the amount of sugar needed for a certain carbonation level
 // It makes several calculations varying the water amount and stores all the results
 // Values calculated are 0.1..0.5 liters of water (each 0.1)
-func (r *SecondaryFermentationRouter) calculateSugar(id string, volume, carbonation, temperature, alcoholBefore float32, sugarType string) {
+func (r *SecondaryFermentationRouter) calculateSugar(id string, volume, carbonation, temperature, alcoholBefore float32, sugarType string) error {
 	for i := 1; i <= 5; i++ {
 		water := float32(i) / 10
 		amount, alcohol := tools.SugarForCarbonation(volume, carbonation, temperature, alcoholBefore, water, sugarType)
-		r.addSugarResult(id, &SugarResult{
+		err := r.Store.AddSugarResult(id, &recipe.PrimingSugarResult{
 			Water:   water,
 			Amount:  amount,
 			Alcohol: alcohol,
 		})
+		if err != nil {
+			return err
+		}
 	}
+	return nil
 }
 
 // addSummaryDryHop adds a pre fermentation summary

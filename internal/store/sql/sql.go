@@ -35,6 +35,10 @@ func NewPersistentStore(db *sql.DB) (*PersistentStore, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = createSugarResultsTable(db)
+	if err != nil {
+		return nil, err
+	}
 	rs, err := db.Prepare(`SELECT 
 		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
 		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,
@@ -317,6 +321,31 @@ func (s *PersistentStore) RetrieveDates(id, namePattern string) ([]*time.Time, e
 			return nil, err
 		}
 		results = append(results, &t)
+	}
+	return results, nil
+}
+
+// AddSugarResult adds a new priming sugar result to a given recipe
+func (s *PersistentStore) AddSugarResult(id string, r *recipe.PrimingSugarResult) error {
+	_, err := s.dbClient.Exec(`INSERT INTO sugar_results (water, sugar, alcohol, recipe_id) VALUES (?, ?, ?, ?)`, r.Water, r.Amount, r.Alcohol, id)
+	return err
+}
+
+// RetrieveSugarResults returns all sugar results for a recipe
+func (s *PersistentStore) RetrieveSugarResults(id string) ([]*recipe.PrimingSugarResult, error) {
+	rows, err := s.dbClient.Query(`SELECT water, sugar, alcohol FROM sugar_results WHERE recipe_id == ? ORDER BY id ASC`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	results := make([]*recipe.PrimingSugarResult, 0)
+	for rows.Next() {
+		var m recipe.PrimingSugarResult
+		err = rows.Scan(&m.Water, &m.Amount, &m.Alcohol)
+		if err != nil {
+			return nil, err
+		}
+		results = append(results, &m)
 	}
 	return results, nil
 }

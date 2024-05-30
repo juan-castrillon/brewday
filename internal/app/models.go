@@ -67,6 +67,10 @@ type RecipeStore interface {
 	// RetrieveDates allows to retreive stored dates with its purpose (name).It can be used to store notification dates, or timers
 	// It supports pattern in the name to retrieve multiple values
 	RetrieveDates(id, namePattern string) ([]*time.Time, error)
+	// AddSugarResult adds a new priming sugar result to a given recipe
+	AddSugarResult(id string, r *recipe.PrimingSugarResult) error
+	// RetrieveSugarResults returns all sugar results for a recipe
+	RetrieveSugarResults(id string) ([]*recipe.PrimingSugarResult, error)
 }
 
 // SummaryStore is the interface that helps decouple the summary store from the application

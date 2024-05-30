@@ -29,6 +29,10 @@ type RecipeStore interface {
 	UpdateResult(id string, resultType recipe.ResultType, value float32) error
 	// RetrieveResults gets the results from a certain recipe
 	RetrieveResults(id string) (*recipe.RecipeResults, error)
+	// AddSugarResult adds a new priming sugar result to a given recipe
+	AddSugarResult(id string, r *recipe.PrimingSugarResult) error
+	// RetrieveSugarResults returns all sugar results for a recipe
+	RetrieveSugarResults(id string) ([]*recipe.PrimingSugarResult, error)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application

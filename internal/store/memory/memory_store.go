@@ -204,3 +204,22 @@ func (s *MemoryStore) RetrieveDates(id, namePattern string) ([]*time.Time, error
 	}
 	return results, nil
 }
+
+// AddSugarResult adds a new priming sugar result to a given recipe
+func (s *MemoryStore) AddSugarResult(id string, result *recipe.PrimingSugarResult) error {
+	r, err := s.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	r.SetPrimingSugarResult(result)
+	return nil
+}
+
+// RetrieveSugarResults returns all sugar results for a recipe
+func (s *MemoryStore) RetrieveSugarResults(id string) ([]*recipe.PrimingSugarResult, error) {
+	r, err := s.Retrieve(id)
+	if err != nil {
+		return nil, err
+	}
+	return r.GetPrimingSugarResults(), nil
+}

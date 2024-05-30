@@ -582,3 +582,86 @@ func TestDates(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateSugarResults(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name  string
+		ToAdd map[string][]*recipe.PrimingSugarResult
+		Error bool
+	}{
+		{
+			Name: "Single sugar result",
+			ToAdd: map[string][]*recipe.PrimingSugarResult{
+				"recipe1": {
+					{Water: 10, Amount: 20.5, Alcohol: 5.5},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Multiple sugar result",
+			ToAdd: map[string][]*recipe.PrimingSugarResult{
+				"recipe1": {
+					{Water: 10, Amount: 20.5, Alcohol: 5.5},
+					{Water: 20, Amount: 20.5, Alcohol: 4.5},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Multiple results multiple recipes",
+			ToAdd: map[string][]*recipe.PrimingSugarResult{
+				"recipe1": {
+					{Water: 10, Amount: 20.5, Alcohol: 5.5},
+					{Water: 20, Amount: 20.5, Alcohol: 4.5},
+				},
+				"recipe2": {
+					{Water: 30, Amount: 10.4, Alcohol: 9.5},
+					{Water: 40, Amount: 10.4, Alcohol: 8.5},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Order is respected",
+			ToAdd: map[string][]*recipe.PrimingSugarResult{
+				"recipe1": {
+					{Water: 10, Amount: 20.5, Alcohol: 5.5},
+					{Water: 20, Amount: 20.5, Alcohol: 4.5},
+					{Water: 5, Amount: 20.5, Alcohol: 6.5},
+				},
+			},
+			Error: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			for recipeTitle, results := range tc.ToAdd {
+				id, err := store.Store(&recipe.Recipe{Name: recipeTitle})
+				require.NoError(err)
+				for _, res := range results {
+					err = store.AddSugarResult(id, res)
+					if tc.Error {
+						require.Error(err)
+					} else {
+						require.NoError(err)
+					}
+				}
+				if !tc.Error {
+					realResults, err := store.RetrieveSugarResults(id)
+					require.NoError(err)
+					for i := 0; i < len(tc.ToAdd[recipeTitle]); i++ {
+						require.Equal(tc.ToAdd[recipeTitle][i], realResults[i])
+					}
+				}
+			}
+		})
+	}
+}

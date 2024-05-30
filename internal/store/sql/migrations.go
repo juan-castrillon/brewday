@@ -45,7 +45,6 @@ func createResultsTable(db *sql.DB) error {
 		alcohol REAL,
 		main_ferm_vol REAL,
 		vol_bb REAL,
-		main_ferm_sgs TEXT,
 		recipe_id INTEGER NOT NULL,
 		FOREIGN KEY (recipe_id) 
 			REFERENCES recipes (id)
@@ -90,5 +89,25 @@ func createTimeTable(db *sql.DB) error {
 		return err
 	}
 	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_dates ON dates (recipe_id)`)
+	return err
+}
+
+func createSugarResultsTable(db *sql.DB) error {
+	_, err := db.Exec(`
+	CREATE TABLE IF NOT EXISTS sugar_results (
+		id INTEGER NOT NULL PRIMARY KEY,
+		water REAL,
+		sugar REAL,
+		alcohol REAL,
+		recipe_id INTEGER NOT NULL,
+		FOREIGN KEY (recipe_id) 
+			REFERENCES recipes (id)
+				ON DELETE CASCADE
+				ON UPDATE CASCADE
+	)`)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_sugar_results ON sugar_results (recipe_id, id)`)
 	return err
 }

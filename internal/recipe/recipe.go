@@ -30,6 +30,16 @@ type SGMeasurement struct {
 	Date  string  `json:"date,omitempty"`
 }
 
+// PrimingSugarResult is the result of calculating the amount of sugar to when bottling
+type PrimingSugarResult struct {
+	// Water is the amount of water in liters
+	Water float32 `json:"water,omitempty"`
+	// Amount is the amount of sugar in grams
+	Amount float32 `json:"amount,omitempty"`
+	// Alcohol is the estimated final alcohol content
+	Alcohol float32 `json:"alcohol,omitempty"`
+}
+
 type RecipeResults struct {
 	VolumeBeforeBoil       float32
 	HotWortVolume          float32
@@ -73,10 +83,14 @@ type Recipe struct {
 	results RecipeResults `json:"-"`
 	// mainFermSGs is the measured specific gravities during the main fermentation process. This is populated by the appropriate handlers and should not be set manually
 	mainFermSGs []*SGMeasurement `json:"-"`
+	// primingSugarResults is the different alternatives for priming sugar amount based on a target alcohol level
+	primingSugarResults []*PrimingSugarResult `json:"-"`
 	// resultsLock is the lock for the results
 	resultsLock sync.Mutex `json:"-"`
 	// mainFermSGsLock is the lock for the mainFermSGs
 	mainFermSGsLock sync.Mutex `json:"-"`
+	// primingResultsLock is the lock for the primingSugarResults
+	primingResultsLock sync.Mutex `json:"-"`
 }
 
 // MashInstructions is the struct for the mashing instructions
@@ -302,4 +316,21 @@ func (r *Recipe) GetSGMeasurements() []*SGMeasurement {
 	r.mainFermSGsLock.Lock()
 	defer r.mainFermSGsLock.Unlock()
 	return r.mainFermSGs
+}
+
+// SetPrimingSugarResult adds a sugar result to the results of the recipe
+func (r *Recipe) SetPrimingSugarResult(sugarResult *PrimingSugarResult) {
+	r.primingResultsLock.Lock()
+	defer r.primingResultsLock.Unlock()
+	if r.primingSugarResults == nil {
+		r.primingSugarResults = make([]*PrimingSugarResult, 0)
+	}
+	r.primingSugarResults = append(r.primingSugarResults, sugarResult)
+}
+
+// GetPrimingSugarResults returns all sugar results for this recipe
+func (r *Recipe) GetPrimingSugarResults() []*PrimingSugarResult {
+	r.primingResultsLock.Lock()
+	defer r.primingResultsLock.Unlock()
+	return r.primingSugarResults
 }

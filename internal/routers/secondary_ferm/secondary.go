@@ -22,13 +22,10 @@ type SecondaryFermentationRouter struct {
 	hopWatchersLock       sync.Mutex
 	secondaryWatchersLock sync.Mutex
 	dryHopsLock           sync.Mutex
-	sugarResultsLock      sync.Mutex
 	// HopWatchers stores all dry hop watchers for a recipe id
 	HopWatchers map[string]DryHopNotification
 	// DryHops relates a list of dry hops with a recipe id
 	DryHops map[string]DryHopMap
-	// SugarResults stores the sugar results for a recipe id
-	SugarResults map[string][]SugarResult
 	// SecondaryWatchers stores the watchers for the secondary fermentation
 	SecondaryWatchers map[string]SecondaryFermentationWatcher
 }
@@ -257,12 +254,15 @@ func (r *SecondaryFermentationRouter) postPreBottleHandler(c echo.Context) error
 		return err
 	}
 	vol := req.Volume - req.LostVolume
-	r.calculateSugar(
+	err = r.calculateSugar(
 		id, vol,
 		re.Fermentation.Carbonation, req.Temperature,
 		res.Alcohol,
 		req.SugarType,
 	)
+	if err != nil {
+		return err
+	}
 	redirect := "getBottle"
 	queryParams := fmt.Sprintf("?type=%s", req.SugarType)
 	err = r.addSummaryPreBottle(id, req.Volume)
@@ -283,7 +283,7 @@ func (r *SecondaryFermentationRouter) getBottleHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	sugarResults, err := r.getSugarResults(id)
+	sugarResults, err := r.Store.RetrieveSugarResults(id)
 	if err != nil {
 		return err
 	}
