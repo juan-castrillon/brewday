@@ -15,7 +15,9 @@ import (
 	"context"
 	"io/fs"
 	"math"
+	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -172,6 +174,51 @@ func (a *App) RegisterRoutes() {
 	})
 	a.server.POST("/timeline/:recipe_id", a.postTimelineEvent).Name = "postTimelineEvent"
 	a.server.POST("/notification", a.postNotification).Name = "postNotification"
+	a.server.GET("/test_timer", a.getTestTimer).Name = "getTestTimer"
+	a.server.GET("/test_timer_time", a.getTestTimerTime).Name = "getTestTimerTime"
+	a.server.POST("/test_timer_time", a.postTestTimerStop).Name = "postTestTimerStop"
+}
+
+// getTestTimer is the handler for testing server side timers
+func (a *App) getTestTimer(c echo.Context) error {
+	return c.Render(http.StatusOK, "test_timer.html", map[string]interface{}{
+		"Title":            "Test timer",
+		"Subtitle":         "This will test server side timers",
+		"StartClickedOnce": startClickedOnce,
+	})
+}
+
+var testTime int64
+var startClickedOnce bool
+var stopped bool
+
+// getTestTimerTime is the handler for testing server side timers
+func (a *App) getTestTimerTime(c echo.Context) error {
+	if testTime == 0 {
+		testTime = time.Now().Add(5 * time.Minute).Unix()
+	}
+	if !startClickedOnce {
+		startClickedOnce = true
+	}
+	return c.JSON(200, map[string]interface{}{
+		"end_timestamp": testTime,
+		"stopped":       stopped,
+	})
+}
+
+type reqTestTimerStop struct {
+	Stop bool `json:"stop,omitempty"`
+}
+
+// postTestTimerStop is the handler for testing server side timers
+func (a *App) postTestTimerStop(c echo.Context) error {
+	var req reqTestTimerStop
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	stopped = req.Stop
+	return c.NoContent(200)
 }
 
 // Run starts the application
