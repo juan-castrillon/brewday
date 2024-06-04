@@ -39,6 +39,10 @@ func NewPersistentStore(db *sql.DB) (*PersistentStore, error) {
 	if err != nil {
 		return nil, err
 	}
+	err = createBoolFlagsTable(db)
+	if err != nil {
+		return nil, err
+	}
 	rs, err := db.Prepare(`SELECT 
 		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
 		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,
@@ -348,4 +352,32 @@ func (s *PersistentStore) RetrieveSugarResults(id string) ([]*recipe.PrimingSuga
 		results = append(results, &m)
 	}
 	return results, nil
+}
+
+// AddBoolFlag allows to store a given flag that can be true or false in the store with a unique name
+func (s *PersistentStore) AddBoolFlag(id, name string, flag bool) error {
+	var flagID int
+	err := s.dbClient.QueryRow(`SELECT id FROM bool_flags WHERE recipe_id == ? AND name == ?`, id, name).Scan(&flagID)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return err
+		}
+		_, err := s.dbClient.Exec(`INSERT INTO bool_flags (name, value, recipe_id) VALUES (?, ?, ?)`, name, flag, id)
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE bool_flags SET value = ? WHERE recipe_id == ? AND name == ?`, flag, id, name)
+	return err
+}
+
+// RetrieveBoolFlag gets a bool flag from the store given its name
+func (s *PersistentStore) RetrieveBoolFlag(id, name string) (bool, error) {
+	var value bool
+	err := s.dbClient.QueryRow(`SELECT value FROM bool_flags WHERE recipe_id == ? AND name == ?`, id, name).Scan(&value)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return false, err
+		}
+		return false, nil
+	}
+	return value, nil
 }

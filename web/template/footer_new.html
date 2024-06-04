@@ -1,0 +1,41 @@
+{{ define "footer_new" }}
+<script type="text/javascript" src='{{ static "js/materialize.min.js" }}'></script>
+<script src="https://unpkg.com/axios@1.1.2/dist/axios.min.js"></script>
+<script>
+    function show(element) {
+        var x = document.getElementById(element);
+        if (x.style.display === "none") {
+            x.style.display = "block";
+        }
+    };
+    function sendTimelineEvent(message) {
+        url = '{{ reverse "postTimelineEvent" .RecipeID }}'
+        axios.post(url, {
+            message: message
+        })
+            .then(function (response) {
+                console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+    function sendNotification(message, title, options) {
+        url = '{{ reverse "postNotification" }}'
+        axios.post(url, {
+            message: message,
+            title: title,
+            options: options
+        })
+            .then(function (response) {
+                console.log(response);
+            })
+            .catch(function (error) {
+                console.log(error);
+            });
+    }
+</script>
+</body>
+
+</html>
+{{ end }}

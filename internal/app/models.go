@@ -71,6 +71,10 @@ type RecipeStore interface {
 	AddSugarResult(id string, r *recipe.PrimingSugarResult) error
 	// RetrieveSugarResults returns all sugar results for a recipe
 	RetrieveSugarResults(id string) ([]*recipe.PrimingSugarResult, error)
+	// AddBoolFlag allows to store a given flag that can be true or false in the store with a unique name
+	AddBoolFlag(id, name string, flag bool) error
+	// RetrieveBoolFlag gets a bool flag from the store given its name
+	RetrieveBoolFlag(id, name string) (bool, error)
 }
 
 // SummaryStore is the interface that helps decouple the summary store from the application

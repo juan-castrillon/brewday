@@ -665,3 +665,92 @@ func TestUpdateSugarResults(t *testing.T) {
 		})
 	}
 }
+
+func TestBoolFlags(t *testing.T) {
+	require := require.New(t)
+	type boolFlag struct {
+		Value bool
+		Name  string
+	}
+	testCases := []struct {
+		Name  string
+		ToAdd map[string][]*boolFlag
+		Error bool
+	}{
+		{
+			Name: "Store single false",
+			ToAdd: map[string][]*boolFlag{
+				"recipe1": {
+					{Value: false, Name: "name_1"},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Store single true",
+			ToAdd: map[string][]*boolFlag{
+				"recipe2": {
+					{Value: true, Name: "name_2"},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Same name different recipe",
+			ToAdd: map[string][]*boolFlag{
+				"recipe3": {
+					{Value: false, Name: "name_3"},
+				},
+				"recipe4": {
+					{Value: true, Name: "name_3"},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Overwrite",
+			ToAdd: map[string][]*boolFlag{
+				"recipe5": {
+					{Value: false, Name: "name_4"},
+					{Value: true, Name: "name_4"},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "SQL Injection in name",
+			ToAdd: map[string][]*boolFlag{
+				"recipe_6": {
+					{Value: true, Name: "5'; DROP TABLE bool_flags; --"},
+				},
+			},
+			Error: false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			for recipeTitle, v := range tc.ToAdd {
+				id, err := store.Store(&recipe.Recipe{Name: recipeTitle})
+				require.NoError(err)
+				for _, b := range v {
+					err = store.AddBoolFlag(id, b.Name, b.Value)
+					if tc.Error {
+						require.Error(err)
+					} else {
+						require.NoError(err)
+						actual, err := store.RetrieveBoolFlag(id, b.Name)
+						require.NoError(err)
+						require.Equal(b.Value, actual)
+					}
+				}
+			}
+
+		})
+	}
+}

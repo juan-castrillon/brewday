@@ -111,3 +111,22 @@ func createSugarResultsTable(db *sql.DB) error {
 	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_sugar_results ON sugar_results (recipe_id, id)`)
 	return err
 }
+
+func createBoolFlagsTable(db *sql.DB) error {
+	_, err := db.Exec(`
+	CREATE TABLE IF NOT EXISTS bool_flags (
+		id INTEGER NOT NULL PRIMARY KEY,
+		value INTEGER,
+		name TEXT,
+		recipe_id INTEGER NOT NULL,
+		FOREIGN KEY (recipe_id) 
+			REFERENCES recipes (id)
+				ON DELETE CASCADE
+				ON UPDATE CASCADE
+	)`)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_bool_flags ON dates (recipe_id, name)`)
+	return err
+}

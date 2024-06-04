@@ -15,12 +15,19 @@ type Date struct {
 	name string
 }
 
+type boolFlag struct {
+	value bool
+	name  string
+}
+
 // MemoryStore is a store that stores data in memory
 type MemoryStore struct {
-	lock      sync.Mutex
-	recipes   map[string]*recipe.Recipe
-	datesLock sync.Mutex
-	dates     map[string][]*Date
+	lock          sync.Mutex
+	recipes       map[string]*recipe.Recipe
+	datesLock     sync.Mutex
+	dates         map[string][]*Date
+	boolFlagsLock sync.Mutex
+	boolFlags     map[string][]*boolFlag
 }
 
 // NewMemoryStore creates a new MemoryStore
@@ -222,4 +229,38 @@ func (s *MemoryStore) RetrieveSugarResults(id string) ([]*recipe.PrimingSugarRes
 		return nil, err
 	}
 	return r.GetPrimingSugarResults(), nil
+}
+
+// AddBoolFlag allows to store a given flag that can be true or false in the store with a unique name
+func (s *MemoryStore) AddBoolFlag(id, name string, flag bool) error {
+	s.boolFlagsLock.Lock()
+	defer s.boolFlagsLock.Unlock()
+	if s.boolFlags == nil {
+		s.boolFlags = make(map[string][]*boolFlag)
+	}
+	_, ok := s.boolFlags[id]
+	if !ok {
+		s.boolFlags[id] = make([]*boolFlag, 0)
+	}
+	s.boolFlags[id] = append(s.boolFlags[id], &boolFlag{name: name, value: flag})
+	return nil
+}
+
+// RetrieveBoolFlag gets a bool flag from the store given its name
+func (s *MemoryStore) RetrieveBoolFlag(id, name string) (bool, error) {
+	s.boolFlagsLock.Lock()
+	defer s.boolFlagsLock.Unlock()
+	if s.boolFlags == nil {
+		s.boolFlags = make(map[string][]*boolFlag)
+	}
+	_, ok := s.boolFlags[id]
+	if !ok {
+		s.boolFlags[id] = make([]*boolFlag, 0)
+	}
+	for _, bf := range s.boolFlags[id] {
+		if bf.name == name {
+			return bf.value, nil
+		}
+	}
+	return false, nil
 }
