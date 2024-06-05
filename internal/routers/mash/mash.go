@@ -215,7 +215,9 @@ func (r *MashRouter) postRastStopTimer(c echo.Context) error {
 	if rastNumStr == "" {
 		return errors.New("no rast number provided")
 	}
-	return r.Timer.HandleStopTimer(c, id, "mashing_rast", rastNumStr)
+	tlEvent := "Stopped Rast " + rastNumStr
+	notMessage := "Finished Rast " + rastNumStr
+	return r.Timer.HandleStopTimer(c, id, tlEvent, notMessage, "Rast Finished", "mashing_rast", rastNumStr)
 }
 
 // getRastRealDuration handles the get request to send the real duration of a rast

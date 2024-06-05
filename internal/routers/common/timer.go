@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/labstack/echo/v4"
+	"github.com/rs/zerolog/log"
 )
 
 // RecipeStore represents a component that stores recipes
@@ -21,6 +22,18 @@ type RecipeStore interface {
 	RetrieveBoolFlag(id, name string) (bool, error)
 }
 
+// Notifier is the interface that helps decouple the notifier from the application
+type Notifier interface {
+	// Send sends a notification
+	Send(message, title string, opts map[string]any) error
+}
+
+// TimelineStore represents a component that stores timelines
+type TimelineStore interface {
+	// AddEvent adds an event to the timeline
+	AddEvent(id, message string) error
+}
+
 type RespGetTimestamp struct {
 	EndTimestamp int64 `json:"end_timestamp"`
 }
@@ -31,15 +44,20 @@ type RespGetRealDuration struct {
 
 type ReqPostStopTimer struct {
 	StoppedTimestamp int64 `json:"stopped_timestamp"`
+	Manual           bool  `json:"manual,omitempty"`
 }
 
 type Timer struct {
-	Store RecipeStore
+	Store    RecipeStore
+	TLStore  TimelineStore
+	Notifier Notifier
 }
 
-func NewTimer(store RecipeStore) *Timer {
+func NewTimer(store RecipeStore, timelineStore TimelineStore, notifier Notifier) *Timer {
 	return &Timer{
-		Store: store,
+		Store:    store,
+		TLStore:  timelineStore,
+		Notifier: notifier,
 	}
 }
 
@@ -60,6 +78,14 @@ func (t *Timer) getName(prefix, suffix, purpose string) string {
 		res = res + "_" + suffix
 	}
 	return res
+}
+
+// sendNotification sends a notification if the notifier is available
+func (t *Timer) sendNotification(message, title string, opts map[string]interface{}) error {
+	if t.Notifier != nil {
+		return t.Notifier.Send(message, title, opts)
+	}
+	return nil
 }
 
 // GetBoolFlags returns whether the timer has started and has been stopped. Only the first suffix is used
@@ -122,7 +148,8 @@ func (t *Timer) HandleStartTimer(c echo.Context, id string, duration time.Durati
 }
 
 // HandleStopTimer will mark the timer as stopped. Only the first suffix is used
-func (t *Timer) HandleStopTimer(c echo.Context, id string, prefix string, suffix ...string) error {
+// It will add an event to the timeline when the timer was stopped
+func (t *Timer) HandleStopTimer(c echo.Context, id string, timelineEvent string, notificationMessage string, notificationTitle string, prefix string, suffix ...string) error {
 	singleSuffix := ""
 	if len(suffix) > 0 {
 		singleSuffix = suffix[0]
@@ -146,6 +173,17 @@ func (t *Timer) HandleStopTimer(c echo.Context, id string, prefix string, suffix
 		err = t.Store.AddDate(id, &st, name)
 		if err != nil {
 			return err
+		}
+		err = t.TLStore.AddEvent(id, timelineEvent)
+		if err != nil {
+			return err
+		}
+		if !req.Manual { //Only send notification in case the use did not stop the timer
+			log.Debug().Msg("Sending timer over notification: " + notificationTitle)
+			err = t.sendNotification(notificationMessage, notificationTitle, nil)
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return c.NoContent(http.StatusOK)

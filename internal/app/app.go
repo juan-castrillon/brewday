@@ -69,7 +69,7 @@ func (a *App) Initialize(components *AppComponents) error {
 	a.TLStore = components.TL
 	a.notifier = components.Notifier
 	ss := components.SummaryStore
-	timer := common.NewTimer(store)
+	timer := common.NewTimer(store, a.TLStore, a.notifier)
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{

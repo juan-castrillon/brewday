@@ -43,7 +43,7 @@ type Timer interface {
 	//HandleStartTimer will respond with the correct json for the timer template to work. Only the first suffix is used
 	HandleStartTimer(c echo.Context, id string, duration time.Duration, prefix string, suffix ...string) error
 	//HandleStopTimer will mark the timer as stopped. Only the first suffix is used
-	HandleStopTimer(c echo.Context, id string, prefix string, suffix ...string) error
+	HandleStopTimer(c echo.Context, id string, timelineEvent string, notificationMessage string, notificationTitle string, prefix string, suffix ...string) error
 	//HandleRealDuration will return the real duration to the timer template. Only the first suffix is used
 	HandleRealDuration(c echo.Context, id string, prefix string, suffix ...string) error
 }

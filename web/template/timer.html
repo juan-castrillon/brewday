@@ -23,7 +23,7 @@
         const diff = endTime - now;
         const timerElement = document.getElementById(timerId);
         if (diff <= 0) {
-            stopTimer(stopUrl, durationUrl, doneCallback);
+            stopTimer(stopUrl, durationUrl, doneCallback, false);
         } else {
             timerElement.textContent = prettyTime(diff);
         }
@@ -35,12 +35,13 @@
         seconds = seconds < 10 ? "0" + seconds : seconds;
         return `${minutes}:${seconds}`;
     }
-    async function stopTimer(stopUrl, durationUrl, doneCallback) {
+    async function stopTimer(stopUrl, durationUrl, doneCallback, manual_stop) {
         clearInterval(interval2);
         try {
             const now = Math.round(Date.now() / 1000);
             await axios.post(stopUrl, {
-                stopped_timestamp: now
+                stopped_timestamp: now,
+                manual: manual_stop
             });
             const dur = await getRealDuration(durationUrl);
             doneCallback(dur);

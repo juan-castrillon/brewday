@@ -103,9 +103,7 @@
     let url = '{{ reverse "getMashRastTimestamp" .RecipeID .RastNumber }}';
     let stopUrl = '{{ reverse "postMashRastStopTimer" .RecipeID .RastNumber }}';
     let durationUrl = '{{ reverse "getMashRastDuration" .RecipeID .RastNumber }}';
-    let stoppedTime = 0;
     function done(realDur) {
-        console.log("calling done", realDur)
         const timerElement = document.getElementById("time");
         timerElement.textContent = "Done!";
         realDuration = document.getElementById("real_duration");
@@ -116,7 +114,7 @@
         startTimer(url, stopUrl, durationUrl, "time", done);
     }
     function stop() {
-        stopTimer(stopUrl, durationUrl, done);
+        stopTimer(stopUrl, durationUrl, done, true);
     }
     setUpTimer("start_timer", start, "stop_timer", stop, stopped, startClicked, done, durationUrl);
     document.addEventListener('DOMContentLoaded', function () {
