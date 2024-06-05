@@ -3,7 +3,9 @@
 <main>
     <div class="container">
         <div class="row">
-            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
             <br>
         </div>
         <div class="row">
@@ -11,13 +13,16 @@
                 <h4>1. Transfer the mash to the bucket at {{.MashOutTemp}} °C</h4>
             </div>
             <div class="col s12 center-align">
-                <a class="waves-effect waves-light btn" id="done">Done?</a>
+                <a class="waves-effect waves-light btn" id="start">Done?</a>
             </div>
         </div>
         <div class="row">
             <div class="col s12 center-align" id="ruhe" style="display: none;">
-                <h4>2. Let the mash rest for 15 minutes</h4>
+                <h4>2. Let the mash rest for {{.RestTime}} minutes</h4>
                 <h4 id="time" style="display: none;">00:00</h4>
+            </div>
+            <div class="col s12 center-align">
+                <a class="waves-effect waves-light btn red" id="stop" style="display: none;">Stop</a>
             </div>
         </div>
         <div class="row">
@@ -41,6 +46,11 @@
                 enctype="multipart/form-data" id="notes_form" style="display: none;">
                 <div class="row">
                     <div class="input-field col s12">
+                        <i class="material-icons prefix">timer</i>
+                        <input type="text" id="real_duration" name="real_duration">
+                        <label for="real_duration">Real Duration</label>
+                    </div>
+                    <div class="input-field col s12">
                         <i class="material-icons prefix">edit_note</i>
                         <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
                         <label for="notes1">Notes</label>
@@ -53,20 +63,32 @@
         </div>
     </div>
 </main>
+{{ template "timer" .}}
 <script>
-    document.getElementById("done").onclick = function() {
-        sendTimelineEvent("Mash transferred to bucket");
+    let stopped = "{{.Stopped}}" === "true";
+    let startClicked = "{{.StartClickedOnce}}" === "true";
+    let url = '{{ reverse "getLauternTimestamp" .RecipeID }}';
+    let stopUrl = '{{ reverse "postLauternStopTimer" .RecipeID }}';
+    let durationUrl = '{{ reverse "getLauternDuration" .RecipeID }}';
+    function done(realDur) {
+        const timerElement = document.getElementById("time");
+        timerElement.textContent = "Done!";
+        show("instructions");
+        show("notes_form");
+        realDuration = document.getElementById("real_duration");
+        realDuration.value = realDur;
+    }
+    function start() {
+        const startButton = document.getElementById("start");
+        startButton.style.display = "none";
         show("ruhe");
-        startTimer('{{.RestTime}}', 'time', function () {
-            sendTimelineEvent("Mash rested for 15 minutes");
-            show("instructions");
-            show("notes_form");
-            sendNotification(
-                "Lauterruhe finished after {{.RestTime}} minutes",
-                "Lauterruhe Finished"
-            )
-        });
-        this.style.display = "none";
-    };
+        show("time");
+        show("stop");
+        startTimer(url, stopUrl, durationUrl, "time", done);
+    }
+    function stop() {
+        stopTimer(stopUrl, durationUrl, done, true);
+    }
+    setUpTimer("start", start, "stop", stop, stopped, startClicked, done, durationUrl);
 </script>
-{{ template "footer" . }}
+{{ template "footer_new" . }}
