@@ -93,6 +93,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			Store:        store,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
+			Timer:        timer,
 		},
 		&cooling.CoolingRouter{
 			Store:        store,

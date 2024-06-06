@@ -68,7 +68,9 @@
         }
     }
     function setUpTimer(startButtonId, startFun, stopButtonId, stopFun, stoppedCondition, startClickedCondition, doneFun, durationUrl) {
-        document.getElementById(startButtonId).onclick = startFun;
+        if (startButtonId !== null) {
+            document.getElementById(startButtonId).onclick = startFun;
+        }
         document.getElementById(stopButtonId).onclick = stopFun;
         window.onload = function () {
             onStart(startFun, stoppedCondition, startClickedCondition, doneFun, durationUrl)

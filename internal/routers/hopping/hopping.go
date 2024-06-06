@@ -5,8 +5,10 @@ import (
 	"brewday/internal/routers/common"
 	"brewday/internal/tools"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -16,8 +18,8 @@ type HoppingRouter struct {
 	Store           RecipeStore
 	TLStore         TimelineStore
 	SummaryStore    SummaryStore
+	Timer           Timer
 	ingredientCache map[string]ingredientList
-	initialVolCache map[string]float32
 }
 
 // addTimelineEvent adds an event to the timeline
@@ -90,6 +92,9 @@ func (r *HoppingRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	hopping.POST("/end/:recipe_id", r.postEndHoppingHandler).Name = "postEndHopping"
 	hopping.GET("/hop/:recipe_id/:ingr_num", r.getHoppingHandler).Name = "getHopping"
 	hopping.POST("/hop/:recipe_id/:ingr_num", r.postHoppingHandler).Name = "postHopping"
+	hopping.GET("/hop/timer/:recipe_id/:ingr_num", r.getHopTimestamp).Name = "getHopTimestamp"
+	hopping.POST("/hop/timer/stop/:recipe_id/:ingr_num", r.postHoppingStopTimer).Name = "postHoppingStopTimer"
+	hopping.GET("/hop/timer/duration/:recipe_id/:ingr_num", r.getHopRealDuration).Name = "getHopRealDuration"
 }
 
 // getStartHoppingHandler returns the handler for the start hopping route
@@ -191,6 +196,10 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 	}
 	if ingrNum == len(ings) {
 		if ings[ingrNum-1].Duration != 0 {
+			_, stopped, err := r.Timer.GetBoolFlags(id, "hopping_hop", ingrNumStr)
+			if err != nil {
+				return err
+			}
 			err = r.Store.UpdateStatus(id, recipe.RecipeStatusBoiling, "lastBoil", tools.AnyToString(ingrNum))
 			if err != nil {
 				return err
@@ -201,10 +210,15 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 				"RecipeID":    id,
 				"BoilingTime": ings[ingrNum-1].Duration,
 				"IngrNum":     ingrNum,
+				"Stopped":     stopped,
 			})
 		} else {
 			return c.Redirect(http.StatusFound, c.Echo().Reverse("getEndHopping", id))
 		}
+	}
+	_, stopped, err := r.Timer.GetBoolFlags(id, "hopping_hop", ingrNumStr)
+	if err != nil {
+		return err
 	}
 	if ingrNum == 0 {
 		cookingTime = re.Hopping.TotalCookingTime
@@ -223,6 +237,7 @@ func (r *HoppingRouter) getHoppingHandler(c echo.Context) error {
 		"Ingredient":       ingredient,
 		"IngrNum":          ingrNum,
 		"TotalCookingTime": cookingTime,
+		"Stopped":          stopped,
 	})
 }
 
@@ -260,10 +275,6 @@ func (r *HoppingRouter) postHoppingHandler(c echo.Context) error {
 			}
 		} else {
 			ingredient := ings[ingrNum]
-			err = r.addTimelineEvent(id, "Added "+ingredient.Name)
-			if err != nil {
-				log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
-			}
 			err = r.addSummaryHopping(id, ingredient.Name, req.RealAmount, req.RealAlpha, req.RealDuration, req.Notes)
 			if err != nil {
 				log.Error().Str("id", id).Err(err).Msg("could not add hopping to summary")
@@ -335,4 +346,80 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 		log.Error().Str("id", id).Err(err).Msg("could not add evaporation to summary")
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getCooling", id))
+}
+
+func (r *HoppingRouter) getHopTimestamp(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	ingrNumStr := c.Param("ingr_num")
+	if ingrNumStr == "" {
+		return errors.New("no hop number provided")
+	}
+	ingrNum, err := strconv.Atoi(ingrNumStr)
+	if err != nil {
+		return err
+	}
+	ings := r.getIngredients(id, re)
+	var cookingTime float32
+	if ingrNum == 0 {
+		ing := ings[ingrNum]
+		cookingTime = re.Hopping.TotalCookingTime - ing.Duration
+	} else if ingrNum == len(ings) {
+		cookingTime = ings[ingrNum-1].Duration
+	} else {
+		ing := ings[ingrNum]
+		cookingTime = ings[ingrNum-1].Duration - ing.Duration
+	}
+	dur := time.Duration(cookingTime * float32(time.Minute))
+	return r.Timer.HandleStartTimer(c, id, dur, "hopping_hop", ingrNumStr)
+}
+
+func (r *HoppingRouter) postHoppingStopTimer(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	ingrNumStr := c.Param("ingr_num")
+	if ingrNumStr == "" {
+		return errors.New("no hop number provided")
+	}
+	ingrNum, err := strconv.Atoi(ingrNumStr)
+	if err != nil {
+		return err
+	}
+	ings := r.getIngredients(id, re)
+	var tlMessage, notMessage, notTitle string
+	if ingrNum == len(ings) {
+		tlMessage = "Finished last boil"
+		notMessage = "The boil is finised"
+		notTitle = "Stop boiling"
+	} else {
+		ing := ings[ingrNum]
+		tlMessage = "Added " + ing.Name
+		notMessage = fmt.Sprintf("Time to add %s which will cook for %.f minutes", ing.Name, ing.Duration)
+		notTitle = "Add " + ing.Name
+	}
+	return r.Timer.HandleStopTimer(c, id, tlMessage, notMessage, notTitle, "hopping_hop", ingrNumStr)
+}
+
+func (r *HoppingRouter) getHopRealDuration(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	ingrNumStr := c.Param("ingr_num")
+	if ingrNumStr == "" {
+		return errors.New("no hop number provided")
+	}
+	return r.Timer.HandleRealDuration(c, id, "hopping_hop", ingrNumStr)
 }

@@ -55,8 +55,7 @@
                         <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
                         <label for="notes1">Notes</label>
                     </div>
-                    <button class="btn waves-effect waves-light" type="submit" name="action"
-                        id="send_hop">Submit
+                    <button class="btn waves-effect waves-light" type="submit" name="action" id="send_hop">Submit
                         <i class="material-icons right">send</i>
                     </button>
                 </div>
@@ -64,23 +63,29 @@
         </div>
     </div>
 </main>
+{{ template "timer" .}}
 <script>
-    function countdown() {
-        var cookingTime = '{{.TotalCookingTime}}' - '{{.Ingredient.Duration}}';
-        startTimer(cookingTime, 'time', function () {
-            document.getElementById("timer").style.display = "none";
-            show("hop_form")
-            sendNotification(
-                "Time to add {{.Ingredient.Name}} which will cook for {{.Ingredient.Duration}} minutes",
-                "Add {{.Ingredient.Name}}"
-            )
-        });
+    let stopped = "{{.Stopped}}" === "true";
+    let startClicked = true; // Start the timer straight away
+    let url = '{{ reverse "getHopTimestamp" .RecipeID .IngrNum }}';
+    let stopUrl = '{{ reverse "postHoppingStopTimer" .RecipeID .IngrNum }}';
+    let durationUrl = '{{ reverse "getHopRealDuration" .RecipeID .IngrNum }}';
+    function done(realDur) {
+        document.getElementById("timer").style.display = "none";
+        show("hop_form");
+        realDuration = document.getElementById("real_duration");
+        var cookingTime = '{{.TotalCookingTime}}' - realDur;
+        if (Number.isNaN(cookingTime)) {
+            cookingTime = '{{.Ingredient.Duration}}'
+        }
+        realDuration.value = cookingTime;
     }
-    window.onload = countdown;
-    document.getElementById("stop_timer").onclick = function () {
-        stopTimer(function() {
-            show("hop_form");
-        })
+    function start() {
+        startTimer(url, stopUrl, durationUrl, "time", done);
     }
+    function stop() {
+        stopTimer(stopUrl, durationUrl, done, true);
+    }
+    setUpTimer(null, start, "stop_timer", stop, stopped, startClicked, done, durationUrl);
 </script>
-{{ template "footer" . }}
+{{ template "footer_new" . }}

@@ -25,8 +25,7 @@
                         <input type="text" value="{{.BoilingTime}}" id="real_duration" name="real_duration">
                         <label for="real_duration">Real Duration</label>
                     </div>
-                    <button class="btn waves-effect waves-light" type="submit" name="action"
-                        id="send_hop">Submit
+                    <button class="btn waves-effect waves-light" type="submit" name="action" id="send_hop">Submit
                         <i class="material-icons right">send</i>
                     </button>
                 </div>
@@ -34,23 +33,25 @@
         </div>
     </div>
 </main>
+{{ template "timer" .}}
 <script>
-    function countdown() {
-        var cookingTime = '{{.BoilingTime}}';
-        startTimer(cookingTime, 'time', function () {
-            document.getElementById("timer").style.display = "none";
-            show("hop_form")
-            sendNotification(
-                "The boil is finished!",
-                "Stop boiling"
-            )
-        });
+    let stopped = "{{.Stopped}}" === "true";
+    let startClicked = true; // Start the timer straight away
+    let url = '{{ reverse "getHopTimestamp" .RecipeID .IngrNum }}';
+    let stopUrl = '{{ reverse "postHoppingStopTimer" .RecipeID .IngrNum }}';
+    let durationUrl = '{{ reverse "getHopRealDuration" .RecipeID .IngrNum }}';
+    function done(realDur) {
+        document.getElementById("timer").style.display = "none";
+        show("hop_form");
+        realDuration = document.getElementById("real_duration");
+        realDuration.value = realDur;
     }
-    window.onload = countdown;
-    document.getElementById("stop_timer").onclick = function () {
-        stopTimer(function() {
-            show("hop_form");
-        })
+    function start() {
+        startTimer(url, stopUrl, durationUrl, "time", done);
     }
+    function stop() {
+        stopTimer(stopUrl, durationUrl, done, true);
+    }
+    setUpTimer(null, start, "stop_timer", stop, stopped, startClicked, done, durationUrl);
 </script>
-{{ template "footer" . }}
+{{ template "footer_new" . }}
