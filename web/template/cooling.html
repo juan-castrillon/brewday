@@ -3,7 +3,9 @@
 <main>
     <div class="container">
         <div class="row">
-            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
             <br>
         </div>
         <div class="row">
@@ -29,7 +31,8 @@
             </div>
         </div>
         <div class="row">
-            <form action='{{ reverse "postCooling" .RecipeID }}' method="post" class="col s12" enctype="multipart/form-data">
+            <form action='{{ reverse "postCooling" .RecipeID }}' method="post" class="col s12"
+                enctype="multipart/form-data">
                 <div class="row">
                     <div class="input-field col s12">
                         <i class="material-icons prefix">thermostat</i>
@@ -48,33 +51,42 @@
                     </div>
                 </div>
                 <button class="btn waves-effect waves-light" type="submit" name="action" style="display: none;"
-                id="send_form">Submit
+                    id="send_form">Submit
                     <i class="material-icons right">send</i>
                 </button>
             </form>
         </div>
     </div>
 </main>
+{{ template "timer" .}}
 <script>
-    document.getElementById("start_timer").onclick = function () {
-        sendTimelineEvent("Cooling started");
-        show("stop_timer");
-        show("message");
-        startTimer(2000, 'time', function () { // Timer extra long for simulating a timer not a countdown
-            show("send_form");
-        });
-        time = document.getElementById("time");
-        time.style.display = "none";
-    };
-    document.getElementById("stop_timer").onclick = function () {
-        sendTimelineEvent("Cooling stopped");
-        stopTimer(function () {
-            realDuration = document.getElementById("cooling_time");
-            realDuration.value = (Date.now() - startTime) / 1000 / 60;
-            show("send_form");
-        });
+    let stopped = "{{.Stopped}}" === "true";
+    let startClicked = "{{.StartClickedOnce}}" === "true";
+    let url = '{{ reverse "getCoolingTimestamp" .RecipeID }}';
+    let stopUrl = '{{ reverse "postCoolingStopTimer" .RecipeID }}';
+    let durationUrl = '{{ reverse "getCoolingDuration" .RecipeID }}';
+    function done(realDur) {
+        const timerElement = document.getElementById("time");
+        timerElement.textContent = "Done!";
+        show("send_form");
+        realDuration = document.getElementById("cooling_time");
+        realDuration.value = realDur;
         msg = document.getElementById("message");
         msg.textContent = "Cooling stopped";
-    };
+    }
+    function start() {
+        const startButton = document.getElementById("start_timer");
+        startButton.style.display = "none";
+        show("stop_timer");
+        show("message");
+        startTimer(url, stopUrl, durationUrl, "time", done);
+        time = document.getElementById("time");
+        time.style.display = "none";
+    }
+    function stop() {
+        stopTimer(stopUrl, durationUrl, done, true);
+
+    }
+    setUpTimer("start_timer", start, "stop_timer", stop, stopped, startClicked, done, durationUrl);
 </script>
-{{ template "footer" . }}
+{{ template "footer_new" . }}

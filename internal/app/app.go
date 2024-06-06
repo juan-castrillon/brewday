@@ -99,6 +99,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			Store:        store,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
+			Timer:        timer,
 		},
 		&fermentation.FermentationRouter{
 			TLStore:      a.TLStore,
