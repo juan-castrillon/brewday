@@ -8,38 +8,6 @@
             x.style.display = "block";
         }
     };
-    var interval;
-    var startTime;
-    function startTimer(duration, elementID, doneCallback) {
-        show(elementID);
-        time = document.getElementById(elementID);
-        duration = duration * 60; // convert minutes to seconds
-        startTime = Date.now();
-        var start = startTime
-        var diff;
-        var minutes;
-        var seconds;
-        function timer() {
-            diff = duration - (((Date.now() - start) / 1000) | 0);
-            minutes = (diff / 60) | 0;
-            seconds = (diff % 60) | 0;
-            minutes = minutes < 10 ? "0" + minutes : minutes;
-            seconds = seconds < 10 ? "0" + seconds : seconds;
-            time.textContent = minutes + ":" + seconds;
-            if (diff <= 0) {
-                start = Date.now() + 1000;
-                time.textContent = "Done!";
-                doneCallback();
-                clearInterval(interval);
-            }
-        };
-        timer();
-        interval = setInterval(timer, 1000);
-    };
-    function stopTimer(doneCallback) {
-        clearInterval(interval);
-        doneCallback();
-    };
     function sendTimelineEvent(message) {
         url = '{{ reverse "postTimelineEvent" .RecipeID }}'
         axios.post(url, {
