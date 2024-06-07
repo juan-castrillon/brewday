@@ -176,7 +176,6 @@ func (a *App) RegisterRoutes() {
 		return c.Redirect(302, a.server.Reverse("getImport"))
 	})
 	a.server.POST("/timeline/:recipe_id", a.postTimelineEvent).Name = "postTimelineEvent"
-	a.server.POST("/notification", a.postNotification).Name = "postNotification"
 }
 
 // Run starts the application

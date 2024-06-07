@@ -20,20 +20,6 @@
                 console.log(error);
             });
     }
-    function sendNotification(message, title, options) {
-        url = '{{ reverse "postNotification" }}'
-        axios.post(url, {
-            message: message,
-            title: title,
-            options: options
-        })
-            .then(function (response) {
-                console.log(response);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-    }
 </script>
 </body>
 
