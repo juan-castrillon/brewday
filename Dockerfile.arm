@@ -6,7 +6,7 @@ COPY . .
 RUN apt-get update -y && apt-get install gcc-aarch64-linux-gnu -y
 RUN VERSION=${VERSION} BUILD_OUT=./brewday make build-arm
 
-FROM arm64v8/debian:latest
+FROM arm64v8/alpine:3
 COPY --from=builder /app/brewday /brewday
 EXPOSE 8080
 ENTRYPOINT ["/brewday"]
