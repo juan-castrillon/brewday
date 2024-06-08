@@ -28,6 +28,10 @@ services:
       - BREWDAY_NOTIFICATION_GOTIFY-URL=http://gotify:80
       - BREWDAY_NOTIFICATION_USERNAME=yourusername
       - BREWDAY_NOTIFICATION_PASSWORD=yourpassword
+      - BREWDAY_STORE_TYPE=sql
+      - BREWDAY_STORE_PATH=/etc/bd.sqlite
+    volumes:
+      - ./bd.sqlite:/etc/bd.sqlite
     networks:
       - brewday-network
     depends_on:
