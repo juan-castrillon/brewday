@@ -1596,8 +1596,8 @@ func TestAddDryHopStart(t *testing.T) {
 			Name:     "Multiple hops",
 			RecipeID: "2",
 			Hops: []*summary.HopInfo{
-				{Name: "hop1", Grams: 10, Alpha: 3.2, Time: 50, TimeUnit: "days", Notes: "notes 1"},
-				{Name: "hop2", Grams: 20, Alpha: 5.2, Time: 70, TimeUnit: "days", Notes: "notes 2"},
+				{Name: "hop1", Grams: 10, Alpha: 3.2, Notes: "notes 1"},
+				{Name: "hop2", Grams: 20, Alpha: 5.2, Notes: "notes 2"},
 			},
 			Error: false,
 		},
@@ -1795,8 +1795,8 @@ func TestGetSummary(t *testing.T) {
 					},
 					Alcohol: 5.89,
 					DryHopInfo: []*summary.HopInfo{
-						{Name: "Amarillo", Grams: 20, Alpha: 6.8, Time: 4, TimeUnit: "days", Notes: "notes 14"},
-						{Name: "Galaxy", Grams: 40, Alpha: 5.8, Time: 3, TimeUnit: "days", Notes: "notes 15"},
+						{Name: "Amarillo", Grams: 20, Alpha: 6.8, Time: 4, TimeUnit: "hours", Notes: "notes 14"},
+						{Name: "Galaxy", Grams: 40, Alpha: 5.8, Time: 3, TimeUnit: "hours", Notes: "notes 15"},
 					},
 				},
 				BottlingInfo: &summary.BottlingInfo{
