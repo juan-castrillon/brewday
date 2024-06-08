@@ -8,5 +8,8 @@ RUN VERSION=${VERSION} BUILD_OUT=./brewday make build-arm
 
 FROM arm64v8/alpine:3
 COPY --from=builder /app/brewday /brewday
+RUN apk add --no-cache libc6-compat gcc musl-dev
+COPY --from=builder /app/brewday /brewday
+RUN chmod +x /brewday
 EXPOSE 8080
 ENTRYPOINT ["/brewday"]
