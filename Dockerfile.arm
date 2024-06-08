@@ -6,10 +6,7 @@ COPY . .
 RUN apt-get update -y && apt-get install gcc-aarch64-linux-gnu -y
 RUN VERSION=${VERSION} BUILD_OUT=./brewday make build-arm
 
-FROM arm64v8/alpine:3
+FROM arm64v8/debian:bookworm-slim
 COPY --from=builder /app/brewday /brewday
-RUN apk add --no-cache libc6-compat gcc musl-dev
-COPY --from=builder /app/brewday /brewday
-RUN chmod +x /brewday
 EXPOSE 8080
 ENTRYPOINT ["/brewday"]
