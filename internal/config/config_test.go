@@ -38,6 +38,10 @@ func TestConfig(t *testing.T) {
 					Username:  "gotify",
 					Password:  "gotify",
 				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
 			},
 			Error: false,
 		},
@@ -50,6 +54,8 @@ func TestConfig(t *testing.T) {
 				"BREWDAY_NOTIFICATION_PASSWORD":   "gotify",
 				"BREWDAY_NOTIFICATION_GOTIFY-URL": "http://localhost:8080",
 				"BREWDAY_APP_PORT":                "8080",
+				"BREWDAY_STORE_TYPE":              "sql",
+				"BREWDAY_STORE_PATH":              "./bd.sqlite",
 			},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
@@ -59,6 +65,10 @@ func TestConfig(t *testing.T) {
 					Username:  "gotify",
 					Password:  "gotify",
 				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
 			},
 			Error: false,
 		},
@@ -67,6 +77,8 @@ func TestConfig(t *testing.T) {
 			Path: "yaml/complete.yaml",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED": "false",
+				"BREWDAY_STORE_TYPE":           "memory",
+				"BREWDAY_STORE_PATH":           "",
 			},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
@@ -75,6 +87,9 @@ func TestConfig(t *testing.T) {
 					GotifyURL: "http://localhost:8080",
 					Username:  "gotify",
 					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
 				},
 			},
 			Error: false,
@@ -95,6 +110,9 @@ func TestConfig(t *testing.T) {
 					Username:  "gotify",
 					Password:  "gotify",
 				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
 			},
 			Error: false,
 		},
@@ -113,6 +131,9 @@ func TestConfig(t *testing.T) {
 					GotifyURL: "http://localhost:8080",
 					Username:  "gotify",
 					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
 				},
 			},
 			Error: false,
@@ -148,8 +169,21 @@ func TestConfig(t *testing.T) {
 					Username:  "",
 					Password:  "",
 				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
 			},
 			Error: false,
+		},
+		{
+			Name:  "Missing sql path",
+			Path:  "yaml/missing_sql_path.yaml",
+			Error: true,
+		},
+		{
+			Name:  "Missing sql path",
+			Path:  "yaml/invalid_store.yaml",
+			Error: true,
 		},
 	}
 	for _, tc := range testCases {
@@ -248,6 +282,26 @@ func TestValidateConfig(t *testing.T) {
 					Username:  "gotify",
 					Password:  "gotify",
 				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Valid SQL",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   true,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
 			},
 			Error: false,
 		},
@@ -267,6 +321,9 @@ func TestValidateConfig(t *testing.T) {
 					GotifyURL: "http://localhost:8080",
 					Password:  "gotify",
 				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
 			},
 			Error: false,
 		},
@@ -278,6 +335,9 @@ func TestValidateConfig(t *testing.T) {
 					Enabled:   true,
 					GotifyURL: "http://localhost:8080",
 					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
 				},
 			},
 			Error: true,
@@ -291,6 +351,9 @@ func TestValidateConfig(t *testing.T) {
 					GotifyURL: "http://localhost:8080",
 					Username:  "gotify",
 				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
 			},
 			Error: false,
 		},
@@ -302,6 +365,9 @@ func TestValidateConfig(t *testing.T) {
 					Enabled:   true,
 					GotifyURL: "http://localhost:8080",
 					Username:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
 				},
 			},
 			Error: true,
@@ -316,6 +382,9 @@ func TestValidateConfig(t *testing.T) {
 					Username:  "gotify",
 					Password:  "gotify",
 				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
 			},
 			Error: false,
 		},
@@ -328,6 +397,75 @@ func TestValidateConfig(t *testing.T) {
 					GotifyURL: "",
 					Username:  "gotify",
 					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "Invalid store",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   true,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "invalid",
+					Path:      "./bd.sqlite",
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "SQL missing path",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   true,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "SQL Store in uppercase",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   true,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "SQL",
+					Path:      "./bd.sqlite",
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "Memory store in uppercase",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   true,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "MEMORY",
 				},
 			},
 			Error: true,

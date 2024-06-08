@@ -43,7 +43,7 @@ type AppComponents struct {
 	TL           TimelineStore
 	Notifier     Notifier
 	Store        RecipeStore
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
 }
 
 // NewApp creates a new App
@@ -69,6 +69,7 @@ func (a *App) Initialize(components *AppComponents) error {
 	a.TLStore = components.TL
 	a.notifier = components.Notifier
 	ss := components.SummaryStore
+	timer := common.NewTimer(store, a.TLStore, a.notifier)
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
@@ -80,21 +81,25 @@ func (a *App) Initialize(components *AppComponents) error {
 			Store:        store,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
+			Timer:        timer,
 		},
 		&lautern.LauternRouter{
 			Store:        store,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
+			Timer:        timer,
 		},
 		&hopping.HoppingRouter{
 			Store:        store,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
+			Timer:        timer,
 		},
 		&cooling.CoolingRouter{
 			Store:        store,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
+			Timer:        timer,
 		},
 		&fermentation.FermentationRouter{
 			TLStore:      a.TLStore,
@@ -171,7 +176,6 @@ func (a *App) RegisterRoutes() {
 		return c.Redirect(302, a.server.Reverse("getImport"))
 	})
 	a.server.POST("/timeline/:recipe_id", a.postTimelineEvent).Name = "postTimelineEvent"
-	a.server.POST("/notification", a.postNotification).Name = "postNotification"
 }
 
 // Run starts the application

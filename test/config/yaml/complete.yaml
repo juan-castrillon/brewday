@@ -6,3 +6,7 @@ notification:
   gotify-url: http://localhost:8080
   username: "gotify"
   password: "gotify"
+
+store:
+  type: sql
+  path: "./bd.sqlite"

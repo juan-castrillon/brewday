@@ -1,0 +1,11 @@
+app:
+  port: 8080
+
+notification:
+  enabled: true
+  gotify-url: http://localhost:8080
+  username: "gotify"
+  password: "gotify"
+
+store:
+  type: sql

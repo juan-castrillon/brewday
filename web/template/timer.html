@@ -1,0 +1,80 @@
+{{ define "timer" }}
+<script>
+    let endTime = 0;
+    let startTime = 0;
+    let interval2;
+    async function getEndTime(url) {
+        try {
+            const response = await axios.get(url);
+            return response.data.end_timestamp;
+        } catch (error) {
+            console.error("Error fetching end time:", error);
+        }
+    }
+    async function startTimer(url, stopUrl, durationUrl, timerId, doneCallback) {
+        if (endTime === 0) {
+            endTime = await getEndTime(url);
+        }
+        updateTimer(stopUrl, durationUrl, timerId, doneCallback);
+        interval2 = setInterval(() => updateTimer(stopUrl, durationUrl, timerId, doneCallback), 1000);
+    }
+    function updateTimer(stopUrl, durationUrl, timerId, doneCallback) {
+        const now = Math.round(Date.now() / 1000);
+        const diff = endTime - now;
+        const timerElement = document.getElementById(timerId);
+        if (diff <= 0) {
+            stopTimer(stopUrl, durationUrl, doneCallback, false);
+        } else {
+            timerElement.textContent = prettyTime(diff);
+        }
+    }
+    function prettyTime(diff) {
+        let minutes = Math.floor(diff / 60);
+        let seconds = diff % 60;
+        minutes = minutes < 10 ? "0" + minutes : minutes;
+        seconds = seconds < 10 ? "0" + seconds : seconds;
+        return `${minutes}:${seconds}`;
+    }
+    async function stopTimer(stopUrl, durationUrl, doneCallback, manual_stop) {
+        clearInterval(interval2);
+        try {
+            const now = Math.round(Date.now() / 1000);
+            await axios.post(stopUrl, {
+                stopped_timestamp: now,
+                manual: manual_stop
+            });
+            const dur = await getRealDuration(durationUrl);
+            doneCallback(dur);
+        } catch (error) {
+            console.error("Error stopping timer:", error);
+        }
+    }
+    async function getRealDuration(durationUrl) {
+        try {
+            const response = await axios.get(durationUrl);
+            return response.data.real_duration_minutes;
+        } catch (error) {
+            console.error("Error fetching duration:", error);
+        }
+    }
+    async function onStart(startFun, stoppedCondition, startClickedCondition, doneFun, durationUrl) {
+        if (!stoppedCondition) {
+            if (startClickedCondition) {
+                startFun();
+            }
+        } else {
+            dur = await getRealDuration(durationUrl);
+            doneFun(dur);
+        }
+    }
+    function setUpTimer(startButtonId, startFun, stopButtonId, stopFun, stoppedCondition, startClickedCondition, doneFun, durationUrl) {
+        if (startButtonId !== null) {
+            document.getElementById(startButtonId).onclick = startFun;
+        }
+        document.getElementById(stopButtonId).onclick = stopFun;
+        window.onload = function () {
+            onStart(startFun, stoppedCondition, startClickedCondition, doneFun, durationUrl)
+        }
+    }
+</script>
+{{ end }}

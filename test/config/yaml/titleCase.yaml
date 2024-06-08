@@ -6,3 +6,6 @@ Notification:
   Gotify-URL: http://localhost:8080
   Username: "gotify"
   Password: "gotify"
+
+Store:
+  Type: memory

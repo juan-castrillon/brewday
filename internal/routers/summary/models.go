@@ -1,19 +1,19 @@
 package summary
 
-// SummaryRecorderStore represents a component that stores summary recorders
-type SummaryRecorderStore interface {
-	// AddTimeline adds a timeline to the summary
-	AddTimeline(id string, timeline []string) error
-	// GetSummary returns the summary
-	GetSummary(id string) (string, error)
-	// GetExtension returns the extension of the summary
-	GetExtension(id string) (string, error)
-	// Close closes the summary recorder
-	Close(id string) error
+import "brewday/internal/summary"
+
+// SummaryStore represents a component that stores summaries
+type SummaryStore interface {
+	GetSummary(id string) (*summary.Summary, error)
 }
 
 // TimelineStore represents a component that stores timelines
 type TimelineStore interface {
 	// GetTimeline returns a timeline of events
 	GetTimeline(id string) ([]string, error)
+}
+
+// SummaryPrinter represents a component that outputs a summary as a certain document (string)
+type SummaryPrinter interface {
+	Print(s *summary.Summary, timeline []string) (string, error)
 }

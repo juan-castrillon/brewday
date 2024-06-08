@@ -1,0 +1,36 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <div class="row">
+                    <form class="col s12" action='{{ reverse "postSecondaryFermentationEnd" .RecipeID }}' method="post" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="input-field col s12">
+                                <i class="material-icons prefix">access_time</i>
+                                <input type="text" id="days" name="days">
+                                <label for="days">Days</label>
+                            </div>
+                            <div class="input-field col s12">
+                                <i class="material-icons prefix">edit_note</i>
+                                <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
+                                <label for="notes1">Notes</label>
+                            </div>
+                            <button class="btn waves-effect waves-light" type="submit" name="action" id="send_form">Submit
+                                <i class="material-icons right">send</i>
+                            </button>
+                        </div>
+                    </form>                    
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{{ template "footer" . }}

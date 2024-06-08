@@ -96,25 +96,27 @@
         </div>
     </div>
 </main>
+{{ template "timer" .}}
 <script>
-    document.getElementById("start_timer").onclick = function () {
-        sendTimelineEvent("Started Rast {{.RastNumber }}")
-        startTimer('{{.Rast.Duration}}', 'time', function () {
-            show("send_rast");
-            sendNotification(
-                "Rast at {{.Rast.Temperature}} °C finished after {{.Rast.Duration}} minutes",
-                "Rast finished"
-            )
-        });
-    };
-    document.getElementById("stop_timer").onclick = function () {
-        sendTimelineEvent("Stopped Rast {{.RastNumber }}")
-        stopTimer(function () {
-            realDuration = document.getElementById("real_duration");
-            realDuration.value = (Date.now() - startTime) / 1000 / 60;
-            show("send_rast");
-        });
-    };
+    let stopped = "{{.Stopped}}" === "true";
+    let startClicked = "{{.StartClickedOnce}}" === "true";
+    let url = '{{ reverse "getMashRastTimestamp" .RecipeID .RastNumber }}';
+    let stopUrl = '{{ reverse "postMashRastStopTimer" .RecipeID .RastNumber }}';
+    let durationUrl = '{{ reverse "getMashRastDuration" .RecipeID .RastNumber }}';
+    function done(realDur) {
+        const timerElement = document.getElementById("time");
+        timerElement.textContent = "Done!";
+        realDuration = document.getElementById("real_duration");
+        realDuration.value = realDur;
+        show("send_rast");
+    }
+    function start() {
+        startTimer(url, stopUrl, durationUrl, "time", done);
+    }
+    function stop() {
+        stopTimer(stopUrl, durationUrl, done, true);
+    }
+    setUpTimer("start_timer", start, "stop_timer", stop, stopped, startClicked, done, durationUrl);
     document.addEventListener('DOMContentLoaded', function () {
         var elems = document.querySelectorAll('.modal');
         var instances = M.Modal.init(elems, {});

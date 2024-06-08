@@ -82,5 +82,15 @@ func validateConfig(config *Config) error {
 			return fmt.Errorf("notification is enabled but gotify-url is missing")
 		}
 	}
-	return nil
+	switch config.Store.StoreType {
+	case "sql":
+		if config.Store.Path == "" {
+			return fmt.Errorf("selected sql store but no path was given")
+		}
+		return nil
+	case "memory":
+		return nil
+	default:
+		return fmt.Errorf("invalid store type %s selected", config.Store.StoreType)
+	}
 }

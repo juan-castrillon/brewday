@@ -10,20 +10,20 @@ import (
 // - glucose (Traubenzucker)
 // - sucrose (Haushaltszucker)
 // It returns the amount of sugar in grams and the estimated final alcohol content
-func SugarForCarbonation(volume, carbonation, temperature, alcoholBefore, waterVolume float32, sugarType string) (float32, float32) {
+func SugarForCarbonation(volumeBefore, carbonation, temperature, alcoholBefore, waterVolume float32, sugarType string) (float32, float32) {
 	co2Present := co2InBeer(temperature)
 	co2Needed := carbonation - float32(co2Present)
 	unitAlcohol, unitCO2 := addedBySugar(sugarType)
 	// Calculate the amount of sugar needed to reach the desired CO2 level
-	sugar := co2Needed * volume / unitCO2
+	sugar := co2Needed * volumeBefore / unitCO2
 	// Calculate the amount of alcohol added by the sugar
 	alcohol := sugar * unitAlcohol // this is grams of alcohol
 	// Calculate final alcohol content based on added alcohol and alcohol present in beer and water in the sugar solution
 	ethanolDensity := float32(789)                            // g/l
-	alcoholBeforeLiters := alcoholBefore * volume / 100       // Liters of alcohol present in beer
+	alcoholBeforeLiters := alcoholBefore * volumeBefore / 100 // Liters of alcohol present in beer
 	alcoholAddedLiters := alcohol / ethanolDensity            // Liters of alcohol added by sugar
 	alcoholLiters := alcoholBeforeLiters + alcoholAddedLiters // Total liters of alcohol
-	waterBefore := volume - alcoholBeforeLiters
+	waterBefore := volumeBefore - alcoholBeforeLiters
 	totalWater := waterBefore + waterVolume
 	totalVolume := totalWater + alcoholLiters
 	finalAlcohol := alcoholLiters / totalVolume * 100
@@ -60,7 +60,7 @@ func addedBySugar(sugar string) (float32, float32) {
 	case "glucose":
 		alcoholGrams = sugarAlcohol * 0.9
 	default:
-		// Handle other types of sugar or provide an error message
+		// TODO: Handle other types of sugar or provide an error message
 		alcoholGrams = 0
 	}
 

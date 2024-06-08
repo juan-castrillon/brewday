@@ -7,7 +7,6 @@ import (
 	"brewday/internal/watcher"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -15,46 +14,37 @@ import (
 )
 
 type SecondaryFermentationRouter struct {
-	TLStore               TimelineStore
-	SummaryStore          SummaryRecorderStore
-	Store                 RecipeStore
-	Notifier              Notifier
-	hopWatchersLock       sync.Mutex
-	secondaryWatchersLock sync.Mutex
-	dryHopsLock           sync.Mutex
-	sugarResultsLock      sync.Mutex
-	// HopWatchers stores all dry hop watchers for a recipe id
-	HopWatchers map[string]DryHopNotification
-	// DryHops relates a list of dry hops with a recipe id
-	DryHops map[string]DryHopMap
-	// SugarResults stores the sugar results for a recipe id
-	SugarResults map[string][]SugarResult
-	// SecondaryWatchers stores the watchers for the secondary fermentation
-	SecondaryWatchers map[string]SecondaryFermentationWatcher
+	TLStore         TimelineStore
+	SummaryStore    SummaryStore
+	Store           RecipeStore
+	Notifier        Notifier
+	ingredientCache ingredientCache
+	watchersSet     map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
 }
 
 // RegisterRoutes adds routes to the web server
 // It receives the root web server and a parent group
 func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	sf := parent.Group("/secondary_fermentation")
-	sf.GET("/dry_hop/start/:recipe_id/load", r.getDryHopStartLoadHandler).Name = "getDryHopStartLoad"
-	sf.GET("/dry_hop/start/:recipe_id", r.getDryHopStartHandler).Name = "getDryHopStart"
-	sf.POST("/dry_hop/start/:recipe_id", r.postDryHopStartHandler).Name = "postDryHopStart"
-	sf.GET("/dry_hop/confirm/:recipe_id", r.getDryHopConfirmHandler).Name = "getDryHopConfirm"
-	sf.POST("/dry_hop/confirm/:recipe_id", r.postDryHopConfirmHandler).Name = "postDryHopConfirm"
+	sf.GET("/dry_hop/:recipe_id", r.getDryHopHandler).Name = "getDryHop"
+	sf.POST("/dry_hop/:recipe_id", r.postDryHopInHandler).Name = "postDryHopIn"
+	// sf.GET("/dry_hop/start/:recipe_id/load", r.getDryHopStartLoadHandler).Name = "getDryHopStartLoad"
+	// sf.GET("/dry_hop/start/:recipe_id", r.getDryHopStartHandler).Name = "getDryHopStart"
+	// sf.POST("/dry_hop/start/:recipe_id", r.postDryHopStartHandler).Name = "postDryHopStart"
+	// sf.GET("/dry_hop/confirm/:recipe_id", r.getDryHopConfirmHandler).Name = "getDryHopConfirm"
+	// sf.POST("/dry_hop/confirm/:recipe_id", r.postDryHopConfirmHandler).Name = "postDryHopConfirm"
 	sf.GET("/pre_bottle/:recipe_id", r.getPreBottleHandler).Name = "getPreBottle"
 	sf.POST("/pre_bottle/:recipe_id", r.postPreBottleHandler).Name = "postPreBottle"
 	sf.GET("/bottle/:recipe_id", r.getBottleHandler).Name = "getBottle"
 	sf.POST("/bottle/:recipe_id", r.postBottleHandler).Name = "postBottle"
 	sf.GET("/start/:recipe_id", r.getSecondaryFermentationStartHandler).Name = "getSecondaryFermentationStart"
 	sf.POST("/start/:recipe_id", r.postSecondaryFermentationStartHandler).Name = "postSecondaryFermentationStart"
+	sf.GET("/end/:recipe_id", r.getSecondaryFermentationEndHandler).Name = "getSecondaryFermentationEnd"
 	sf.POST("/end/:recipe_id", r.postSecondaryFermentationEndHandler).Name = "postSecondaryFermentationEnd"
 	root.GET("/end/:recipe_id", r.getEndHandler).Name = "getEnd"
 }
 
-// getDryHopStartLoadHandler is responsible for loading the dry hops in the internal structures and then
-// redirecting to the dry hop start page. Its only called once per recipe
-func (r *SecondaryFermentationRouter) getDryHopStartLoadHandler(c echo.Context) error {
+func (r *SecondaryFermentationRouter) getDryHopHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
@@ -63,162 +53,73 @@ func (r *SecondaryFermentationRouter) getDryHopStartLoadHandler(c echo.Context) 
 	if err != nil {
 		return err
 	}
-	for i, h := range re.Hopping.Hops {
-		if h.DryHop {
-			hop := DryHop{
-				id:       fmt.Sprintf("%s_%d", h.Name, i),
-				Name:     h.Name,
-				Amount:   h.Amount,
-				Duration: h.Duration,
-			}
-			r.addDryHop(id, &hop)
-		}
-	}
-	for i, a := range re.Fermentation.AdditionalIngredients {
-		hop := DryHop{
-			id:       fmt.Sprintf("%s_%d", a.Name, i),
-			Name:     a.Name,
-			Amount:   a.Amount,
-			Duration: a.Duration,
-		}
-		r.addDryHop(id, &hop)
-	}
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopStart", id))
-}
-
-// getDryHopStartHandler is the handler for the dry hop start page
-// this page allows to set notifications for the different dry hops and their times
-func (r *SecondaryFermentationRouter) getDryHopStartHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	re, err := r.Store.Retrieve(id)
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "dry_hop")
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusFermenting, "dry_hop_start")
-	dr, err := r.getDryHops(id)
-	if err != nil {
+	ings := r.ingredientCache.getIngredients(id, re)
+	if len(ings) == 0 {
 		log.Info().Str("id", id).Err(err).Msg("Recipe has no dry hops")
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getPreBottle", id))
 	}
-	return c.Render(http.StatusOK, "secondary_dry_hop_start.html", map[string]interface{}{
-		"Title":    "Dry Hop",
-		"RecipeID": id,
-		"Subtitle": "Set the notifications for the dry hops",
-		"Hops":     dr,
+	err = r.Store.AddBoolFlag(id, "has_dry_hops", true)
+	if err != nil {
+		return err
+	}
+	for i, ing := range ings {
+		started, err := r.Store.RetrieveBoolFlag(id, "secondary_dry_hop_started_"+ing.SanitizedName)
+		if err != nil {
+			return err
+		}
+		ings[i].StartClickedOnce = started
+		startedDates, err := r.Store.RetrieveDates(id, "secondary_dry_hop_"+ing.SanitizedName)
+		if err != nil {
+			return err
+		}
+		if len(startedDates) == 0 {
+			ings[i].TimeElapsed = 0
+		} else {
+			startDate := *startedDates[0]
+			since := time.Since(startDate).Hours()
+			ings[i].TimeElapsed = float32(since)
+		}
+	}
+	return c.Render(http.StatusOK, "secondary_dry_hop.html", map[string]interface{}{
+		"Title":       "Dry Hopping",
+		"Subtitle":    "Add hops and other ingredients into the fermented wort",
+		"RecipeID":    id,
+		"Ingredients": ings,
 	})
 }
 
-// postDryHopStartHandler is the handler for the dry hop start page
-func (r *SecondaryFermentationRouter) postDryHopStartHandler(c echo.Context) error {
+func (r *SecondaryFermentationRouter) postDryHopInHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	var req ReqPostDryHopStart
+	var req ReqPostDryHopIn
 	err := c.Bind(&req)
 	if err != nil {
 		return err
-	}
-	dr, err := r.getDryHops(id)
-	if err != nil {
-		return err
-	}
-	dh, ok := dr[req.ID]
-	if !ok {
-		return fmt.Errorf("dry hop with id %s not found", req.ID)
 	}
 	now := time.Now()
-	var notificationDate time.Time
-	switch req.TimeUnit {
-	case "days":
-		notificationDate = now.AddDate(0, 0, req.NotificationTime)
-	case "seconds": // This is mainly for testing
-		notificationDate = now.Add(time.Duration(req.NotificationTime) * time.Second)
-	default:
-		return fmt.Errorf("unknown time unit %s", req.TimeUnit)
-	}
-	w := watcher.NewWatcher(notificationDate, func() error {
-		log.Info().Msgf("dry hop notification triggered for hop %s", dh.Name)
-		return r.sendNotification(fmt.Sprintf("Dry hop %s", dh.Name), "Dry hop", nil)
-	})
-	err = r.addDryHopNotification(id, req.ID, w)
+	err = r.Store.AddDate(id, &now, "secondary_dry_hop_"+req.IngredientName)
 	if err != nil {
 		return err
 	}
-	w.Start()
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopStart", id))
-}
-
-// getDryHopConfirmHandler is the handler for the dry hop confirm page
-// this page asks for confirmation of the dry hop and shows remaining time of the notification
-func (r *SecondaryFermentationRouter) getDryHopConfirmHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	re, err := r.Store.Retrieve(id)
+	err = r.Store.AddBoolFlag(id, "secondary_dry_hop_started_"+req.IngredientName, true)
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusFermenting, "dry_hop_confirm")
-	not, err := r.getDryHopNotifications(id)
+	err = r.TLStore.AddEvent(id, "Added dry ingredient "+req.IngredientName)
 	if err != nil {
 		return err
 	}
-	dr, err := r.getDryHops(id)
+	err = r.SummaryStore.AddDryHopStart(id, req.IngredientName, req.RealAmount, req.RealAlpha, "") //TODO: Support notes here?
 	if err != nil {
 		return err
 	}
-	return c.Render(http.StatusOK, "secondary_dry_hop_confirm.html", map[string]interface{}{
-		"Title":         "Dry Hop",
-		"Subtitle":      "Confirm the dry hop",
-		"RecipeID":      id,
-		"Notifications": not,
-		"Hops":          dr,
-	})
-}
-
-// postDryHopConfirmHandler is the handler for the dry hop confirm page
-func (r *SecondaryFermentationRouter) postDryHopConfirmHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	var req ReqPostDryHopConfirm
-	err := c.Bind(&req)
-	if err != nil {
-		return err
-	}
-	dr, err := r.getDryHops(id)
-	if err != nil {
-		return err
-	}
-	dh, ok := dr[req.ID]
-	if !ok {
-		return fmt.Errorf("dry hop with id %s not found", req.ID)
-	}
-	not, err := r.getDryHopNotifications(id)
-	if err != nil {
-		return err
-	}
-	w, ok := not[req.ID]
-	if ok {
-		w.Stop()
-	}
-	dh.In = true
-	dh.InDate = time.Now().Format("2006-01-02 15:04")
-	err = r.addTimelineEvent(id, fmt.Sprintf("Added dry hop %s", dh.Name))
-	if err != nil {
-		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
-	}
-	err = r.addSummaryDryHop(id, dh.Name, req.Amount)
-	if err != nil {
-		log.Error().Str("id", id).Err(err).Msg("could not add summary dry hop")
-	}
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopConfirm", id))
+	return c.NoContent(http.StatusOK)
 }
 
 // getPreBottleHandler is the handler for the pre bottle page
@@ -228,11 +129,10 @@ func (r *SecondaryFermentationRouter) getPreBottleHandler(c echo.Context) error 
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
+	err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "pre_bottle")
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusFermenting, "pre_bottle")
 	return c.Render(http.StatusOK, "secondary_pre_bottle.html", map[string]interface{}{
 		"Title":    "Bottle",
 		"Subtitle": "Set the volume and the type of priming sugar",
@@ -255,14 +155,20 @@ func (r *SecondaryFermentationRouter) postPreBottleHandler(c echo.Context) error
 	if err != nil {
 		return err
 	}
-	res := re.GetResults()
+	res, err := r.Store.RetrieveResults(id)
+	if err != nil {
+		return err
+	}
 	vol := req.Volume - req.LostVolume
-	r.calculateSugar(
+	err = r.calculateSugar(
 		id, vol,
 		re.Fermentation.Carbonation, req.Temperature,
 		res.Alcohol,
 		req.SugarType,
 	)
+	if err != nil {
+		return err
+	}
 	redirect := "getBottle"
 	queryParams := fmt.Sprintf("?type=%s", req.SugarType)
 	err = r.addSummaryPreBottle(id, req.Volume)
@@ -278,13 +184,12 @@ func (r *SecondaryFermentationRouter) getBottleHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
+	t := c.QueryParam("type")
+	err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "bottle", t)
 	if err != nil {
 		return err
 	}
-	t := c.QueryParam("type")
-	re.SetStatus(recipe.RecipeStatusFermenting, "bottle", t)
-	sugarResults, err := r.getSugarResults(id)
+	sugarResults, err := r.Store.RetrieveSugarResults(id)
 	if err != nil {
 		return err
 	}
@@ -314,18 +219,57 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	res := re.GetResults()
+	res, err := r.Store.RetrieveResults(id)
+	if err != nil {
+		return err
+	}
+	volumeBeforeSugar := req.RealVolume - req.Water
 	_, realAlcohol := tools.SugarForCarbonation(
-		req.RealVolume, re.Fermentation.Carbonation, req.Temperature,
+		volumeBeforeSugar, re.Fermentation.Carbonation, req.Temperature,
 		res.Alcohol, req.Water, req.SugarType,
 	)
 	realCO2 := tools.CarbonationForSugar(req.RealVolume, req.SugarAmount, req.Temperature, req.SugarType)
 	err = r.addSummaryBottle(id, realCO2, realAlcohol, req.SugarAmount, req.Temperature, req.RealVolume, req.SugarType, req.Notes)
+	// TODO: Add the bottling time now that i have it, add also to the stats
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add summary bottle")
 	}
-	re.SetAlcohol(realAlcohol)
+	err = r.Store.UpdateResult(id, recipe.ResultAlcohol, realAlcohol)
+	if err != nil {
+		return err
+	}
 	r.addTimelineEvent(id, "Bottled")
+	// Now, we calculate the duration of the dry hops based on the time now minus the time it took to bottle
+	// we assume when bottling starts, dry hopping ends
+	hasDryHops, err := r.Store.RetrieveBoolFlag(id, "has_dry_hops")
+	if err != nil {
+		return err
+	}
+	if hasDryHops {
+		re, err := r.Store.Retrieve(id)
+		if err != nil {
+			return err
+		}
+		ings := r.ingredientCache.getIngredients(id, re)
+		for _, ing := range ings {
+			var since float32
+			startedDates, err := r.Store.RetrieveDates(id, "secondary_dry_hop_"+ing.SanitizedName)
+			if err != nil {
+				return err
+			}
+			if len(startedDates) == 0 {
+				since = 0
+			} else {
+				startDate := *startedDates[0]
+				since = float32(time.Since(startDate).Minutes())
+			}
+			realDuration := since - req.Time
+			err = r.SummaryStore.AddDryHopEnd(id, ing.SanitizedName, realDuration/60)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationStart", id))
 }
 
@@ -335,31 +279,15 @@ func (r *SecondaryFermentationRouter) getSecondaryFermentationStartHandler(c ech
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
+	err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "start_secondary")
 	if err != nil {
 		return err
 	}
-	watch := r.getSecondaryWatcher(id)
-	missingTime := ""
-	isDone := false
-	isSet := false
-	if watch != nil {
-		isSet = true
-		if watch.IsDone() {
-			isDone = true
-		} else {
-			missingTime = watch.MissingTime().String()
-		}
-	}
-	re.SetStatus(recipe.RecipeStatusFermenting, "start_secondary")
 	return c.Render(http.StatusOK, "secondary_start.html", map[string]interface{}{
 		"Title":    "Start Secondary Fermentation",
 		"RecipeID": id,
 		"Subtitle": "First, let the bottles at warm temperature",
-		"MinDays":  5,
-		"Missing":  missingTime,
-		"IsDone":   isDone,
-		"IsSet":    isSet,
+		"MinDays":  5, //TODO: make configurable
 	})
 }
 
@@ -386,15 +314,55 @@ func (r *SecondaryFermentationRouter) postSecondaryFermentationStartHandler(c ec
 	}
 	w := watcher.NewWatcher(notificationDate, func() error {
 		log.Info().Msgf("secondary fermentation notification triggered")
-		return r.sendNotification("Secondary Fermentation", "Time to put bottles in the fridge", nil)
+		return r.sendNotification("Time to put bottles in the fridge", "Secondary Fermentation", nil)
 	})
 	w.Start()
-	err = r.addSecondaryWatcher(id, w)
+	err = r.Store.AddDate(id, &notificationDate, "secondary_ferm_notification")
 	if err != nil {
 		return err
 	}
 	r.addTimelineEvent(id, "Secondary Fermentation Started")
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationStart", id))
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationEnd", id))
+}
+
+// getSecondaryFermentationEndHandler handles serving the end page for the secondary fermentation
+func (r *SecondaryFermentationRouter) getSecondaryFermentationEndHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	err := r.checkWatchers(id) // TODO: maybe move this and fermentation to its own function/handler so it can be called on app start
+	if err != nil {
+		return err
+	}
+	notDates, err := r.Store.RetrieveDates(id, "secondary_ferm_notification")
+	if err != nil {
+		return err
+	}
+	missing := time.Until(*notDates[0])
+	if missing > 0 {
+		// Not finished yet
+		err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "wait_secondary")
+		if err != nil {
+			return err
+		}
+		return c.Render(http.StatusOK, "secondary_wait.html", map[string]interface{}{
+			"Title":    "Wait for Secondary Fermentation",
+			"RecipeID": id,
+			"Subtitle": "Let the bottles at warm temperature",
+			"Missing":  missing.String(),
+		})
+	} else {
+		err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "end_secondary")
+		if err != nil {
+			return err
+		}
+		return c.Render(http.StatusOK, "secondary_notes.html", map[string]interface{}{
+			"Title":    "End Secondary Fermentation",
+			"RecipeID": id,
+			"Subtitle": "Enter your notes",
+		})
+	}
 }
 
 // postSecondaryFermentationEndHandler is the handler for the secondary fermentation end page
@@ -422,15 +390,14 @@ func (r *SecondaryFermentationRouter) getEndHandler(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	re, err := r.Store.Retrieve(id)
-	if err != nil {
-		return err
-	}
-	err = r.addTimelineEvent(id, "Finished Day")
+	err := r.addTimelineEvent(id, "Finished Day")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	re.SetStatus(recipe.RecipeStatusFinished)
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusFinished)
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
 		"Title":    "End Fermentation",
 		"RecipeID": id,

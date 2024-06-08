@@ -1,0 +1,30 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <div class="row">
+                    <div class="row valign-wrapper">
+                        <div class="col s6">
+                            <h5>Notification set. Missing time: {{.Missing}}</h5>
+                        </div>
+                        <div class="col s6">
+                            <!-- Refresh button to update the missing time. -->
+                            <button class="btn waves-effect waves-light" type="button" onclick="window.location.reload();">Refresh
+                                <i class="material-icons right">refresh</i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+{{ template "footer" . }}

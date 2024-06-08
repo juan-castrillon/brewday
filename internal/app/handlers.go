@@ -2,7 +2,6 @@ package app
 
 import (
 	"brewday/internal/routers/common"
-	"net/http"
 	"strings"
 
 	"github.com/labstack/echo/v4"
@@ -33,28 +32,6 @@ func (a *App) postTimelineEvent(c echo.Context) error {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
 	return c.NoContent(200)
-}
-
-// sendNotification sends a notification if the notifier is available
-func (a *App) sendNotification(message, title string, opts map[string]interface{}) error {
-	if a.notifier != nil {
-		return a.notifier.Send(message, title, opts)
-	}
-	return nil
-}
-
-// postNotification is the handler for sending notifications
-func (a *App) postNotification(c echo.Context) error {
-	var req ReqPostNotification
-	err := c.Bind(&req)
-	if err != nil {
-		return err
-	}
-	err = a.sendNotification(req.Message, req.Title, req.Options)
-	if err != nil {
-		return err
-	}
-	return c.NoContent(http.StatusOK)
 }
 
 // customErrorHandler is a custom error handler

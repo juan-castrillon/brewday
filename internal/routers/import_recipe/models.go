@@ -12,16 +12,18 @@ type RecipeParser interface {
 type RecipeStore interface {
 	// Store stores a recipe and returns an identifier that can be used to retrieve it
 	Store(recipe *recipe.Recipe) (string, error)
+	// UpdateStatus updates the status of a recipe in the store
+	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
+// SummaryStore represents a component that stores summaries
 // The recipe id is used as key
-type SummaryRecorderStore interface {
-	AddSummaryRecorder(recipeID string, recorderType string)
+type SummaryStore interface {
+	AddSummary(recipeID, title string) error
 }
 
 // TimelineStore represents a component that stores timelines
 // The recipe id is used as key
 type TimelineStore interface {
-	AddTimeline(recipeID string, timelineType string)
+	AddTimeline(recipeID string) error
 }

@@ -3,9 +3,11 @@ package mash
 import (
 	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
+	"brewday/internal/tools"
 	"errors"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/rs/zerolog/log"
@@ -14,7 +16,8 @@ import (
 type MashRouter struct {
 	Store        RecipeStore
 	TLStore      TimelineStore
-	SummaryStore SummaryRecorderStore
+	SummaryStore SummaryStore
+	Timer        Timer
 }
 
 func (r *MashRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
@@ -22,6 +25,9 @@ func (r *MashRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	mash.GET("/start/:recipe_id", r.getMashStartHandler).Name = "getMashStart"
 	mash.GET("/rasts/:recipe_id/:rast_num", r.getRastsHandler).Name = "getRasts"
 	mash.POST("/rasts/:recipe_id/:rast_num", r.postRastsHandler).Name = "postRasts"
+	mash.GET("/rasts/timer/:recipe_id/:rast_num", r.getRastTimestamp).Name = "getMashRastTimestamp"
+	mash.POST("/rasts/timer/stop/:recipe_id/:rast_num", r.postRastStopTimer).Name = "postMashRastStopTimer"
+	mash.GET("/rasts/timer/duration/:recipe_id/:rast_num", r.getRastRealDuration).Name = "getMashRastDuration"
 }
 
 // addTimelineEvent adds an event to the timeline
@@ -33,7 +39,7 @@ func (r *MashRouter) addTimelineEvent(id, message string) error {
 }
 
 // addSummaryMashTemp adds a mash temperature to the summary and notes related to it
-func (r *MashRouter) addSummaryMashTemp(id string, temp float64, notes string) error {
+func (r *MashRouter) addSummaryMashTemp(id string, temp float32, notes string) error {
 	if r.SummaryStore != nil {
 		return r.SummaryStore.AddMashTemp(id, temp, notes)
 	}
@@ -41,7 +47,7 @@ func (r *MashRouter) addSummaryMashTemp(id string, temp float64, notes string) e
 }
 
 // addSummaryRast adds a rast to the summary and notes related to it
-func (r *MashRouter) addSummaryRast(id string, temp float64, duration float64, notes string) error {
+func (r *MashRouter) addSummaryRast(id string, temp float32, duration float32, notes string) error {
 	if r.SummaryStore != nil {
 		return r.SummaryStore.AddRast(id, temp, duration, notes)
 	}
@@ -58,7 +64,10 @@ func (r *MashRouter) getMashStartHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	re.SetStatus(recipe.RecipeStatusMashing, "start")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusMashing, "start")
+	if err != nil {
+		return err
+	}
 	err = r.addTimelineEvent(id, "Started mashing")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
@@ -98,7 +107,14 @@ func (r *MashRouter) getRastsHandler(c echo.Context) error {
 		}
 	}
 	nextRastNum := rastNum + 1
-	re.SetStatus(recipe.RecipeStatusMashing, "rast", rastNum)
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusMashing, "rast", tools.AnyToString(rastNum))
+	if err != nil {
+		return err
+	}
+	started, stopped, err := r.Timer.GetBoolFlags(id, "mashing_rast", rastNumStr)
+	if err != nil {
+		return err
+	}
 	return c.Render(200, "mash_rasts.html", map[string]interface{}{
 		"Title":                "Mash " + re.Name,
 		"Rast":                 re.Mashing.Rasts[rastNum],
@@ -108,6 +124,8 @@ func (r *MashRouter) getRastsHandler(c echo.Context) error {
 		"MissingRastsDuration": missingDuration,
 		"Nachguss":             re.Mashing.Nachguss,
 		"RecipeID":             id,
+		"StartClickedOnce":     started,
+		"Stopped":              stopped,
 	})
 }
 
@@ -162,4 +180,55 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		}
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getRasts", id, rastNum))
+}
+
+// getRastTimestamp returns the final timestamp for the frontend timers for a rast
+func (r *MashRouter) getRastTimestamp(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	re, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	rastNumStr := c.Param("rast_num")
+	if rastNumStr == "" {
+		return errors.New("no rast number provided")
+	}
+	rastNum, err := strconv.Atoi(rastNumStr)
+	if err != nil {
+		return err
+	}
+	rast := re.Mashing.Rasts[rastNum]
+	duration := time.Duration(rast.Duration * float32(time.Minute))
+	return r.Timer.HandleStartTimer(c, id, duration, "mashing_rast", rastNumStr)
+}
+
+// postRastStopTimer handles the post request when a timer stops
+func (r *MashRouter) postRastStopTimer(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	rastNumStr := c.Param("rast_num")
+	if rastNumStr == "" {
+		return errors.New("no rast number provided")
+	}
+	tlEvent := "Stopped Rast " + rastNumStr
+	notMessage := "Finished Rast " + rastNumStr
+	return r.Timer.HandleStopTimer(c, id, tlEvent, notMessage, "Rast Finished", "mashing_rast", rastNumStr)
+}
+
+// getRastRealDuration handles the get request to send the real duration of a rast
+func (r *MashRouter) getRastRealDuration(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	rastNumStr := c.Param("rast_num")
+	if rastNumStr == "" {
+		return errors.New("no rast number provided")
+	}
+	return r.Timer.HandleRealDuration(c, id, "mashing_rast", rastNumStr)
 }

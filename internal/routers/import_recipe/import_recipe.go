@@ -21,7 +21,7 @@ var parsers = map[string]RecipeParser{
 
 type ImportRouter struct {
 	Store                RecipeStore
-	SummaryRecorderStore SummaryRecorderStore
+	SummaryRecorderStore SummaryStore
 	TLStore              TimelineStore
 	TempCache            map[string]*recipe.Recipe
 }
@@ -124,16 +124,24 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	if re == nil {
 		return errors.New("no recipe found")
 	}
-	re.SetStatus(recipe.RecipeStatusCreated)
 	id, err = r.Store.Store(re)
+	if err != nil {
+		return err
+	}
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusCreated)
 	if err != nil {
 		return err
 	}
 	// Once stored, we can delete it from the cache
 	delete(r.TempCache, decodedID)
-	// TODO: make this configurable probably via the UI
-	r.SummaryRecorderStore.AddSummaryRecorder(id, "markdown")
-	r.TLStore.AddTimeline(id, "basic")
+	err = r.SummaryRecorderStore.AddSummary(id, re.Name)
+	if err != nil {
+		return err
+	}
+	err = r.TLStore.AddTimeline(id)
+	if err != nil {
+		return err
+	}
 	switch nextAction {
 	case "start":
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getRecipeStart", id))

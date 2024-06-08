@@ -2,18 +2,8 @@ package fermentation
 
 import (
 	"brewday/internal/recipe"
-	"brewday/internal/watcher"
+	"time"
 )
-
-type SGMeasurement struct {
-	Date    string
-	Gravity float32
-}
-
-type FermentationStatus struct {
-	MinDaysPassed bool
-	InitialWatch  *watcher.Watcher
-}
 
 // TimelineStore represents a component that stores timelines
 type TimelineStore interface {
@@ -21,24 +11,34 @@ type TimelineStore interface {
 	AddEvent(id, message string) error
 }
 
-// SummaryRecorderStore represents a component that stores summary recorders
-type SummaryRecorderStore interface {
-	// AddSummaryPreFermentation adds a summary of the pre fermentation
-	AddSummaryPreFermentation(id string, volume float32, sg float32, notes string) error
-	// AddEfficiency adds the efficiency (sudhausausbeute) to the summary
-	AddEfficiency(id string, efficiencyPercentage float32) error
-	// AddYeastStart adds the yeast start to the summary
+// SummaryStore represents a component that stores summaries
+type SummaryStore interface {
+	AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error
 	AddYeastStart(id string, temperature, notes string) error
-	// AddSGMeasurement adds a SG measurement to the summary
-	AddSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
-	// AddAlcoholMainFermentation adds the alcohol after the main fermentation to the summary
-	AddAlcoholMainFermentation(id string, alcohol float32) error
+	AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
+	AddMainFermentationAlcohol(id string, alcohol float32) error
+	AddEfficiency(id string, efficiencyPercentage float32) error
 }
 
 // RecipeStore represents a component that stores recipes
 type RecipeStore interface {
 	// Retrieve retrieves a recipe based on an identifier
 	Retrieve(id string) (*recipe.Recipe, error)
+	// UpdateStatus updates the status of a recipe in the store
+	UpdateStatus(id string, status recipe.RecipeStatus, statusParams ...string) error
+	// UpdateResult updates a certain result of a recipe
+	UpdateResult(id string, resultType recipe.ResultType, value float32) error
+	// RetrieveResults gets the results from a certain recipe
+	RetrieveResults(id string) (*recipe.RecipeResults, error)
+	// AddMainFermSG adds a new specific gravity measurement to a given recipe
+	AddMainFermSG(id string, m *recipe.SGMeasurement) error
+	// RetrieveMainFermSGs returns all measured sgs for a recipe
+	RetrieveMainFermSGs(id string) ([]*recipe.SGMeasurement, error)
+	// AddDate allows to store a date with a certain purpose. It can be used to store notification dates, or timers
+	AddDate(id string, date *time.Time, name string) error
+	// RetrieveDates allows to retreive stored dates with its purpose (name).It can be used to store notification dates, or timers
+	// It supports pattern in the name to retrieve multiple values
+	RetrieveDates(id, namePattern string) ([]*time.Time, error)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application
