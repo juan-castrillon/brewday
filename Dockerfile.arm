@@ -8,6 +8,5 @@ RUN VERSION=${VERSION} BUILD_OUT=./brewday make build-arm
 
 FROM arm64v8/debian:latest
 COPY --from=builder /app/brewday /brewday
-RUN ls -lha /
 EXPOSE 8080
 ENTRYPOINT ["/brewday"]
