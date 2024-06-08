@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Option in frontend to select summary format
 - Option to add notes in each hop
 - Persistent storage option based on `sqlite` to enable application restarts without data loss
+- New Dry Hopping front end that makes sense
 
 ## [1.0.1] - 2024-02-02
 
