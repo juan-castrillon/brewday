@@ -52,7 +52,13 @@ notification:
   gotify-url: http://localhost:8080
   username: BrewDay
   password: 1234567890
+
+store:
+  type: sql
+  path: "./bd.sqlite"
 ```
+
+Store can be `sql` or `memory` depending on the need on persistent storage.
 
 The following is an example of the same configuration via environment variables:
 
