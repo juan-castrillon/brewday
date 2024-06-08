@@ -3,6 +3,7 @@ ARG VERSION
 ENV GO_PROXY=https://proxy.golang.org
 WORKDIR /app
 COPY . .
+RUN apt-get update -y && apt-get install gcc-aarch64-linux-gnu -y
 RUN VERSION=${VERSION} BUILD_OUT=./brewday make build-arm
 
 FROM gcr.io/distroless/static-debian12:latest-arm64
