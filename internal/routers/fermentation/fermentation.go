@@ -512,7 +512,7 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		if err != nil {
 			log.Error().Str("id", id).Err(err).Msg("could not add alcohol to summary")
 		}
-		return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopStartLoad", id))
+		return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHop", id))
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))
 }

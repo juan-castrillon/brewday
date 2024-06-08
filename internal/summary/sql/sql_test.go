@@ -1558,7 +1558,7 @@ func TestAddMainFermentationSGMeasurement(t *testing.T) {
 	}
 }
 
-func TestAddMainFermentationDryHop(t *testing.T) {
+func TestAddDryHopStart(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
@@ -1584,12 +1584,10 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 			RecipeID: "1",
 			Hops: []*summary.HopInfo{
 				{
-					Name:     "Hop1",
-					Grams:    10,
-					Alpha:    5,
-					Time:     60,
-					TimeUnit: "days",
-					Notes:    "Some notes",
+					Name:  "Hop1",
+					Grams: 10,
+					Alpha: 5,
+					Notes: "Some notes",
 				},
 			},
 			Error: false,
@@ -1608,12 +1606,10 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 			RecipeID: "",
 			Hops: []*summary.HopInfo{
 				{
-					Name:     "Hop1",
-					Grams:    10,
-					Alpha:    5,
-					Time:     60,
-					TimeUnit: "days",
-					Notes:    "Some notes",
+					Name:  "Hop1",
+					Grams: 10,
+					Alpha: 5,
+					Notes: "Some notes",
 				},
 			},
 			Error: true,
@@ -1623,12 +1619,10 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 			RecipeID: "123; DROP TABLE summaries;",
 			Hops: []*summary.HopInfo{
 				{
-					Name:     "Hop1",
-					Grams:    10,
-					Alpha:    5,
-					Time:     60,
-					TimeUnit: "days",
-					Notes:    "Some notes",
+					Name:  "Hop1",
+					Grams: 10,
+					Alpha: 5,
+					Notes: "Some notes",
 				},
 			},
 			Error: true,
@@ -1638,12 +1632,10 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 			RecipeID: "999",
 			Hops: []*summary.HopInfo{
 				{
-					Name:     "Hop1",
-					Grams:    10,
-					Alpha:    5,
-					Time:     60,
-					TimeUnit: "days",
-					Notes:    "Some notes",
+					Name:  "Hop1",
+					Grams: 10,
+					Alpha: 5,
+					Notes: "Some notes",
 				},
 			},
 			Error: true,
@@ -1652,7 +1644,7 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			for _, hop := range tc.Hops {
-				err = store.AddMainFermentationDryHop(tc.RecipeID, hop.Name, hop.Grams, hop.Alpha, hop.Time, hop.Notes)
+				err = store.AddDryHopStart(tc.RecipeID, hop.Name, hop.Grams, hop.Alpha, hop.Notes)
 				if tc.Error {
 					require.Error(err)
 				}
@@ -1667,6 +1659,85 @@ func TestAddMainFermentationDryHop(t *testing.T) {
 				require.NoError(err)
 				require.Equal(string(expected), hops)
 			}
+		})
+	}
+}
+
+func TestAddDryHopEnd(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT main_ferm_dry_hops FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name            string
+		RecipeID        string
+		Hops            []*summary.HopInfo
+		SkipDryHopStart bool
+		Error           bool
+	}{
+		{
+			Name:     "Normal case",
+			RecipeID: "1",
+			Hops: []*summary.HopInfo{
+				{Name: "hop1", Grams: 10, Alpha: 3.2, Time: 50, TimeUnit: "hours", Notes: "notes 1"},
+			},
+			SkipDryHopStart: false,
+			Error:           false,
+		},
+		{
+			Name:     "Start was not called first",
+			RecipeID: "2",
+			Hops: []*summary.HopInfo{
+				{Name: "hop1", Grams: 10, Alpha: 3.2, Time: 50, TimeUnit: "hours", Notes: "notes 1"},
+			},
+			SkipDryHopStart: true,
+			Error:           true,
+		},
+		{
+			Name:     "Multiple hops",
+			RecipeID: "3",
+			Hops: []*summary.HopInfo{
+				{Name: "hop_1", Grams: 10, Alpha: 3.2, Time: 50, TimeUnit: "hours", Notes: "notes 1"},
+				{Name: "hop 1", Grams: 10, Alpha: 3.2, Time: 60, TimeUnit: "hours", Notes: "notes 1"},
+			},
+			SkipDryHopStart: false,
+			Error:           false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+
+			for _, h := range tc.Hops {
+				if !tc.SkipDryHopStart {
+					err = store.AddDryHopStart(tc.RecipeID, h.Name, h.Grams, h.Alpha, h.Notes)
+					require.NoError(err)
+				}
+				err = store.AddDryHopEnd(tc.RecipeID, h.Name, h.Time)
+				if tc.Error {
+					require.Error(err)
+
+				} else {
+					require.NoError(err)
+				}
+			}
+			if !tc.Error {
+				var hops string
+				require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&hops))
+				expected, err := json.Marshal(tc.Hops)
+				require.NoError(err)
+				require.Equal(string(expected), hops)
+			}
+
 		})
 	}
 }
@@ -1814,7 +1885,11 @@ func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStor
 		return err
 	}
 	for _, dh := range summ.MainFermentationInfo.DryHopInfo {
-		err = store.AddMainFermentationDryHop(id, dh.Name, dh.Grams, dh.Alpha, dh.Time, dh.Notes)
+		err = store.AddDryHopStart(id, dh.Name, dh.Grams, dh.Alpha, dh.Notes)
+		if err != nil {
+			return err
+		}
+		err = store.AddDryHopEnd(id, dh.Name, dh.Time)
 		if err != nil {
 			return err
 		}

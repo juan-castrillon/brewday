@@ -245,8 +245,7 @@ func (s *SummaryMemoryStore) AddMainFermentationAlcohol(id string, alcohol float
 	return nil
 }
 
-// AddMainFermentationDryHop adds a summary of the dry hop
-func (s *SummaryMemoryStore) AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error {
+func (s *SummaryMemoryStore) AddDryHopStart(id string, name string, amount, alpha float32, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sum, err := s.getSummary(id)
@@ -260,13 +259,35 @@ func (s *SummaryMemoryStore) AddMainFermentationDryHop(id string, name string, a
 		sum.MainFermentationInfo.DryHopInfo = make([]*summary.HopInfo, 0)
 	}
 	sum.MainFermentationInfo.DryHopInfo = append(sum.MainFermentationInfo.DryHopInfo, &summary.HopInfo{
-		Name:     name,
-		Grams:    amount,
-		Alpha:    alpha,
-		Time:     duration,
-		TimeUnit: "days",
-		Notes:    notes,
+		Name:  name,
+		Grams: amount,
+		Alpha: alpha,
+		Notes: notes,
 	})
+	return nil
+}
+func (s *SummaryMemoryStore) AddDryHopEnd(id string, name string, durationHours float32) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return err
+	}
+	if sum.MainFermentationInfo == nil || sum.MainFermentationInfo.DryHopInfo == nil {
+		return errors.New("attempting to end a dry hop that is not started")
+	}
+	found := false
+	for i, dh := range sum.MainFermentationInfo.DryHopInfo {
+		if dh.Name == name {
+			sum.MainFermentationInfo.DryHopInfo[i].Time = durationHours
+			sum.MainFermentationInfo.DryHopInfo[i].TimeUnit = "hours"
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("attempting to end a dry hop that is not started")
+	}
 	return nil
 }
 

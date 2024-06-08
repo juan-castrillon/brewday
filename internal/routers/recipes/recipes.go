@@ -154,10 +154,8 @@ func (r *RecipesRouter) statusRedirectURL(c echo.Context, re *recipe.Recipe, id 
 			return c.Echo().Reverse("getMainFermentationStart", id), nil
 		case "wait", "main":
 			return c.Echo().Reverse("getMainFermentation", id), nil
-		case "dry_hop_start":
-			return c.Echo().Reverse("getDryHopStart", id), nil
-		case "dry_hop_confirm":
-			return c.Echo().Reverse("getDryHopConfirm", id), nil
+		case "dry_hop":
+			return c.Echo().Reverse("getDryHop", id), nil
 		case "pre_bottle":
 			return c.Echo().Reverse("getPreBottle", id), nil
 		case "bottle":

@@ -93,7 +93,8 @@ type SummaryStore interface {
 	AddYeastStart(id string, temperature, notes string) error
 	AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
 	AddMainFermentationAlcohol(id string, alcohol float32) error
-	AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error
+	AddDryHopStart(id string, name string, amount, alpha float32, notes string) error
+	AddDryHopEnd(id string, name string, durationHours float32) error
 	AddPreBottlingVolume(id string, volume float32) error
 	AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
 	AddSummarySecondary(id string, days int, notes string) error

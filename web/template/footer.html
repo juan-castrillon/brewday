@@ -8,6 +8,12 @@
             x.style.display = "block";
         }
     };
+    function hide(element) {
+        var x = document.getElementById(element);
+        if (x.style.display !== "none") {
+            x.style.display = "none";
+        }
+    };
     function sendTimelineEvent(message) {
         url = '{{ reverse "postTimelineEvent" .RecipeID }}'
         axios.post(url, {

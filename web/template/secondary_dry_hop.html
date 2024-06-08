@@ -1,0 +1,92 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
+            <br>
+        </div>
+        {{ range $i := .Ingredients }}
+        <div class="row">
+            <div class="col s4">
+                <h5 class="center-align">{{$i.Name}} - {{$i.Amount}}g</h5>
+            </div>
+            <div class="col s8" id="form_{{$i.SanitizedName}}">
+                <div class="input-field col s4">
+                    <input type="text" id="amount_{{$i.SanitizedName}}" name="real_amount">
+                    <label for="amount">Real amount in grams</label>
+                </div>
+                {{ if .IsHop }}
+                <div class="input-field col s4">
+                    <input type="text" id="alpha_{{$i.SanitizedName}}" name="real_alpha">
+                    <label for="alpha">Real alpha</label>
+                </div>
+                {{ end }}
+                <button class="btn waves-effect waves-light col s4 green" id="send_form_{{$i.SanitizedName}}"
+                    onclick="inFunc('{{$i.SanitizedName}}')">In<i class="material-icons right">archive</i></button>
+            </div>
+            <div class="col s8">
+                <h5 class="center-align" id="time_{{$i.SanitizedName}}" style="display: none;">Has been in for
+                    {{$i.TimeElapsed}} hours so far</h5>
+            </div>
+        </div>
+        {{ end }}
+        <br>
+        <div class="row">
+            <a class="waves-effect waves-light btn tooltipped" data-position="right"
+                data-tooltip="This will not stop the dry ingredients counter!" onclick="continueProcess()"><i
+                    class="material-icons left">send</i>Bottle</a>
+        </div>
+    </div>
+</main>
+<script>
+    let inUrl = '{{ reverse "postDryHopIn" .RecipeID }}'
+    let endUrl = '{{ reverse "getDryHopEnd" .RecipeID }}'
+    function continueProcess() {
+        url = '{{ reverse "getPreBottle" .RecipeID }}'
+        window.location = url
+    }
+    {{ range $i:= .Ingredients }}
+    function onStart_{{ $i.NameJS }} () {
+        if ("{{.StartClickedOnce}}" === "true") {
+            document.getElementById("time_" + "{{$i.SanitizedName}}").style.display = "block";
+            document.getElementById("form_" + "{{$i.SanitizedName}}").style.display = "none";
+        }
+    }
+    document.addEventListener('DOMContentLoaded',  onStart_{{ $i.NameJS }}())
+    {{ end }}
+
+    async function inFunc(name) {
+        let real_amount = 0;
+        let real_alpha = -1;
+        console.log("submitted")
+        const am = document.getElementById("amount_" + name);
+        const alpha = document.getElementById("alpha_" + name);
+        real_amount = am.value;
+        if (alpha !== null) {
+            real_alpha = alpha.value;
+        }
+        console.log(real_amount, real_alpha);
+        show("time_" + name)
+        hide("form_" + name)
+        try {
+            await axios.post(inUrl,
+                {
+                    "ingredient_name": name,
+                    "real_amount": parseFloat(real_amount),
+                    "real_alpha": parseFloat(real_alpha)
+                });
+        } catch (error) {
+            console.error("Error making request to IN:", error);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.tooltipped');
+        var instances = M.Tooltip.init(elems, {});
+    });
+
+</script>
+{{ template "footer" . }}

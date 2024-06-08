@@ -173,24 +173,51 @@ func (s *SummaryPersistentStore) AddMainFermentationAlcohol(id string, alcohol f
 	return err
 }
 
-// AddMainFermentationDryHop adds a summary of the dry hop
-func (s *SummaryPersistentStore) AddMainFermentationDryHop(id string, name string, amount, alpha, duration float32, notes string) error {
+func (s *SummaryPersistentStore) AddDryHopStart(id string, name string, amount, alpha float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
 	newHop := summary.HopInfo{
-		Name:     name,
-		Grams:    amount,
-		Alpha:    alpha,
-		Time:     duration,
-		TimeUnit: "days",
-		Notes:    notes,
+		Name:  name,
+		Grams: amount,
+		Alpha: alpha,
+		Notes: notes,
 	}
 	newHopBytes, err := json.Marshal(newHop)
 	if err != nil {
 		return err
 	}
 	return s.addToMarshalledArray(id, "main_ferm_dry_hops", string(newHopBytes))
+}
+func (s *SummaryPersistentStore) AddDryHopEnd(id string, name string, durationHours float32) error {
+	var current sql.NullString
+	err := s.dbClient.QueryRow(`SELECT main_ferm_dry_hops FROM summaries WHERE recipe_id == ?`, id).Scan(&current)
+	if err != nil {
+		return err
+	}
+	var slice []*summary.HopInfo
+	err = json.Unmarshal([]byte(s.sliceFromNullString(current)), &slice)
+	if err != nil {
+		return err
+	}
+	found := false
+	for i, dh := range slice {
+		if dh.Name == name {
+			slice[i].Time = durationHours
+			slice[i].TimeUnit = "hours"
+			found = true
+			break
+		}
+	}
+	if !found {
+		return errors.New("attempting to end a dry hop that is not started")
+	}
+	newBytes, err := json.Marshal(slice)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE summaries SET main_ferm_dry_hops = ? WHERE recipe_id == ?`, string(newBytes), id)
+	return err
 }
 
 // AddPreBottlingVolume adds the volume before bottling

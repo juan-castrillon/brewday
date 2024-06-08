@@ -7,7 +7,6 @@ import (
 	"brewday/internal/watcher"
 	"fmt"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -19,24 +18,21 @@ type SecondaryFermentationRouter struct {
 	SummaryStore    SummaryStore
 	Store           RecipeStore
 	Notifier        Notifier
-	hopWatchersLock sync.Mutex
-	dryHopsLock     sync.Mutex
-	// HopWatchers stores all dry hop watchers for a recipe id
-	HopWatchers map[string]DryHopNotification
-	// DryHops relates a list of dry hops with a recipe id
-	DryHops     map[string]DryHopMap
-	watchersSet map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
+	ingredientCache ingredientCache
+	watchersSet     map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
 }
 
 // RegisterRoutes adds routes to the web server
 // It receives the root web server and a parent group
 func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	sf := parent.Group("/secondary_fermentation")
-	sf.GET("/dry_hop/start/:recipe_id/load", r.getDryHopStartLoadHandler).Name = "getDryHopStartLoad"
-	sf.GET("/dry_hop/start/:recipe_id", r.getDryHopStartHandler).Name = "getDryHopStart"
-	sf.POST("/dry_hop/start/:recipe_id", r.postDryHopStartHandler).Name = "postDryHopStart"
-	sf.GET("/dry_hop/confirm/:recipe_id", r.getDryHopConfirmHandler).Name = "getDryHopConfirm"
-	sf.POST("/dry_hop/confirm/:recipe_id", r.postDryHopConfirmHandler).Name = "postDryHopConfirm"
+	sf.GET("/dry_hop/:recipe_id", r.getDryHopHandler).Name = "getDryHop"
+	sf.POST("/dry_hop/:recipe_id", r.postDryHopInHandler).Name = "postDryHopIn"
+	// sf.GET("/dry_hop/start/:recipe_id/load", r.getDryHopStartLoadHandler).Name = "getDryHopStartLoad"
+	// sf.GET("/dry_hop/start/:recipe_id", r.getDryHopStartHandler).Name = "getDryHopStart"
+	// sf.POST("/dry_hop/start/:recipe_id", r.postDryHopStartHandler).Name = "postDryHopStart"
+	// sf.GET("/dry_hop/confirm/:recipe_id", r.getDryHopConfirmHandler).Name = "getDryHopConfirm"
+	// sf.POST("/dry_hop/confirm/:recipe_id", r.postDryHopConfirmHandler).Name = "postDryHopConfirm"
 	sf.GET("/pre_bottle/:recipe_id", r.getPreBottleHandler).Name = "getPreBottle"
 	sf.POST("/pre_bottle/:recipe_id", r.postPreBottleHandler).Name = "postPreBottle"
 	sf.GET("/bottle/:recipe_id", r.getBottleHandler).Name = "getBottle"
@@ -48,9 +44,7 @@ func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *ec
 	root.GET("/end/:recipe_id", r.getEndHandler).Name = "getEnd"
 }
 
-// getDryHopStartLoadHandler is responsible for loading the dry hops in the internal structures and then
-// redirecting to the dry hop start page. Its only called once per recipe
-func (r *SecondaryFermentationRouter) getDryHopStartLoadHandler(c echo.Context) error {
+func (r *SecondaryFermentationRouter) getDryHopHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
@@ -59,160 +53,73 @@ func (r *SecondaryFermentationRouter) getDryHopStartLoadHandler(c echo.Context) 
 	if err != nil {
 		return err
 	}
-	for i, h := range re.Hopping.Hops {
-		if h.DryHop {
-			hop := DryHop{
-				id:       fmt.Sprintf("%s_%d", h.Name, i),
-				Name:     h.Name,
-				Amount:   h.Amount,
-				Duration: h.Duration,
-			}
-			r.addDryHop(id, &hop)
-		}
-	}
-	for i, a := range re.Fermentation.AdditionalIngredients {
-		hop := DryHop{
-			id:       fmt.Sprintf("%s_%d", a.Name, i),
-			Name:     a.Name,
-			Amount:   a.Amount,
-			Duration: a.Duration,
-		}
-		r.addDryHop(id, &hop)
-	}
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopStart", id))
-}
-
-// getDryHopStartHandler is the handler for the dry hop start page
-// this page allows to set notifications for the different dry hops and their times
-func (r *SecondaryFermentationRouter) getDryHopStartHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "dry_hop_start")
+	err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "dry_hop")
 	if err != nil {
 		return err
 	}
-	dr, err := r.getDryHops(id)
-	if err != nil {
+	ings := r.ingredientCache.getIngredients(id, re)
+	if len(ings) == 0 {
 		log.Info().Str("id", id).Err(err).Msg("Recipe has no dry hops")
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getPreBottle", id))
 	}
-	return c.Render(http.StatusOK, "secondary_dry_hop_start.html", map[string]interface{}{
-		"Title":    "Dry Hop",
-		"RecipeID": id,
-		"Subtitle": "Set the notifications for the dry hops",
-		"Hops":     dr,
+	err = r.Store.AddBoolFlag(id, "has_dry_hops", true)
+	if err != nil {
+		return err
+	}
+	for i, ing := range ings {
+		started, err := r.Store.RetrieveBoolFlag(id, "secondary_dry_hop_started_"+ing.SanitizedName)
+		if err != nil {
+			return err
+		}
+		ings[i].StartClickedOnce = started
+		startedDates, err := r.Store.RetrieveDates(id, "secondary_dry_hop_"+ing.SanitizedName)
+		if err != nil {
+			return err
+		}
+		if len(startedDates) == 0 {
+			ings[i].TimeElapsed = 0
+		} else {
+			startDate := *startedDates[0]
+			since := time.Since(startDate).Hours()
+			ings[i].TimeElapsed = float32(since)
+		}
+	}
+	return c.Render(http.StatusOK, "secondary_dry_hop.html", map[string]interface{}{
+		"Title":       "Dry Hopping",
+		"Subtitle":    "Add hops and other ingredients into the fermented wort",
+		"RecipeID":    id,
+		"Ingredients": ings,
 	})
 }
 
-// postDryHopStartHandler is the handler for the dry hop start page
-func (r *SecondaryFermentationRouter) postDryHopStartHandler(c echo.Context) error {
+func (r *SecondaryFermentationRouter) postDryHopInHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	var req ReqPostDryHopStart
+	var req ReqPostDryHopIn
 	err := c.Bind(&req)
 	if err != nil {
 		return err
-	}
-	dr, err := r.getDryHops(id)
-	if err != nil {
-		return err
-	}
-	dh, ok := dr[req.ID]
-	if !ok {
-		return fmt.Errorf("dry hop with id %s not found", req.ID)
 	}
 	now := time.Now()
-	var notificationDate time.Time
-	switch req.TimeUnit {
-	case "days":
-		notificationDate = now.AddDate(0, 0, req.NotificationTime)
-	case "seconds": // This is mainly for testing
-		notificationDate = now.Add(time.Duration(req.NotificationTime) * time.Second)
-	default:
-		return fmt.Errorf("unknown time unit %s", req.TimeUnit)
-	}
-	w := watcher.NewWatcher(notificationDate, func() error {
-		log.Info().Msgf("dry hop notification triggered for hop %s", dh.Name)
-		return r.sendNotification(fmt.Sprintf("Dry hop %s", dh.Name), "Dry hop", nil)
-	})
-	err = r.addDryHopNotification(id, req.ID, w)
+	err = r.Store.AddDate(id, &now, "secondary_dry_hop_"+req.IngredientName)
 	if err != nil {
 		return err
 	}
-	w.Start()
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopStart", id))
-}
-
-// getDryHopConfirmHandler is the handler for the dry hop confirm page
-// this page asks for confirmation of the dry hop and shows remaining time of the notification
-func (r *SecondaryFermentationRouter) getDryHopConfirmHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "dry_hop_confirm")
+	err = r.Store.AddBoolFlag(id, "secondary_dry_hop_started_"+req.IngredientName, true)
 	if err != nil {
 		return err
 	}
-	not, err := r.getDryHopNotifications(id)
+	err = r.TLStore.AddEvent(id, "Added dry ingredient "+req.IngredientName)
 	if err != nil {
 		return err
 	}
-	dr, err := r.getDryHops(id)
+	err = r.SummaryStore.AddDryHopStart(id, req.IngredientName, req.RealAmount, req.RealAlpha, "") //TODO: Support notes here?
 	if err != nil {
 		return err
 	}
-	return c.Render(http.StatusOK, "secondary_dry_hop_confirm.html", map[string]interface{}{
-		"Title":         "Dry Hop",
-		"Subtitle":      "Confirm the dry hop",
-		"RecipeID":      id,
-		"Notifications": not,
-		"Hops":          dr,
-	})
-}
-
-// postDryHopConfirmHandler is the handler for the dry hop confirm page
-func (r *SecondaryFermentationRouter) postDryHopConfirmHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	var req ReqPostDryHopConfirm
-	err := c.Bind(&req)
-	if err != nil {
-		return err
-	}
-	dr, err := r.getDryHops(id)
-	if err != nil {
-		return err
-	}
-	dh, ok := dr[req.ID]
-	if !ok {
-		return fmt.Errorf("dry hop with id %s not found", req.ID)
-	}
-	not, err := r.getDryHopNotifications(id)
-	if err != nil {
-		return err
-	}
-	w, ok := not[req.ID]
-	if ok {
-		w.Stop()
-	}
-	dh.In = true
-	dh.InDate = time.Now().Format("2006-01-02 15:04")
-	err = r.addTimelineEvent(id, fmt.Sprintf("Added dry hop %s", dh.Name))
-	if err != nil {
-		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
-	}
-	err = r.addSummaryDryHop(id, dh.Name, req.Amount, req.Alpha, req.Days, req.Notes)
-	if err != nil {
-		log.Error().Str("id", id).Err(err).Msg("could not add summary dry hop")
-	}
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHopConfirm", id))
+	return c.NoContent(http.StatusOK)
 }
 
 // getPreBottleHandler is the handler for the pre bottle page
@@ -323,6 +230,7 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 	)
 	realCO2 := tools.CarbonationForSugar(req.RealVolume, req.SugarAmount, req.Temperature, req.SugarType)
 	err = r.addSummaryBottle(id, realCO2, realAlcohol, req.SugarAmount, req.Temperature, req.RealVolume, req.SugarType, req.Notes)
+	// TODO: Add the bottling time now that i have it, add also to the stats
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add summary bottle")
 	}
@@ -331,6 +239,37 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 		return err
 	}
 	r.addTimelineEvent(id, "Bottled")
+	// Now, we calculate the duration of the dry hops based on the time now minus the time it took to bottle
+	// we assume when bottling starts, dry hopping ends
+	hasDryHops, err := r.Store.RetrieveBoolFlag(id, "has_dry_hops")
+	if err != nil {
+		return err
+	}
+	if hasDryHops {
+		re, err := r.Store.Retrieve(id)
+		if err != nil {
+			return err
+		}
+		ings := r.ingredientCache.getIngredients(id, re)
+		for _, ing := range ings {
+			var since float32
+			startedDates, err := r.Store.RetrieveDates(id, "secondary_dry_hop_"+ing.SanitizedName)
+			if err != nil {
+				return err
+			}
+			if len(startedDates) == 0 {
+				since = 0
+			} else {
+				startDate := *startedDates[0]
+				since = float32(time.Since(startDate).Minutes())
+			}
+			realDuration := since - req.Time
+			err = r.SummaryStore.AddDryHopEnd(id, ing.SanitizedName, realDuration/60)
+			if err != nil {
+				return err
+			}
+		}
+	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationStart", id))
 }
 
