@@ -11,6 +11,7 @@ import (
 	"brewday/internal/routers/mash"
 	"brewday/internal/routers/recipes"
 	secondaryferm "brewday/internal/routers/secondary_ferm"
+	"brewday/internal/routers/stats"
 	summary "brewday/internal/routers/summary"
 	"context"
 	"io/fs"
@@ -122,6 +123,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
+		&stats.StatsRouter{},
 	}
 	a.RegisterStaticFiles()
 	err := a.RegisterTemplates()
