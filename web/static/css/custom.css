@@ -21,6 +21,10 @@ footer {
     background-color: #082032;
 }
 
+.sidenav .subheader {
+    font-size: x-large;
+}
+
 .sidenav li>a,
 .sidenav li>a>i.material-icons,
 .sidenav .subheader {

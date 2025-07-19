@@ -1,6 +1,6 @@
 # BrewDay
 
-![logo](https://github.com/juan-castrillon/brewday/assets/64461123/e731b058-5592-46b5-ac2a-6cd0d6416127)
+![logo](web/static/images/logo_new_250_black.png)
 
 
 
