@@ -1,4 +1,4 @@
-FROM golang:1.20-bookworm as builder
+FROM golang:1.24-bookworm as builder
 ARG VERSION
 ENV GO_PROXY=https://proxy.golang.org
 WORKDIR /app

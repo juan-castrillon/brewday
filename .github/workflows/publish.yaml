@@ -20,7 +20,7 @@ jobs:
             platform: linux/arm64
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Set up QEMU (for arm64 builds on x86_64 runners)
         uses: docker/setup-qemu-action@v3
         with:
@@ -34,7 +34,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
       - name: Extract metadata for docker image
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ matrix.image }}
       - name: Push to Docker Hub
