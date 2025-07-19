@@ -106,7 +106,7 @@ func (r *SecondaryFermentationRouter) checkWatchers(id string) error {
 			notMessage = "Time to put bottles in the fridge"
 		}
 		watcher.NewWatcher(*dates[0], func() error {
-			log.Info().Msgf(logMessage)
+			log.Info().Msgf("%s", logMessage)
 			return r.sendNotification(notMessage, "Secondary Fermentation "+re.Name, nil)
 		}).Start()
 		r.addWatchersSet(id)
