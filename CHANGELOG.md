@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.5] - 2025-07-19
+
+### Changed
+- Updated to go 1.24
+- Update dependencies
+  - `github.com/knadh/koanf/parsers/yaml` v0.1.0 -> v1.1.0
+  - `github.com/knadh/koanf/providers/env` v0.1.0 -> v1.1.0
+  - `github.com/knadh/koanf/providers/file` v0.1.0 -> v1.2.0
+  - `github.com/knadh/koanf/v2` v2.0.1 -> v2.2.2
+  - `github.com/labstack/echo/v4` v.11.1 -> v4.13.4
+  - `github.com/mattn/go-sqlite3` v.1.14.22 -> v1.14.28
+  - `github.com/rs/zerolog` v1.30.0 -> v1.34.0
+  - `github.com/stretchr/testify` v.1.8.4 -> v1.10.0
+- Update actions in pipeline to latest
+- Update gotify recommendation
+
 ## [2.0.4] - 2025-07-19
 
 ### Changed
