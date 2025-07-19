@@ -11,16 +11,24 @@
             </div>
         </div>
     </nav>
-    <div class="container"><a href="#" data-target="nav-mobile" class="top-nav sidenav-trigger full hide-on-large-only"><i class="material-icons">menu</i></a></div>
+    <div class="container"><a href="#" data-target="nav-mobile"
+            class="top-nav sidenav-trigger full hide-on-large-only"><i class="material-icons">menu</i></a></div>
     <ul id="nav-mobile" class="sidenav sidenav-fixed">
-        <li class="logo sidenav-elem"><img src='{{ static "images/logo_128.png" }}' alt=""></li>
-        <li><div class="divider"></div></li>
+        <li class="logo sidenav-elem"><img src='{{ static "images/logo_new_250_black.png" }}' alt=""></li>
+        <li>
+            <div class="divider"></div>
+        </li>
         <li><a class="subheader sidenav-sub">Recipes</a></li>
-        <li><a href='{{ reverse "getImport" }}' class="sidenav-elem"><i class="material-icons">publish</i>Import Recipe</a></li>
-        <li><a href='{{ reverse "getRecipes" }}' class="sidenav-elem"><i class="material-icons">sports_bar</i>Recipes</a></li>
-        <li><div class="divider"></div></li>
+        <li><a href='{{ reverse "getImport" }}' class="sidenav-elem"><i class="material-icons">publish</i>Import
+                Recipe</a></li>
+        <li><a href='{{ reverse "getRecipes" }}' class="sidenav-elem"><i
+                    class="material-icons">sports_bar</i>Recipes</a></li>
+        <li>
+            <div class="divider"></div>
+        </li>
         <li><a class="subheader sidenav-sub">Links</a></li>
-        <li><a href='https://juan-castrillon.github.io/mybeer/' target="_blank" class="sidenav-elem"><i class="material-icons">article</i>Blog</a></li>
+        <li><a href='https://juan-castrillon.github.io/mybeer/' target="_blank" class="sidenav-elem"><i
+                    class="material-icons">article</i>Blog</a></li>
     </ul>
 </header>
 
