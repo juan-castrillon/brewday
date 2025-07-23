@@ -1,35 +1,21 @@
 package stats
 
-import "github.com/labstack/echo/v4"
+import (
+	"brewday/internal/summary"
+	"errors"
+
+	"github.com/labstack/echo/v4"
+)
 
 type StatsRouter struct {
-	SummaryStore SummaryStore
+	StatsStore StatsStore
 }
 
-func (r *StatsRouter) getStats() ([]*RecipeStats, error) {
-	// ids, err := r.SummaryStore.GetAllSummaries()
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// res := []*RecipeStats{}
-	// for _, id := range ids {
-	// 	s, err := r.SummaryStore.GetSummary(id)
-	// 	if err != nil {
-	// 		return nil, err
-	// 	}
-	// 	res = append(res, &RecipeStats{
-	// 		Evaporation: s.Statistics.Evaporation,
-	// 		Efficiency:  s.Statistics.Efficiency,
-	// 	})
-	// }
-	res := []*RecipeStats{{
-		Evaporation: 30,
-		Efficiency:  65,
-	}, {
-		Evaporation: 20,
-		Efficiency:  72,
-	}}
-	return res, nil
+func (r *StatsRouter) getStats() (map[string]*summary.Statistics, error) {
+	if r.StatsStore != nil {
+		return r.StatsStore.GetAllStats()
+	}
+	return nil, errors.New("summary store not configured")
 }
 
 // RegisterRoutes registers the routes for the stats router

@@ -123,7 +123,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
-		&stats.StatsRouter{},
+		&stats.StatsRouter{
+			StatsStore: ss,
+		},
 	}
 	a.RegisterStaticFiles()
 	err := a.RegisterTemplates()

@@ -61,13 +61,13 @@ func createTables(db *sql.DB) error {
 	_, err = db.Exec(`
 		CREATE TABLE IF NOT EXISTS stats (
 			id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-			recipe_id INTEGER NOT NULL UNIQUE,
+			recipe_title TEXT UNIQUE,
 			evaporation REAL,
 			efficiency REAL
 	)`) // Eventually here we can create an index if we want to search for particular stats
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_summaries ON stats (recipe_id)`)
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_stats ON stats (recipe_title)`)
 	return err
 }

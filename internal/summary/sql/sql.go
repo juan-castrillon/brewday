@@ -2,6 +2,7 @@ package sql
 
 import (
 	"brewday/internal/summary"
+	"brewday/internal/tools"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -29,7 +30,7 @@ func (s *SummaryPersistentStore) AddSummary(recipeID, title string) error {
 	if err != nil {
 		return err
 	}
-	_, err = s.dbClient.Exec(`INSERT INTO stats (recipe_id) VALUES (?)`, recipeID)
+	_, err = s.dbClient.Exec(`INSERT INTO stats (recipe_title) VALUES (?)`, tools.B64Encode(title))
 	return err
 }
 
@@ -261,12 +262,28 @@ func (s *SummaryPersistentStore) AddSummarySecondary(id string, days int, notes 
 	return err
 }
 
+func (s *SummaryPersistentStore) getRecipeTitleB64(id string) (string, error) {
+	if id == "" {
+		return "", errors.New("invalid empty recipe id")
+	}
+	var title string
+	err := s.dbClient.QueryRow(`SELECT title FROM summaries WHERE recipe_id == ?`, id).Scan(&title)
+	if err != nil {
+		return "", err
+	}
+	return tools.B64Encode(title), nil
+}
+
 // AddEvaporation adds an evaporation to the summary
 func (s *SummaryPersistentStore) AddEvaporation(id string, amount float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	_, err := s.dbClient.Exec(`UPDATE stats SET evaporation = ? WHERE recipe_id == ?`, amount, id)
+	t, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE stats SET evaporation = ? WHERE recipe_title == ?`, amount, t)
 	return err
 }
 
@@ -275,7 +292,11 @@ func (s *SummaryPersistentStore) AddEfficiency(id string, efficiencyPercentage f
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	_, err := s.dbClient.Exec(`UPDATE stats SET efficiency = ? WHERE recipe_id == ?`, efficiencyPercentage, id)
+	t, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE stats SET efficiency = ? WHERE recipe_title == ?`, efficiencyPercentage, t)
 	return err
 }
 
@@ -309,7 +330,7 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 	if err != nil {
 		return nil, err
 	}
-	err = s.dbClient.QueryRow(`SELECT evaporation, efficiency FROM stats WHERE recipe_id == ?`, id).Scan(&evaporation, &efficiency)
+	err = s.dbClient.QueryRow(`SELECT evaporation, efficiency FROM stats WHERE recipe_title == ?`, tools.B64Encode(title)).Scan(&evaporation, &efficiency)
 	if err != nil {
 		return nil, err
 	}
@@ -391,4 +412,24 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 		},
 	}, nil
 
+}
+
+// GetAllStats returns all the statistics
+func (s *SummaryPersistentStore) GetAllStats() (map[string]*summary.Statistics, error) {
+	rows, err := s.dbClient.Query(`SELECT recipe_title, evaporation, efficiency FROM stats`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	res := make(map[string]*summary.Statistics)
+	for rows.Next() {
+		r := summary.Statistics{}
+		var title string
+		err = rows.Scan(&title, &r.Evaporation, &r.Efficiency)
+		if err != nil {
+			return nil, err
+		}
+		res[title] = &r
+	}
+	return res, nil
 }

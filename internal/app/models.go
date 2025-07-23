@@ -101,6 +101,7 @@ type SummaryStore interface {
 	AddEvaporation(id string, amount float32) error
 	AddEfficiency(id string, efficiencyPercentage float32) error
 	GetSummary(id string) (*summary.Summary, error)
+	GetAllStats() (map[string]*summary.Statistics, error)
 }
 
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent

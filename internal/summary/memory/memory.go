@@ -2,6 +2,7 @@ package memory
 
 import (
 	"brewday/internal/summary"
+	"brewday/internal/tools"
 	"errors"
 	"sync"
 )
@@ -35,7 +36,7 @@ func (s *SummaryMemoryStore) AddSummary(recipeID, title string) error {
 	summ := summary.NewSummary()
 	summ.Title = title
 	s.summaries[recipeID] = summ
-	s.stats[recipeID] = summ.Statistics
+	s.stats[tools.B64Encode(title)] = summ.Statistics
 	return nil
 }
 
@@ -346,6 +347,14 @@ func (s *SummaryMemoryStore) AddSummarySecondary(id string, days int, notes stri
 	return nil
 }
 
+func (s *SummaryMemoryStore) getRecipeTitleB64(id string) (string, error) {
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return "", err
+	}
+	return tools.B64Encode(sum.Title), nil
+}
+
 // AddEvaporation adds an evaporation to the summary
 func (s *SummaryMemoryStore) AddEvaporation(id string, amount float32) error {
 	s.lock.Lock()
@@ -358,7 +367,11 @@ func (s *SummaryMemoryStore) AddEvaporation(id string, amount float32) error {
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Evaporation = amount
-	s.stats[id] = sum.Statistics
+	t, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	s.stats[t] = sum.Statistics
 	return nil
 }
 
@@ -374,7 +387,11 @@ func (s *SummaryMemoryStore) AddEfficiency(id string, efficiencyPercentage float
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Efficiency = efficiencyPercentage
-	s.stats[id] = sum.Statistics
+	t, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	s.stats[t] = sum.Statistics
 	return nil
 }
 
@@ -390,6 +407,6 @@ func (s *SummaryMemoryStore) GetSummary(id string) (*summary.Summary, error) {
 }
 
 // GetAllStats returns all the statistics
-func (s *SummaryMemoryStore) GetAllStats() ([]*summary.Statistics, error) {
-	return nil, nil
+func (s *SummaryMemoryStore) GetAllStats() (map[string]*summary.Statistics, error) {
+	return s.stats, nil
 }

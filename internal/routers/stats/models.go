@@ -2,14 +2,8 @@ package stats
 
 import "brewday/internal/summary"
 
-// SummaryStore represents a component that stores summaries
-type SummaryStore interface {
-	GetAllSummaries() ([]string, error)
-	GetSummary(id string) (*summary.Summary, error)
-}
-
-// RecipeStats represent important statistics for a recipe
-type RecipeStats struct {
-	Evaporation float32
-	Efficiency  float32
+// StatsStore represents a component that stores summaries
+type StatsStore interface {
+	// GetAllStats returns all the statistics mapped with the b64 representation of the recipe title
+	GetAllStats() (map[string]*summary.Statistics, error)
 }
