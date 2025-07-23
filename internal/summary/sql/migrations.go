@@ -62,6 +62,7 @@ func createTables(db *sql.DB) error {
 		CREATE TABLE IF NOT EXISTS stats (
 			id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
 			recipe_title TEXT UNIQUE,
+			finished_epoch INTEGER,
 			evaporation REAL,
 			efficiency REAL
 	)`) // Eventually here we can create an index if we want to search for particular stats

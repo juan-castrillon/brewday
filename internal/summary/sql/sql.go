@@ -6,6 +6,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -416,7 +417,7 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 
 // GetAllStats returns all the statistics
 func (s *SummaryPersistentStore) GetAllStats() (map[string]*summary.Statistics, error) {
-	rows, err := s.dbClient.Query(`SELECT recipe_title, evaporation, efficiency FROM stats`)
+	rows, err := s.dbClient.Query(`SELECT recipe_title, evaporation, efficiency, finished_epoch FROM stats`)
 	if err != nil {
 		return nil, err
 	}
@@ -425,11 +426,26 @@ func (s *SummaryPersistentStore) GetAllStats() (map[string]*summary.Statistics, 
 	for rows.Next() {
 		r := summary.Statistics{}
 		var title string
-		err = rows.Scan(&title, &r.Evaporation, &r.Efficiency)
+		var epoch sql.NullInt64
+		err = rows.Scan(&title, &r.Evaporation, &r.Efficiency, &epoch)
 		if err != nil {
 			return nil, err
 		}
+		r.FinishedTime = time.Unix(s.valueFromNullInt64(epoch), 0)
 		res[title] = &r
 	}
 	return res, nil
+}
+
+// AddFinishedTime adds the time when the recipe was done, mainly for statistics
+func (s *SummaryPersistentStore) AddFinishedTime(id string, t time.Time) error {
+	if id == "" {
+		return errors.New("invalid empty recipe id")
+	}
+	title, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE stats SET finished_epoch = ? WHERE recipe_title == ?`, t.Unix(), title)
+	return err
 }

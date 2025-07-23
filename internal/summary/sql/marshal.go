@@ -61,3 +61,12 @@ func (s *SummaryPersistentStore) valueFromNullInt(value sql.NullInt32) int {
 	}
 	return 0
 }
+
+// valueFromNullInt64 is a helper method that will retrieve the value of an int stored in SQLite if not NULL
+// If the value is null in the db it will return 0
+func (s *SummaryPersistentStore) valueFromNullInt64(value sql.NullInt64) int64 {
+	if value.Valid {
+		return int64(value.Int64)
+	}
+	return 0
+}

@@ -5,6 +5,7 @@ import (
 	"brewday/internal/tools"
 	"errors"
 	"sync"
+	"time"
 )
 
 type SummaryMemoryStore struct {
@@ -347,14 +348,6 @@ func (s *SummaryMemoryStore) AddSummarySecondary(id string, days int, notes stri
 	return nil
 }
 
-func (s *SummaryMemoryStore) getRecipeTitleB64(id string) (string, error) {
-	sum, err := s.getSummary(id)
-	if err != nil {
-		return "", err
-	}
-	return tools.B64Encode(sum.Title), nil
-}
-
 // AddEvaporation adds an evaporation to the summary
 func (s *SummaryMemoryStore) AddEvaporation(id string, amount float32) error {
 	s.lock.Lock()
@@ -367,11 +360,7 @@ func (s *SummaryMemoryStore) AddEvaporation(id string, amount float32) error {
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Evaporation = amount
-	t, err := s.getRecipeTitleB64(id)
-	if err != nil {
-		return err
-	}
-	s.stats[t] = sum.Statistics
+	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
 	return nil
 }
 
@@ -387,11 +376,7 @@ func (s *SummaryMemoryStore) AddEfficiency(id string, efficiencyPercentage float
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Efficiency = efficiencyPercentage
-	t, err := s.getRecipeTitleB64(id)
-	if err != nil {
-		return err
-	}
-	s.stats[t] = sum.Statistics
+	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
 	return nil
 }
 
@@ -409,4 +394,20 @@ func (s *SummaryMemoryStore) GetSummary(id string) (*summary.Summary, error) {
 // GetAllStats returns all the statistics
 func (s *SummaryMemoryStore) GetAllStats() (map[string]*summary.Statistics, error) {
 	return s.stats, nil
+}
+
+// AddFinishedTime adds the time when the recipe was done, mainly for statistics
+func (s *SummaryMemoryStore) AddFinishedTime(id string, t time.Time) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return err
+	}
+	if sum.Statistics == nil {
+		sum.Statistics = &summary.Statistics{}
+	}
+	sum.Statistics.FinishedTime = t
+	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
+	return nil
 }

@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 )
@@ -1940,16 +1941,16 @@ func TestGetAllStats(t *testing.T) {
 			Name:  "One stat",
 			Error: false,
 			Stats: map[string]*summary.Statistics{
-				"1": {Evaporation: 62, Efficiency: 73.1},
+				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(150, 0)},
 			},
 		},
 		{
 			Name:  "Multiple stats",
 			Error: false,
 			Stats: map[string]*summary.Statistics{
-				"1": {Evaporation: 62, Efficiency: 73.1},
-				"2": {Evaporation: 63, Efficiency: 74.1},
-				"3": {Evaporation: 64, Efficiency: 72.1},
+				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(152, 0)},
+				"2": {Evaporation: 63, Efficiency: 74.1, FinishedTime: time.Unix(154, 0)},
+				"3": {Evaporation: 64, Efficiency: 72.1, FinishedTime: time.Unix(156, 0)},
 			},
 		},
 		{
@@ -1995,6 +1996,80 @@ func storeStats(stats map[string]*summary.Statistics, store *SummaryPersistentSt
 		if err != nil {
 			return err
 		}
+		err = store.AddFinishedTime(id, stat.FinishedTime)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func TestAddFinishedTime(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	store, err := NewSummaryPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT finished_epoch FROM stats WHERE recipe_title = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name        string
+		RecipeID    string
+		RecipeTitle string
+		Finished    int64
+		SkipRead    bool
+		Error       bool
+	}{
+		{
+			Name:        "Valid Inputs",
+			RecipeID:    "1",
+			RecipeTitle: "t1",
+			Finished:    150,
+			Error:       false,
+		}, {
+			Name:        "Empty RecipeID",
+			RecipeID:    "",
+			RecipeTitle: "",
+			Finished:    150,
+			Error:       true,
+		},
+		{
+			Name:        "SQL Injection in RecipeID",
+			RecipeID:    "123; DROP TABLE summaries;",
+			RecipeTitle: "t1",
+			Finished:    150,
+			Error:       true,
+			SkipRead:    true,
+		},
+		{
+			Name:        "Non-Existing RecipeID",
+			RecipeID:    "999",
+			RecipeTitle: "t1",
+			Finished:    150,
+			Error:       true,
+			SkipRead:    true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddFinishedTime(tc.RecipeID, time.Unix(tc.Finished, 0))
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var epoch int64
+					require.NoError(getSt.QueryRow(tools.B64Encode(tc.RecipeTitle)).Scan(&epoch))
+					require.Equal(tc.Finished, epoch)
+				}
+			}
+		})
+	}
 }
