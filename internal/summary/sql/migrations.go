@@ -6,8 +6,10 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// createTable will create the summaries table and initialize the foreign key constrain with the recipes table
-func createTable(db *sql.DB) error {
+// createTables will create:
+// - the summaries table and initialize the foreign key constrain with the recipes table
+// - the stats table that is not constrained by a recipe
+func createTables(db *sql.DB) error {
 	_, err := db.Exec(`
 	CREATE TABLE IF NOT EXISTS summaries (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -53,5 +55,19 @@ func createTable(db *sql.DB) error {
 		return err
 	}
 	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_summaries ON summaries (recipe_id)`)
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS stats (
+			id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+			recipe_id INTEGER NOT NULL UNIQUE,
+			evaporation REAL,
+			efficiency REAL
+	)`) // Eventually here we can create an index if we want to search for particular stats
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_summaries ON stats (recipe_id)`)
 	return err
 }

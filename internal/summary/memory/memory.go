@@ -9,11 +9,13 @@ import (
 type SummaryMemoryStore struct {
 	lock      sync.Mutex
 	summaries map[string]*summary.Summary
+	stats     map[string]*summary.Statistics // In here stats is a backup, in case the summary is deleted
 }
 
 func NewSummaryMemoryStore() *SummaryMemoryStore {
 	return &SummaryMemoryStore{
 		summaries: make(map[string]*summary.Summary),
+		stats:     make(map[string]*summary.Statistics),
 	}
 }
 
@@ -33,6 +35,7 @@ func (s *SummaryMemoryStore) AddSummary(recipeID, title string) error {
 	summ := summary.NewSummary()
 	summ.Title = title
 	s.summaries[recipeID] = summ
+	s.stats[recipeID] = summ.Statistics
 	return nil
 }
 
@@ -355,6 +358,7 @@ func (s *SummaryMemoryStore) AddEvaporation(id string, amount float32) error {
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Evaporation = amount
+	s.stats[id] = sum.Statistics
 	return nil
 }
 
@@ -370,6 +374,7 @@ func (s *SummaryMemoryStore) AddEfficiency(id string, efficiencyPercentage float
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Efficiency = efficiencyPercentage
+	s.stats[id] = sum.Statistics
 	return nil
 }
 
@@ -382,4 +387,9 @@ func (s *SummaryMemoryStore) GetSummary(id string) (*summary.Summary, error) {
 		return nil, err
 	}
 	return sum, nil
+}
+
+// GetAllStats returns all the statistics
+func (s *SummaryMemoryStore) GetAllStats() ([]*summary.Statistics, error) {
+	return nil, nil
 }
