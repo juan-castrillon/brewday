@@ -8,18 +8,27 @@
             </div>
             <br>
         </div>
+        {{ if not .Stats }}
         <div class="row">
             <div class="col s12">
-                <h5>See all statistics over time of recipes in the DB</h5>
-            </div>
-        </div>
-        <div class="row">
-            <div class="col s12">
-                {{ range $s := .Stats }}
-                <p>Evap:{{ $s.Evaporation }} - Eff:{{ $s.Efficiency }}</p>
-                {{ end }}
+                <p>No recipes found!</p>
             </div>
         </div>
     </div>
 </main>
+{{ else }}
+<div class="row">
+    <div class="col s12">
+        <canvas id="myChart"></canvas>
+    </div>
+</div>
+<div class="row">
+    <div class="col s12">
+        <p>{{ .Stats | toJSON }}</p>
+    </div>
+</div>
+</div>
+</main>
+{{ template "stats_dashboard" . }}
+{{ end }}
 {{ template "footer" . }}

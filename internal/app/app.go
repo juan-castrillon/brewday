@@ -14,6 +14,8 @@ import (
 	"brewday/internal/routers/stats"
 	summary "brewday/internal/routers/summary"
 	"context"
+	"encoding/json"
+	"html/template"
 	"io/fs"
 	"math"
 	"net/url"
@@ -159,6 +161,10 @@ func (a *App) RegisterTemplates() error {
 	})
 	a.renderer.AddFunc("urlEncode", func(s string) string {
 		return url.QueryEscape(s)
+	})
+	a.renderer.AddFunc("toJSON", func(o any) (template.JS, error) {
+		b, err := json.Marshal(o)
+		return template.JS(b), err
 	})
 
 	fs := echo.MustSubFS(a.staticFs, "web/template")
