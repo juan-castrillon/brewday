@@ -8,6 +8,12 @@
             </div>
             <br>
         </div>
+        <div class="row">
+            <div class="col s12">
+                <a class="waves-effect waves-light btn"><i class="material-icons left">add_circle</i>Add stats from past
+                    recipe</a>
+            </div>
+        </div>
         {{ if not .Stats }}
         <div class="row">
             <div class="col s12">
@@ -19,12 +25,32 @@
 {{ else }}
 <div class="row">
     <div class="col s12">
-        <canvas id="myChart"></canvas>
+        <h3>Efficiency</h3>
+    </div>
+    <div class="col s12 divider"></div>
+    <div class="col s9">
+        <canvas id="efficiencyChart"></canvas>
+    </div>
+    <div class="col s3 center-align">
+        <div class="kpi-card">
+            <h2 class="kpi-value"><span id="efficiencyAvg"></span>%</h2>
+            <p class="kpi-label">Average</p>
+        </div>
     </div>
 </div>
 <div class="row">
     <div class="col s12">
-        <p>{{ .Stats | toJSON }}</p>
+        <h3>Evaporation</h3>
+    </div>
+    <div class="col s12 divider"></div>
+    <div class="col s9">
+        <canvas id="evaporationChart"></canvas>
+    </div>
+    <div class="col s3 center-align">
+        <div class="kpi-card">
+            <h2 class="kpi-value"><span id="evaporationAvg"></span>%/H</h2>
+            <p class="kpi-label">Average</p>
+        </div>
     </div>
 </div>
 </div>
