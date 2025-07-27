@@ -10,9 +10,49 @@
         </div>
         <div class="row">
             <div class="col s12">
-                <a class="waves-effect waves-light btn"><i class="material-icons left">add_circle</i>Add stats from past
+                <a class="waves-effect waves-light btn modal-trigger" href="#modal1"><i
+                        class="material-icons left">add_circle</i>Add
+                    stats from past
                     recipe</a>
             </div>
+        </div>
+        <div id="modal1" class="modal">
+            <div class="row modal-content">
+                <form class="col s12" action='{{ reverse "postAddExtStat" }}' method="post"
+                    enctype="multipart/form-data">
+                    <div class="row center-align">
+                        <h4>Add stats</h4>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">book</i>
+                            <input type="text" id="name" name="name">
+                            <label for="name">Name of the recipe</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">gps_fixed</i>
+                            <input type="text" id="efficiency" name="efficiency">
+                            <label for="name">Efficiency (%)</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">hot_tub</i>
+                            <input type="text" id="evaporation" name="evaporation">
+                            <label for="name">Evaporation (%)</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">date_range</i>
+                            <input type="text" class="datepicker" id="finished" name="finished">
+                            <label for="finished">Finished Date</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#!" class="modal-close waves-effect red btn">Cancel</a>
+                        <button class="btn waves-effect waves-light modal-close" type="submit" name="action"
+                            id="send_form">Submit
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
         {{ if not .Stats }}
         <div class="row">

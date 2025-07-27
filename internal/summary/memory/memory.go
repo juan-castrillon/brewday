@@ -411,3 +411,7 @@ func (s *SummaryMemoryStore) AddFinishedTime(id string, t time.Time) error {
 	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
 	return nil
 }
+
+func (s *SummaryMemoryStore) AddStats(recipeName string, stats *summary.Statistics) error {
+	return nil
+}

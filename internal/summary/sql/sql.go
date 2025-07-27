@@ -449,3 +449,7 @@ func (s *SummaryPersistentStore) AddFinishedTime(id string, t time.Time) error {
 	_, err = s.dbClient.Exec(`UPDATE stats SET finished_epoch = ? WHERE recipe_title == ?`, t.Unix(), title)
 	return err
 }
+
+func (s *SummaryPersistentStore) AddStats(recipeName string, stats *summary.Statistics) error {
+	return nil
+}
