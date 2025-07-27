@@ -64,32 +64,40 @@
 </main>
 {{ else }}
 <div class="row">
-    <div class="col s12">
-        <h3>Efficiency</h3>
-    </div>
-    <div class="col s12 divider"></div>
-    <div class="col s9">
-        <canvas id="efficiencyChart"></canvas>
-    </div>
-    <div class="col s3 center-align">
-        <div class="kpi-card">
-            <h2 class="kpi-value"><span id="efficiencyAvg"></span>%</h2>
-            <p class="kpi-label">Average</p>
+    <div class="col s6">
+        <div class="card small">
+            <div class="card-content">
+                <span class="card-title">Efficiency</span>
+                <div class="row">
+                    <div class="col s8">
+                        <canvas id="efficiencyChart"></canvas>
+                    </div>
+                    <div class="col s4 center-align">
+                        <div class="kpi-card">
+                            <h2 class="kpi-value"><span id="efficiencyAvg"></span>%</h2>
+                            <p class="kpi-label">Average</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<div class="row">
-    <div class="col s12">
-        <h3>Evaporation</h3>
-    </div>
-    <div class="col s12 divider"></div>
-    <div class="col s9">
-        <canvas id="evaporationChart"></canvas>
-    </div>
-    <div class="col s3 center-align">
-        <div class="kpi-card">
-            <h2 class="kpi-value"><span id="evaporationAvg"></span>%/h</h2>
-            <p class="kpi-label">Average</p>
+    <div class="col s6">
+        <div class="card small">
+            <div class="card-content">
+                <span class="card-title">Evaporation</span>
+                <div class="row">
+                    <div class="col s8">
+                        <canvas id="evaporationChart"></canvas>
+                    </div>
+                    <div class="col s4 center-align">
+                        <div class="kpi-card">
+                            <h2 class="kpi-value"><span id="evaporationAvg"></span>%/h</h2>
+                            <p class="kpi-label">Average</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </div>

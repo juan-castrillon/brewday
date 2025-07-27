@@ -9,7 +9,7 @@ import (
 // createTables will create:
 // - the summaries table and initialize the foreign key constrain with the recipes table
 // - the stats table that is not constrained by a recipe
-func createTables(db *sql.DB) error {
+func createTables(db *sql.DB) error { //TODO: Look into real migrations, for adding stats for example
 	_, err := db.Exec(`
 	CREATE TABLE IF NOT EXISTS summaries (
 		id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
