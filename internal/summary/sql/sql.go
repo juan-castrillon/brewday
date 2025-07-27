@@ -432,7 +432,11 @@ func (s *SummaryPersistentStore) GetAllStats() (map[string]*summary.Statistics, 
 			return nil, err
 		}
 		r.FinishedTime = time.Unix(s.valueFromNullInt64(epoch), 0)
-		res[title] = &r
+		titleDecoded, err := tools.B64Decode(title)
+		if err != nil {
+			return nil, err
+		}
+		res[titleDecoded] = &r
 	}
 	return res, nil
 }
@@ -451,5 +455,11 @@ func (s *SummaryPersistentStore) AddFinishedTime(id string, t time.Time) error {
 }
 
 func (s *SummaryPersistentStore) AddStats(recipeName string, stats *summary.Statistics) error {
-	return nil
+	_, err := s.dbClient.Exec(`INSERT INTO stats (recipe_title, finished_epoch, evaporation, efficiency) VALUES (?, ?, ?, ?)`,
+		tools.B64Encode(recipeName),
+		stats.FinishedTime.Unix(),
+		stats.Evaporation,
+		stats.Efficiency,
+	)
+	return err
 }

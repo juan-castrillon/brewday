@@ -393,7 +393,15 @@ func (s *SummaryMemoryStore) GetSummary(id string) (*summary.Summary, error) {
 
 // GetAllStats returns all the statistics
 func (s *SummaryMemoryStore) GetAllStats() (map[string]*summary.Statistics, error) {
-	return s.stats, nil
+	res := map[string]*summary.Statistics{}
+	for nb64, v := range s.stats {
+		decoded, err := tools.B64Decode(nb64)
+		if err != nil {
+			return nil, err
+		}
+		res[decoded] = v
+	}
+	return res, nil
 }
 
 // AddFinishedTime adds the time when the recipe was done, mainly for statistics
@@ -413,5 +421,6 @@ func (s *SummaryMemoryStore) AddFinishedTime(id string, t time.Time) error {
 }
 
 func (s *SummaryMemoryStore) AddStats(recipeName string, stats *summary.Statistics) error {
+	s.stats[tools.B64Encode(recipeName)] = stats
 	return nil
 }

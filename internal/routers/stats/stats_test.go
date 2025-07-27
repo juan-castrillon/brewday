@@ -37,7 +37,7 @@ func TestGetStats(t *testing.T) {
 		{
 			Name: "One summaries",
 			Store: map[string]*summary.Statistics{
-				"VGVzdDE=": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
+				"Test1": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
 			},
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: ptrFloat32(20.5), Efficiency: ptrFloat32(62.3), FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
@@ -47,8 +47,8 @@ func TestGetStats(t *testing.T) {
 		{
 			Name: "Two summaries",
 			Store: map[string]*summary.Statistics{
-				"VGVzdDE=": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
-				"VGVzdDI=": {Evaporation: 16.333, Efficiency: 72.84, FinishedTime: time.Unix(150000, 0)},
+				"Test1": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
+				"Test2": {Evaporation: 16.333, Efficiency: 72.84, FinishedTime: time.Unix(150000, 0)},
 			},
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: ptrFloat32(20.5), Efficiency: ptrFloat32(62.3), FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
@@ -71,7 +71,7 @@ func TestGetStats(t *testing.T) {
 		{
 			Name: "Summary with Efficiency 0",
 			Store: map[string]*summary.Statistics{
-				"VGVzdDE=": {Evaporation: 20.5, Efficiency: 0, FinishedTime: time.Unix(150, 0)},
+				"Test1": {Evaporation: 20.5, Efficiency: 0, FinishedTime: time.Unix(150, 0)},
 			},
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: ptrFloat32(20.5), Efficiency: nil, FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
@@ -81,7 +81,7 @@ func TestGetStats(t *testing.T) {
 		{
 			Name: "Summary with Evaporation 0",
 			Store: map[string]*summary.Statistics{
-				"VGVzdDE=": {Evaporation: 0, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
+				"Test1": {Evaporation: 0, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
 			},
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: nil, Efficiency: ptrFloat32(62.3), FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
@@ -124,7 +124,7 @@ func TestAddStats(t *testing.T) {
 				FinishedTimeString: "2025-12-25",
 			},
 			Expected: map[string]*summary.Statistics{
-				"VGVzdDE=": {
+				"Test1": {
 					Evaporation:  60.2,
 					Efficiency:   60.3,
 					FinishedTime: time.Date(2025, time.December, 25, 0, 0, 0, 0, time.UTC),
@@ -135,7 +135,7 @@ func TestAddStats(t *testing.T) {
 		{
 			Name: "Add recipe, non-empty store",
 			Store: map[string]*summary.Statistics{
-				"VGVzdDE=": {
+				"Test1": {
 					Evaporation:  60.2,
 					Efficiency:   60.3,
 					FinishedTime: time.Date(2025, time.December, 25, 0, 0, 0, 0, time.UTC),
@@ -148,12 +148,12 @@ func TestAddStats(t *testing.T) {
 				FinishedTimeString: "2025-12-25",
 			},
 			Expected: map[string]*summary.Statistics{
-				"VGVzdDE=": {
+				"Test1": {
 					Evaporation:  60.2,
 					Efficiency:   60.3,
 					FinishedTime: time.Date(2025, time.December, 25, 0, 0, 0, 0, time.UTC),
 				},
-				"VGVzdDI=": {
+				"Test2": {
 					Evaporation:  60.2,
 					Efficiency:   60.3,
 					FinishedTime: time.Date(2025, time.December, 25, 0, 0, 0, 0, time.UTC),

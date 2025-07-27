@@ -97,4 +97,17 @@
 </main>
 {{ template "stats_dashboard" . }}
 {{ end }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.modal');
+        var options = {};
+        var instances = M.Modal.init(elems, options);
+        var elems2 = document.querySelectorAll('.datepicker');
+        var options2 = {
+            autoClose: true,
+            format: 'yyyy-mm-dd'
+        };
+        var instances = M.Datepicker.init(elems2, options2);
+    });
+</script>
 {{ template "footer" . }}

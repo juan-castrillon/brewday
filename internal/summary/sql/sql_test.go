@@ -1975,7 +1975,7 @@ func TestGetAllStats(t *testing.T) {
 			} else {
 				require.NoError(err)
 				for title, stat := range tc.Stats {
-					require.Equal(stat, actualStats[tools.B64Encode(title)])
+					require.Equal(stat, actualStats[title])
 				}
 			}
 		})
@@ -2068,6 +2068,107 @@ func TestAddFinishedTime(t *testing.T) {
 					var epoch int64
 					require.NoError(getSt.QueryRow(tools.B64Encode(tc.RecipeTitle)).Scan(&epoch))
 					require.Equal(tc.Finished, epoch)
+				}
+			}
+		})
+	}
+}
+
+func TestAddStats(t *testing.T) {
+	require := require.New(t)
+	type toAdd struct {
+		Name string
+		Stat *summary.Statistics
+	}
+	testCases := []struct {
+		Name  string
+		ToAdd []toAdd
+		Error bool
+	}{
+		{
+			Name: "Add 1 stat",
+			ToAdd: []toAdd{
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  60,
+						Efficiency:   20,
+						FinishedTime: time.Unix(150, 0),
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Add 2 stat",
+			ToAdd: []toAdd{
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  60,
+						Efficiency:   20,
+						FinishedTime: time.Unix(150, 0),
+					},
+				},
+				{
+					Name: "Recipe2", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  70,
+						Efficiency:   50,
+						FinishedTime: time.Unix(150000, 0),
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Fail if repeated",
+			ToAdd: []toAdd{
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  60,
+						Efficiency:   20,
+						FinishedTime: time.Unix(150, 0),
+					},
+				},
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  70,
+						Efficiency:   50,
+						FinishedTime: time.Unix(150000, 0),
+					},
+				},
+			},
+			Error: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(t.Name()), "/", "_")) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			store, err := NewSummaryPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			errorCount := 0
+			for _, s := range tc.ToAdd {
+				err = store.AddStats(s.Name, s.Stat)
+				if err != nil {
+					errorCount++
+				}
+			}
+			if tc.Error {
+				require.NotZero(errorCount)
+			} else {
+				require.Zero(errorCount)
+				realStats, err := store.GetAllStats()
+				require.NoError(err)
+				for _, s := range tc.ToAdd {
+					stats, ok := realStats[s.Name]
+					require.True(ok)
+					require.Equal(s.Stat, stats)
 				}
 			}
 		})
