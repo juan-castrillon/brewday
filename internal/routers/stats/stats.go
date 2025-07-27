@@ -4,6 +4,7 @@ import (
 	"brewday/internal/summary"
 	"errors"
 	"net/http"
+	"sort"
 	"time"
 
 	"github.com/labstack/echo/v4"
@@ -31,6 +32,9 @@ func (r *StatsRouter) getStats() ([]StatEntry, error) {
 			FinishedTimeString: s.FinishedTime.Format("2006-01-02"),
 		})
 	}
+	sort.Slice(res, func(i, j int) bool {
+		return res[i].FinishedTimeEpoch < res[j].FinishedTimeEpoch
+	})
 	return res, nil
 
 }
