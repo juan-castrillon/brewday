@@ -127,6 +127,6 @@ func createBoolFlagsTable(db *sql.DB) error {
 	if err != nil {
 		return err
 	}
-	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_bool_flags ON dates (recipe_id, name)`)
+	_, err = db.Exec(`CREATE INDEX IF NOT EXISTS ix_bool_flags ON bool_flags (recipe_id, name)`)
 	return err
 }
