@@ -39,6 +39,7 @@ func (r *StatsRouter) getStats() ([]StatEntry, error) {
 
 }
 
+// TODO: call this after finishing a recipe to fill it automatically from now on
 func (r *StatsRouter) addStats(req *ReqPostAddStat) error {
 	if r.StatsStore == nil {
 		return errors.New("summary store not configured")
