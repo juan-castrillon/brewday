@@ -16,10 +16,6 @@ type SummaryPersistentStore struct {
 }
 
 func NewSummaryPersistentStore(db *sql.DB) (*SummaryPersistentStore, error) {
-	err := createTables(db)
-	if err != nil {
-		return nil, err
-	}
 	return &SummaryPersistentStore{
 		dbClient: db,
 	}, nil

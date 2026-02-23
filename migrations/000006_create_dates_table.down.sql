@@ -1,3 +1,0 @@
-DROP INDEX IF EXISTS ix_dates;
-
-DROP TABLE IF EXISTS "dates";

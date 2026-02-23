@@ -1,3 +1,0 @@
-DROP INDEX IF NOT EXISTS ix_summaries;
-
-DROP TABLE IF EXISTS "summaries";

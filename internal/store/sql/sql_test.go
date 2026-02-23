@@ -1,6 +1,7 @@
 package sql
 
 import (
+	dbmigrations "brewday/internal/db_migrations"
 	"brewday/internal/recipe"
 	"fmt"
 	"os"
@@ -65,6 +66,8 @@ func TestStoreAndRetrieve(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	err = dbmigrations.RunMigrations(db, "migrations")
 	require.NoError(err)
 	store, err := NewPersistentStore(db)
 	require.NoError(err)
@@ -161,6 +164,8 @@ func TestList(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testlist_"+tc.Name)) + ".sqlite"
 			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
 			require.NoError(err)
 			store, err := NewPersistentStore(db)
 			require.NoError(err)
@@ -262,6 +267,8 @@ func TestDelete(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testdelete_"+tc.Name)) + ".sqlite"
 			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
+			require.NoError(err)
 			store, err := NewPersistentStore(db)
 			require.NoError(err)
 			defer os.Remove(fileName)
@@ -292,6 +299,8 @@ func TestUpdateStatus(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	err = dbmigrations.RunMigrations(db, "migrations")
 	require.NoError(err)
 	store, err := NewPersistentStore(db)
 	require.NoError(err)
@@ -404,6 +413,8 @@ func TestUpdateResult(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
 			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
+			require.NoError(err)
 			store, err := NewPersistentStore(db)
 			require.NoError(err)
 			id, err := store.Store(&testRecipe)
@@ -485,6 +496,8 @@ func TestUpdateSGs(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
 			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
+			require.NoError(err)
 			store, err := NewPersistentStore(db)
 			require.NoError(err)
 			defer os.Remove(fileName)
@@ -549,6 +562,8 @@ func TestDates(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
 			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
 			require.NoError(err)
 			store, err := NewPersistentStore(db)
 			require.NoError(err)
@@ -639,6 +654,8 @@ func TestUpdateSugarResults(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
 			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
 			require.NoError(err)
 			store, err := NewPersistentStore(db)
 			require.NoError(err)
@@ -731,6 +748,8 @@ func TestBoolFlags(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			fileName := strings.ToLower(strings.TrimSpace("testupresult_"+tc.Name)) + ".sqlite"
 			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
 			require.NoError(err)
 			store, err := NewPersistentStore(db)
 			require.NoError(err)
