@@ -1,0 +1,3 @@
+DROP INDEX IF EXISTS ix_stats;
+
+DROP TABLE IF EXISTS "stats";

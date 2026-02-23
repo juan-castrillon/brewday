@@ -1,5 +1,5 @@
 CREATE TABLE
-    IF NOT EXISTS summaries (
+    IF NOT EXISTS "summaries" (
         id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
         mash_temp REAL,
@@ -36,3 +36,5 @@ CREATE TABLE
         recipe_id INTEGER NOT NULL,
         FOREIGN KEY (recipe_id) REFERENCES recipes (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
+
+CREATE INDEX IF NOT EXISTS ix_summaries ON "summaries" (recipe_id);
