@@ -86,6 +86,7 @@ func TestSeedDataMigrations(t *testing.T) {
 	db, err := sql.Open("sqlite3", ":memory:")
 	require.NoError(err)
 	err = RunMigrations(db, "migrations")
+	require.NoError(err)
 	testCases := []struct {
 		Name        string
 		Query       string
