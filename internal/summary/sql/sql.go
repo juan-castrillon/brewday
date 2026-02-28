@@ -40,8 +40,6 @@ func (s *SummaryPersistentStore) DeleteSummary(recipeID string) error {
 	return err
 }
 
-//TODO: Implement DeleteStats
-
 // AddMashTemp adds a mash temperature to the summary and notes related to it
 func (s *SummaryPersistentStore) AddMashTemp(id string, temp float32, notes string) error {
 	if id == "" {
