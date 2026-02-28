@@ -11,8 +11,11 @@ import (
 	"brewday/internal/routers/mash"
 	"brewday/internal/routers/recipes"
 	secondaryferm "brewday/internal/routers/secondary_ferm"
+	"brewday/internal/routers/stats"
 	summary "brewday/internal/routers/summary"
 	"context"
+	"encoding/json"
+	"html/template"
 	"io/fs"
 	"math"
 	"net/url"
@@ -122,6 +125,9 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
+		&stats.StatsRouter{
+			StatsStore: ss,
+		},
 	}
 	a.RegisterStaticFiles()
 	err := a.RegisterTemplates()
@@ -155,6 +161,10 @@ func (a *App) RegisterTemplates() error {
 	})
 	a.renderer.AddFunc("urlEncode", func(s string) string {
 		return url.QueryEscape(s)
+	})
+	a.renderer.AddFunc("toJSON", func(o any) (template.JS, error) {
+		b, err := json.Marshal(o)
+		return template.JS(b), err
 	})
 
 	fs := echo.MustSubFS(a.staticFs, "web/template")

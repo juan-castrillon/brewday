@@ -18,6 +18,7 @@ type SummaryStore interface {
 	AddPreBottlingVolume(id string, volume float32) error
 	AddBottling(id string, carbonation, alcohol, sugar, temp, vol float32, sugarType, notes string) error
 	AddSummarySecondary(id string, days int, notes string) error
+	AddFinishedTime(id string, t time.Time) error
 }
 
 // RecipeStore represents a component that stores recipes

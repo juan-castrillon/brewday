@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	dbmigrations "brewday/internal/db_migrations"
+
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 )
@@ -31,6 +33,8 @@ func TestAddEvent(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewTimelinePersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -110,6 +114,8 @@ func TestGetTimeline(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewTimelinePersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -185,6 +191,8 @@ func TestAddTimeline(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewTimelinePersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -239,6 +247,8 @@ func TestDeleteTimeline(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewTimelinePersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)

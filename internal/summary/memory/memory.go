@@ -2,18 +2,22 @@ package memory
 
 import (
 	"brewday/internal/summary"
+	"brewday/internal/tools"
 	"errors"
 	"sync"
+	"time"
 )
 
 type SummaryMemoryStore struct {
 	lock      sync.Mutex
 	summaries map[string]*summary.Summary
+	stats     map[string]*summary.Statistics // In here stats is a backup, in case the summary is deleted
 }
 
 func NewSummaryMemoryStore() *SummaryMemoryStore {
 	return &SummaryMemoryStore{
 		summaries: make(map[string]*summary.Summary),
+		stats:     make(map[string]*summary.Statistics),
 	}
 }
 
@@ -33,6 +37,7 @@ func (s *SummaryMemoryStore) AddSummary(recipeID, title string) error {
 	summ := summary.NewSummary()
 	summ.Title = title
 	s.summaries[recipeID] = summ
+	s.stats[tools.B64Encode(title)] = summ.Statistics
 	return nil
 }
 
@@ -355,6 +360,7 @@ func (s *SummaryMemoryStore) AddEvaporation(id string, amount float32) error {
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Evaporation = amount
+	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
 	return nil
 }
 
@@ -370,6 +376,7 @@ func (s *SummaryMemoryStore) AddEfficiency(id string, efficiencyPercentage float
 		sum.Statistics = &summary.Statistics{}
 	}
 	sum.Statistics.Efficiency = efficiencyPercentage
+	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
 	return nil
 }
 
@@ -382,4 +389,38 @@ func (s *SummaryMemoryStore) GetSummary(id string) (*summary.Summary, error) {
 		return nil, err
 	}
 	return sum, nil
+}
+
+// GetAllStats returns all the statistics
+func (s *SummaryMemoryStore) GetAllStats() (map[string]*summary.Statistics, error) {
+	res := map[string]*summary.Statistics{}
+	for nb64, v := range s.stats {
+		decoded, err := tools.B64Decode(nb64)
+		if err != nil {
+			return nil, err
+		}
+		res[decoded] = v
+	}
+	return res, nil
+}
+
+// AddFinishedTime adds the time when the recipe was done, mainly for statistics
+func (s *SummaryMemoryStore) AddFinishedTime(id string, t time.Time) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return err
+	}
+	if sum.Statistics == nil {
+		sum.Statistics = &summary.Statistics{}
+	}
+	sum.Statistics.FinishedTime = t
+	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
+	return nil
+}
+
+func (s *SummaryMemoryStore) AddStatsExternal(recipeName string, stats *summary.Statistics) error {
+	s.stats[tools.B64Encode(recipeName)] = stats
+	return nil
 }

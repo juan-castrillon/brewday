@@ -1,0 +1,121 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
+            <br>
+        </div>
+        <div class="row">
+            <div class="col s12">
+                <a class="waves-effect waves-light btn modal-trigger" href="#modal1"><i
+                        class="material-icons left">add_circle</i>Add
+                    stats from past
+                    recipe</a>
+            </div>
+        </div>
+        <div id="modal1" class="modal">
+            <div class="row modal-content">
+                <form class="col s12" action='{{ reverse "postAddExtStat" }}' method="post"
+                    enctype="multipart/form-data">
+                    <div class="row center-align">
+                        <h4>Add stats</h4>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">book</i>
+                            <input type="text" id="name" name="name">
+                            <label for="name">Name of the recipe</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">gps_fixed</i>
+                            <input type="text" id="efficiency" name="efficiency">
+                            <label for="name">Efficiency (%)</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">hot_tub</i>
+                            <input type="text" id="evaporation" name="evaporation">
+                            <label for="name">Evaporation (%)</label>
+                        </div>
+                        <div class="input-field col s12">
+                            <i class="material-icons prefix">date_range</i>
+                            <input type="text" class="datepicker" id="finished" name="finished">
+                            <label for="finished">Finished Date</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#!" class="modal-close waves-effect red btn">Cancel</a>
+                        <button class="btn waves-effect waves-light modal-close" type="submit" name="action"
+                            id="send_form">Submit
+                            <i class="material-icons right">send</i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+        {{ if not .Stats }}
+        <div class="row">
+            <div class="col s12">
+                <p>No recipes found!</p>
+            </div>
+        </div>
+    </div>
+</main>
+{{ else }}
+<div class="row">
+    <div class="col s6">
+        <div class="card small">
+            <div class="card-content">
+                <span class="card-title">Efficiency</span>
+                <div class="row">
+                    <div class="col s8">
+                        <canvas id="efficiencyChart"></canvas>
+                    </div>
+                    <div class="col s4 center-align">
+                        <div class="kpi-card">
+                            <h2 class="kpi-value"><span id="efficiencyAvg"></span>%</h2>
+                            <p class="kpi-label">Average</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col s6">
+        <div class="card small">
+            <div class="card-content">
+                <span class="card-title">Evaporation</span>
+                <div class="row">
+                    <div class="col s8">
+                        <canvas id="evaporationChart"></canvas>
+                    </div>
+                    <div class="col s4 center-align">
+                        <div class="kpi-card">
+                            <h2 class="kpi-value"><span id="evaporationAvg"></span>%/h</h2>
+                            <p class="kpi-label">Average</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+</main>
+{{ template "stats_dashboard" . }}
+{{ end }}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('.modal');
+        var options = {};
+        var instances = M.Modal.init(elems, options);
+        var elems2 = document.querySelectorAll('.datepicker');
+        var options2 = {
+            autoClose: true,
+            format: 'yyyy-mm-dd'
+        };
+        var instances = M.Datepicker.init(elems2, options2);
+    });
+</script>
+{{ template "footer" . }}

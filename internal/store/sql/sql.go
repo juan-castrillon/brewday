@@ -19,30 +19,6 @@ type PersistentStore struct {
 }
 
 func NewPersistentStore(db *sql.DB) (*PersistentStore, error) {
-	err := createTable(db)
-	if err != nil {
-		return nil, err
-	}
-	err = createResultsTable(db)
-	if err != nil {
-		return nil, err
-	}
-	err = createSGsTable(db)
-	if err != nil {
-		return nil, err
-	}
-	err = createTimeTable(db)
-	if err != nil {
-		return nil, err
-	}
-	err = createSugarResultsTable(db)
-	if err != nil {
-		return nil, err
-	}
-	err = createBoolFlagsTable(db)
-	if err != nil {
-		return nil, err
-	}
 	rs, err := db.Prepare(`SELECT 
 		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
 		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,

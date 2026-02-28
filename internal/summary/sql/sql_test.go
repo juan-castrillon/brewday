@@ -2,12 +2,16 @@ package sql
 
 import (
 	"brewday/internal/summary"
+	"brewday/internal/tools"
 	"database/sql"
 	"encoding/json"
 	"os"
 	"strconv"
 	"strings"
 	"testing"
+	"time"
+
+	dbmigrations "brewday/internal/db_migrations"
 
 	"github.com/stretchr/testify/require"
 )
@@ -32,6 +36,8 @@ func TestAddSummary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -108,6 +114,8 @@ func TestDeleteSummary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -181,6 +189,8 @@ func TestAddMashTemp(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -263,6 +273,8 @@ func TestAddRast(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -369,6 +381,8 @@ func TestAddLauternNotes(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -447,6 +461,8 @@ func TestAddHopping(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -560,6 +576,8 @@ func TestAddVolumeBeforeBoil(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -642,6 +660,8 @@ func TestAddVolumeAfterBoil(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -723,6 +743,8 @@ func TestAddCooling(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -809,6 +831,8 @@ func TestAddPreFermentationVolume(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -902,6 +926,8 @@ func TestAddYeastStart(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -987,6 +1013,8 @@ func TestAddMainFermentationAlcohol(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1052,6 +1080,8 @@ func TestAddPreBottlingVolume(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1117,6 +1147,8 @@ func TestAddBottling(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1249,6 +1281,8 @@ func TestAddSummarySecondary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1328,6 +1362,8 @@ func TestAddEvaporation(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1335,10 +1371,11 @@ func TestAddEvaporation(t *testing.T) {
 		num := strconv.Itoa(i)
 		require.NoError(store.AddSummary(num, "t"+num))
 	}
-	getSt, err := db.Prepare(`SELECT stats_evaporation FROM summaries WHERE recipe_id = ?`)
+	getSt, err := db.Prepare(`SELECT evaporation FROM stats WHERE recipe_title = ?`)
 	require.NoError(err)
 	testCases := []struct {
 		Name        string
+		RecipeTitle string
 		RecipeID    string
 		Evaporation float32
 		SkipRead    bool
@@ -1346,27 +1383,31 @@ func TestAddEvaporation(t *testing.T) {
 	}{
 		{
 			Name:        "Valid Inputs",
+			RecipeTitle: "t1",
 			RecipeID:    "1",
 			Evaporation: 16.66,
 			Error:       false,
 		}, {
-			Name:        "Empty RecipeID",
+			Name:        "Empty RecipeTitle",
+			RecipeTitle: "",
 			RecipeID:    "",
 			Evaporation: 16.66,
 			Error:       true,
 		},
 		{
 			Name:        "SQL Injection in RecipeID",
+			RecipeTitle: "t1",
 			RecipeID:    "123; DROP TABLE summaries;",
 			Evaporation: 16.66,
-			Error:       false,
+			Error:       true,
 			SkipRead:    true,
 		},
 		{
 			Name:        "Non-Existing RecipeID",
+			RecipeTitle: "999",
 			RecipeID:    "999",
 			Evaporation: 16.66,
-			Error:       false,
+			Error:       true,
 			SkipRead:    true,
 		},
 	}
@@ -1379,7 +1420,7 @@ func TestAddEvaporation(t *testing.T) {
 				require.NoError(err)
 				if !tc.SkipRead {
 					var evap float32
-					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&evap))
+					require.NoError(getSt.QueryRow(tools.B64Encode(tc.RecipeTitle)).Scan(&evap))
 					require.InDelta(tc.Evaporation, evap, 0.001)
 				}
 			}
@@ -1387,12 +1428,14 @@ func TestAddEvaporation(t *testing.T) {
 	}
 }
 
-func TestAddEfficency(t *testing.T) {
+func TestAddEfficiency(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1400,52 +1443,57 @@ func TestAddEfficency(t *testing.T) {
 		num := strconv.Itoa(i)
 		require.NoError(store.AddSummary(num, "t"+num))
 	}
-	getSt, err := db.Prepare(`SELECT stats_effiency FROM summaries WHERE recipe_id = ?`)
+	getSt, err := db.Prepare(`SELECT efficiency FROM stats WHERE recipe_title = ?`)
 	require.NoError(err)
 	testCases := []struct {
-		Name      string
-		RecipeID  string
-		Efficency float32
-		SkipRead  bool
-		Error     bool
+		Name        string
+		RecipeID    string
+		RecipeTitle string
+		Efficiency  float32
+		SkipRead    bool
+		Error       bool
 	}{
 		{
-			Name:      "Valid Inputs",
-			RecipeID:  "1",
-			Efficency: 16.66,
-			Error:     false,
+			Name:        "Valid Inputs",
+			RecipeID:    "1",
+			RecipeTitle: "t1",
+			Efficiency:  16.66,
+			Error:       false,
 		}, {
-			Name:      "Empty RecipeID",
-			RecipeID:  "",
-			Efficency: 16.66,
-			Error:     true,
+			Name:        "Empty RecipeID",
+			RecipeID:    "",
+			RecipeTitle: "",
+			Efficiency:  16.66,
+			Error:       true,
 		},
 		{
-			Name:      "SQL Injection in RecipeID",
-			RecipeID:  "123; DROP TABLE summaries;",
-			Efficency: 16.66,
-			Error:     false,
-			SkipRead:  true,
+			Name:        "SQL Injection in RecipeID",
+			RecipeID:    "123; DROP TABLE summaries;",
+			RecipeTitle: "t1",
+			Efficiency:  16.66,
+			Error:       true,
+			SkipRead:    true,
 		},
 		{
-			Name:      "Non-Existing RecipeID",
-			RecipeID:  "999",
-			Efficency: 16.66,
-			Error:     false,
-			SkipRead:  true,
+			Name:        "Non-Existing RecipeID",
+			RecipeID:    "999",
+			RecipeTitle: "t1",
+			Efficiency:  16.66,
+			Error:       true,
+			SkipRead:    true,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			err = store.AddEfficiency(tc.RecipeID, tc.Efficency)
+			err = store.AddEfficiency(tc.RecipeID, tc.Efficiency)
 			if tc.Error {
 				require.Error(err)
 			} else {
 				require.NoError(err)
 				if !tc.SkipRead {
 					var eff float32
-					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&eff))
-					require.InDelta(tc.Efficency, eff, 0.001)
+					require.NoError(getSt.QueryRow(tools.B64Encode(tc.RecipeTitle)).Scan(&eff))
+					require.InDelta(tc.Efficiency, eff, 0.001)
 				}
 			}
 		})
@@ -1458,6 +1506,8 @@ func TestAddMainFermentationSGMeasurement(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1564,6 +1614,8 @@ func TestAddDryHopStart(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1669,6 +1721,8 @@ func TestAddDryHopEnd(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1748,6 +1802,8 @@ func TestGetSummary(t *testing.T) {
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
 	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
 	store, err := NewSummaryPersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
@@ -1916,4 +1972,255 @@ func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStor
 		return err
 	}
 	return nil
+}
+
+func TestGetAllStats(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name  string
+		Stats map[string]*summary.Statistics
+		Error bool
+	}{
+		{
+			Name:  "One stat",
+			Error: false,
+			Stats: map[string]*summary.Statistics{
+				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(150, 0)},
+			},
+		},
+		{
+			Name:  "Multiple stats",
+			Error: false,
+			Stats: map[string]*summary.Statistics{
+				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(152, 0)},
+				"2": {Evaporation: 63, Efficiency: 74.1, FinishedTime: time.Unix(154, 0)},
+				"3": {Evaporation: 64, Efficiency: 72.1, FinishedTime: time.Unix(156, 0)},
+			},
+		},
+		{
+			Name:  "Empty stats",
+			Error: false,
+			Stats: map[string]*summary.Statistics{},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.ReplaceAll(tc.Name, " ", "")) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+			err = dbmigrations.RunMigrations(db, "migrations")
+			require.NoError(err)
+			store, err := NewSummaryPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			require.NoError(storeStats(tc.Stats, store))
+			actualStats, err := store.GetAllStats()
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				for title, stat := range tc.Stats {
+					require.Equal(stat, actualStats[title])
+				}
+			}
+		})
+	}
+}
+
+func storeStats(stats map[string]*summary.Statistics, store *SummaryPersistentStore) error {
+	for id, stat := range stats {
+		err := store.AddSummary(id, id)
+		if err != nil {
+			return err
+		}
+		err = store.AddEfficiency(id, stat.Efficiency)
+		if err != nil {
+			return err
+		}
+		err = store.AddEvaporation(id, stat.Evaporation)
+		if err != nil {
+			return err
+		}
+		err = store.AddFinishedTime(id, stat.FinishedTime)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func TestAddFinishedTime(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
+	store, err := NewSummaryPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT finished_epoch FROM stats WHERE recipe_title = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name        string
+		RecipeID    string
+		RecipeTitle string
+		Finished    int64
+		SkipRead    bool
+		Error       bool
+	}{
+		{
+			Name:        "Valid Inputs",
+			RecipeID:    "1",
+			RecipeTitle: "t1",
+			Finished:    150,
+			Error:       false,
+		}, {
+			Name:        "Empty RecipeID",
+			RecipeID:    "",
+			RecipeTitle: "",
+			Finished:    150,
+			Error:       true,
+		},
+		{
+			Name:        "SQL Injection in RecipeID",
+			RecipeID:    "123; DROP TABLE summaries;",
+			RecipeTitle: "t1",
+			Finished:    150,
+			Error:       true,
+			SkipRead:    true,
+		},
+		{
+			Name:        "Non-Existing RecipeID",
+			RecipeID:    "999",
+			RecipeTitle: "t1",
+			Finished:    150,
+			Error:       true,
+			SkipRead:    true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddFinishedTime(tc.RecipeID, time.Unix(tc.Finished, 0))
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var epoch int64
+					require.NoError(getSt.QueryRow(tools.B64Encode(tc.RecipeTitle)).Scan(&epoch))
+					require.Equal(tc.Finished, epoch)
+				}
+			}
+		})
+	}
+}
+
+func TestAddStatsExternal(t *testing.T) {
+	require := require.New(t)
+	type toAdd struct {
+		Name string
+		Stat *summary.Statistics
+	}
+	testCases := []struct {
+		Name  string
+		ToAdd []toAdd
+		Error bool
+	}{
+		{
+			Name: "Add 1 stat",
+			ToAdd: []toAdd{
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  60,
+						Efficiency:   20,
+						FinishedTime: time.Unix(150, 0),
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Add 2 stat",
+			ToAdd: []toAdd{
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  60,
+						Efficiency:   20,
+						FinishedTime: time.Unix(150, 0),
+					},
+				},
+				{
+					Name: "Recipe2", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  70,
+						Efficiency:   50,
+						FinishedTime: time.Unix(150000, 0),
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Fail if repeated",
+			ToAdd: []toAdd{
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  60,
+						Efficiency:   20,
+						FinishedTime: time.Unix(150, 0),
+					},
+				},
+				{
+					Name: "Recipe1", // Callers will encode, this does not handle this
+					Stat: &summary.Statistics{
+						Evaporation:  70,
+						Efficiency:   50,
+						FinishedTime: time.Unix(150000, 0),
+					},
+				},
+			},
+			Error: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(t.Name()), "/", "_")) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
+			require.NoError(err)
+			store, err := NewSummaryPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			errorCount := 0
+			for _, s := range tc.ToAdd {
+				err = store.AddStatsExternal(s.Name, s.Stat)
+				if err != nil {
+					errorCount++
+				}
+			}
+			if tc.Error {
+				require.NotZero(errorCount)
+			} else {
+				require.Zero(errorCount)
+				realStats, err := store.GetAllStats()
+				require.NoError(err)
+				for _, s := range tc.ToAdd {
+					stats, ok := realStats[s.Name]
+					require.True(ok)
+					require.Equal(s.Stat, stats)
+				}
+			}
+		})
+	}
 }

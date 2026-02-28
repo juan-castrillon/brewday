@@ -1,5 +1,7 @@
 package summary
 
+import "time"
+
 type Summary struct {
 	Title string
 	//GenerationDate is automatically populated by the printer when creating the summary file
@@ -97,8 +99,9 @@ type SecondaryFermentationInfo struct {
 }
 
 type Statistics struct {
-	Evaporation float32
-	Efficiency  float32
+	Evaporation  float32
+	Efficiency   float32
+	FinishedTime time.Time
 }
 
 func NewSummary() *Summary {

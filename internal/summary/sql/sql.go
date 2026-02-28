@@ -2,9 +2,11 @@ package sql
 
 import (
 	"brewday/internal/summary"
+	"brewday/internal/tools"
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"time"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -14,18 +16,18 @@ type SummaryPersistentStore struct {
 }
 
 func NewSummaryPersistentStore(db *sql.DB) (*SummaryPersistentStore, error) {
-	err := createTable(db)
-	if err != nil {
-		return nil, err
-	}
 	return &SummaryPersistentStore{
 		dbClient: db,
 	}, nil
 }
 
-// AddSummary adds a summary for the given recipe id with the given title
+// AddSummary adds a summary for the given recipe id with the given title, it also inits an entry in the stats table
 func (s *SummaryPersistentStore) AddSummary(recipeID, title string) error {
 	_, err := s.dbClient.Exec(`INSERT INTO summaries (title, recipe_id) VALUES (?, ?)`, title, recipeID)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`INSERT INTO stats (recipe_title) VALUES (?)`, tools.B64Encode(title))
 	return err
 }
 
@@ -234,14 +236,14 @@ func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, su
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	_, err := s.dbClient.Exec(`UPDATE summaries SET  
+	_, err := s.dbClient.Exec(`UPDATE summaries SET
 		bottling_carbonation = ? ,
 		bottling_sugar_amount = ? ,
 		bottling_sugar_type = ? ,
 		bottling_temperature = ? ,
 		bottling_alcohol = ? ,
 		bottling_volume_bottled = ? ,
-		bottling_notes = ? 
+		bottling_notes = ?
 	WHERE recipe_id == ?`, carbonation, sugar, sugarType, temp, alcohol, vol, notes, id)
 	return err
 }
@@ -255,12 +257,28 @@ func (s *SummaryPersistentStore) AddSummarySecondary(id string, days int, notes 
 	return err
 }
 
+func (s *SummaryPersistentStore) getRecipeTitleB64(id string) (string, error) {
+	if id == "" {
+		return "", errors.New("invalid empty recipe id")
+	}
+	var title string
+	err := s.dbClient.QueryRow(`SELECT title FROM summaries WHERE recipe_id == ?`, id).Scan(&title)
+	if err != nil {
+		return "", err
+	}
+	return tools.B64Encode(title), nil
+}
+
 // AddEvaporation adds an evaporation to the summary
 func (s *SummaryPersistentStore) AddEvaporation(id string, amount float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	_, err := s.dbClient.Exec(`UPDATE summaries SET stats_evaporation = ? WHERE recipe_id == ?`, amount, id)
+	t, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE stats SET evaporation = ? WHERE recipe_title == ?`, amount, t)
 	return err
 }
 
@@ -269,7 +287,11 @@ func (s *SummaryPersistentStore) AddEfficiency(id string, efficiencyPercentage f
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	_, err := s.dbClient.Exec(`UPDATE summaries SET stats_effiency = ? WHERE recipe_id == ?`, efficiencyPercentage, id)
+	t, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE stats SET efficiency = ? WHERE recipe_title == ?`, efficiencyPercentage, t)
 	return err
 }
 
@@ -280,7 +302,7 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 	}
 	var title string
 	var mash_notes, mash_rasts, lautern_info, hopping_vol_bb_notes, hopping_hops, hopping_vol_ab_notes, cooling_notes, pre_ferm_vols, yeast_start_temp, yeast_start_notes, main_ferm_sgs, main_ferm_dry_hops, bottling_sugar_type, bottling_notes, sec_ferm_notes sql.NullString
-	var mash_temp, hopping_vol_bb, hopping_vol_ab, cooling_temp, cooling_time, main_ferm_alcohol, bottling_pre_bottle_volume, bottling_carbonation, bottling_sugar_amount, bottling_temperature, bottling_alcohol, bottling_volume_bottled, stats_evaporation, stats_effiency sql.NullFloat64
+	var mash_temp, hopping_vol_bb, hopping_vol_ab, cooling_temp, cooling_time, main_ferm_alcohol, bottling_pre_bottle_volume, bottling_carbonation, bottling_sugar_amount, bottling_temperature, bottling_alcohol, bottling_volume_bottled, evaporation, efficiency sql.NullFloat64
 	var sec_ferm_days sql.NullInt32
 	err := s.dbClient.QueryRow(
 		`SELECT title, mash_temp, mash_notes, mash_rasts,
@@ -290,7 +312,7 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 		main_ferm_sgs, main_ferm_alcohol, main_ferm_dry_hops, bottling_pre_bottle_volume,
 		bottling_carbonation, bottling_sugar_amount, bottling_sugar_type, bottling_temperature,
 		bottling_alcohol, bottling_volume_bottled, bottling_notes, sec_ferm_days,
-		sec_ferm_notes, stats_evaporation, stats_effiency FROM summaries WHERE recipe_id == ?`, id).Scan(
+		sec_ferm_notes FROM summaries WHERE recipe_id == ?`, id).Scan(
 		&title, &mash_temp, &mash_notes, &mash_rasts,
 		&lautern_info, &hopping_vol_bb, &hopping_vol_bb_notes, &hopping_hops,
 		&hopping_vol_ab, &hopping_vol_ab_notes, &cooling_temp, &cooling_time,
@@ -298,8 +320,12 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 		&main_ferm_sgs, &main_ferm_alcohol, &main_ferm_dry_hops, &bottling_pre_bottle_volume,
 		&bottling_carbonation, &bottling_sugar_amount, &bottling_sugar_type, &bottling_temperature,
 		&bottling_alcohol, &bottling_volume_bottled, &bottling_notes, &sec_ferm_days,
-		&sec_ferm_notes, &stats_evaporation, &stats_effiency,
+		&sec_ferm_notes,
 	)
+	if err != nil {
+		return nil, err
+	}
+	err = s.dbClient.QueryRow(`SELECT evaporation, efficiency FROM stats WHERE recipe_title == ?`, tools.B64Encode(title)).Scan(&evaporation, &efficiency)
 	if err != nil {
 		return nil, err
 	}
@@ -376,9 +402,58 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 			Notes: s.valueFromNullString(sec_ferm_notes),
 		},
 		Statistics: &summary.Statistics{
-			Evaporation: s.valueFromNullFloat(stats_evaporation),
-			Efficiency:  s.valueFromNullFloat(stats_effiency),
+			Evaporation: s.valueFromNullFloat(evaporation),
+			Efficiency:  s.valueFromNullFloat(efficiency),
 		},
 	}, nil
 
+}
+
+// GetAllStats returns all the statistics
+func (s *SummaryPersistentStore) GetAllStats() (map[string]*summary.Statistics, error) {
+	rows, err := s.dbClient.Query(`SELECT recipe_title, evaporation, efficiency, finished_epoch FROM stats`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	res := make(map[string]*summary.Statistics)
+	for rows.Next() {
+		r := summary.Statistics{}
+		var title string
+		var epoch sql.NullInt64
+		err = rows.Scan(&title, &r.Evaporation, &r.Efficiency, &epoch)
+		if err != nil {
+			return nil, err
+		}
+		r.FinishedTime = time.Unix(s.valueFromNullInt64(epoch), 0)
+		titleDecoded, err := tools.B64Decode(title)
+		if err != nil {
+			return nil, err
+		}
+		res[titleDecoded] = &r
+	}
+	return res, nil
+}
+
+// AddFinishedTime adds the time when the recipe was done, mainly for statistics
+func (s *SummaryPersistentStore) AddFinishedTime(id string, t time.Time) error {
+	if id == "" {
+		return errors.New("invalid empty recipe id")
+	}
+	title, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE stats SET finished_epoch = ? WHERE recipe_title == ?`, t.Unix(), title)
+	return err
+}
+
+func (s *SummaryPersistentStore) AddStatsExternal(recipeName string, stats *summary.Statistics) error {
+	_, err := s.dbClient.Exec(`INSERT INTO stats (recipe_title, finished_epoch, evaporation, efficiency) VALUES (?, ?, ?, ?)`,
+		tools.B64Encode(recipeName),
+		stats.FinishedTime.Unix(),
+		stats.Evaporation,
+		stats.Efficiency,
+	)
+	return err
 }

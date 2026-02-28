@@ -1,0 +1,7 @@
+{{ define "stats_dashboard" }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    window.Stats = {{ .Stats | toJSON }};
+</script>
+<script type="text/javascript" src='{{ static "js/stat_dashboard/dashboard.js" }}'></script>
+{{ end }}

@@ -15,10 +15,6 @@ type TimelinePersistentStore struct {
 
 // NewTimelinePersistentStore creates a new TimelineStore
 func NewTimelinePersistentStore(db *sql.DB) (*TimelinePersistentStore, error) {
-	err := createTable(db)
-	if err != nil {
-		return nil, err
-	}
 	is, err := db.Prepare(`INSERT INTO timelines (event, timestamp_unix, recipe_id) VALUES (?, ?, ?)`)
 	if err != nil {
 		return nil, err

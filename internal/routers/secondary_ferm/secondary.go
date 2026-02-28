@@ -398,6 +398,10 @@ func (r *SecondaryFermentationRouter) getEndHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	err = r.addSummaryFinishedTime(id, time.Now())
+	if err != nil {
+		return err
+	}
 	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
 		"Title":    "End Fermentation",
 		"RecipeID": id,

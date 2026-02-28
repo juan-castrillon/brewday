@@ -3,6 +3,7 @@ package main
 import (
 	"brewday/internal/app"
 	"brewday/internal/config"
+	dbmigrations "brewday/internal/db_migrations"
 	"brewday/internal/notifications"
 	"brewday/internal/render"
 	recipe_store_memory "brewday/internal/store/memory"
@@ -53,6 +54,11 @@ func main() {
 			log.Fatal().Err(err).Msg("Error while initializing db store")
 		}
 		defer db.Close()
+		// DB Migrations
+		err = dbmigrations.RunMigrations(db, "migrations")
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while running migrations in db store")
+		}
 		s, err := recipe_store_sql.NewPersistentStore(db)
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error while initializing recipe db store")
