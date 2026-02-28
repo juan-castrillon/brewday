@@ -30,8 +30,6 @@ CREATE TABLE
         bottling_notes TEXT,
         sec_ferm_days INTEGER,
         sec_ferm_notes TEXT,
-        stats_evaporation REAL,
-        stats_effiency REAL,
         recipe_id INTEGER NOT NULL,
         FOREIGN KEY (recipe_id) REFERENCES recipes (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
