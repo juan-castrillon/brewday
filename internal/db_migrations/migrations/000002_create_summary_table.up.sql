@@ -32,7 +32,6 @@ CREATE TABLE
         sec_ferm_notes TEXT,
         stats_evaporation REAL,
         stats_effiency REAL,
-        timeline TEXT,
         recipe_id INTEGER NOT NULL,
         FOREIGN KEY (recipe_id) REFERENCES recipes (id) ON DELETE CASCADE ON UPDATE CASCADE
     );
