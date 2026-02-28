@@ -238,14 +238,14 @@ func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, su
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	_, err := s.dbClient.Exec(`UPDATE summaries SET  
+	_, err := s.dbClient.Exec(`UPDATE summaries SET
 		bottling_carbonation = ? ,
 		bottling_sugar_amount = ? ,
 		bottling_sugar_type = ? ,
 		bottling_temperature = ? ,
 		bottling_alcohol = ? ,
 		bottling_volume_bottled = ? ,
-		bottling_notes = ? 
+		bottling_notes = ?
 	WHERE recipe_id == ?`, carbonation, sugar, sugarType, temp, alcohol, vol, notes, id)
 	return err
 }
@@ -450,7 +450,7 @@ func (s *SummaryPersistentStore) AddFinishedTime(id string, t time.Time) error {
 	return err
 }
 
-func (s *SummaryPersistentStore) AddStats(recipeName string, stats *summary.Statistics) error {
+func (s *SummaryPersistentStore) AddStatsExternal(recipeName string, stats *summary.Statistics) error {
 	_, err := s.dbClient.Exec(`INSERT INTO stats (recipe_title, finished_epoch, evaporation, efficiency) VALUES (?, ?, ?, ?)`,
 		tools.B64Encode(recipeName),
 		stats.FinishedTime.Unix(),

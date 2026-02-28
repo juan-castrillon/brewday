@@ -6,8 +6,8 @@ import "brewday/internal/summary"
 type StatsStore interface {
 	// GetAllStats returns all the statistics mapped with the b64 representation of the recipe title
 	GetAllStats() (map[string]*summary.Statistics, error)
-	// AddStats adds statistics from recipes outside the app
-	AddStats(recipeName string, stats *summary.Statistics) error
+	// AddStatsExternal adds statistics from recipes outside the app
+	AddStatsExternal(recipeName string, stats *summary.Statistics) error
 }
 
 type StatEntry struct {

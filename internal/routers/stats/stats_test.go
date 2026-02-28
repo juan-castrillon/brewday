@@ -16,7 +16,7 @@ func (s *mockStore) GetAllStats() (map[string]*summary.Statistics, error) {
 	return s.store, nil
 }
 
-func (s *mockStore) AddStats(recipeName string, stats *summary.Statistics) error {
+func (s *mockStore) AddStatsExternal(recipeName string, stats *summary.Statistics) error {
 	s.store[recipeName] = stats
 	return nil
 }

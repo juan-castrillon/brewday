@@ -53,7 +53,7 @@ func (r *StatsRouter) addStats(req *ReqPostAddStat) error {
 		Efficiency:   req.Efficiency,
 		FinishedTime: finished,
 	}
-	return r.StatsStore.AddStats(req.RecipeName, s)
+	return r.StatsStore.AddStatsExternal(req.RecipeName, s)
 }
 
 // RegisterRoutes registers the routes for the stats router

@@ -21,6 +21,12 @@ type SummaryStore interface {
 	AddFinishedTime(id string, t time.Time) error
 }
 
+// StatsStore represents a component that stores stats
+type StatsStore interface {
+	// AddStats adds statistics from recipes
+	AddStats(id string) error
+}
+
 // RecipeStore represents a component that stores recipes
 type RecipeStore interface {
 	// Retrieve retrieves a recipe based on an identifier

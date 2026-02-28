@@ -2122,7 +2122,7 @@ func TestAddFinishedTime(t *testing.T) {
 	}
 }
 
-func TestAddStats(t *testing.T) {
+func TestAddStatsExternal(t *testing.T) {
 	require := require.New(t)
 	type toAdd struct {
 		Name string
@@ -2204,7 +2204,7 @@ func TestAddStats(t *testing.T) {
 			defer os.Remove(fileName)
 			errorCount := 0
 			for _, s := range tc.ToAdd {
-				err = store.AddStats(s.Name, s.Stat)
+				err = store.AddStatsExternal(s.Name, s.Stat)
 				if err != nil {
 					errorCount++
 				}
