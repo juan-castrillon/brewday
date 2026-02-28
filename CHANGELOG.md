@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added proper SQL migrations
 - Added seed data for statistics from past recipes
+- Update dependencies
+  - `github.com/knadh/koanf/providers/file` v1.2.0 -> v1.2.1
+	- `github.com/knadh/koanf/v2` v2.2.2 -> v2.3.2
+	- `github.com/labstack/echo/v4` v4.13.4 -> v4.15.1
+	- `github.com/mattn/go-sqlite3` v1.14.28 -> v1.14.34
+	- `github.com/stretchr/testify` v1.10.0 -> v1.11.1
 
 ## [2.0.5] - 2025-07-19
 
