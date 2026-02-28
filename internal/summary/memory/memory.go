@@ -420,7 +420,7 @@ func (s *SummaryMemoryStore) AddFinishedTime(id string, t time.Time) error {
 	return nil
 }
 
-func (s *SummaryMemoryStore) AddStats(recipeName string, stats *summary.Statistics) error {
+func (s *SummaryMemoryStore) AddStatsExternal(recipeName string, stats *summary.Statistics) error {
 	s.stats[tools.B64Encode(recipeName)] = stats
 	return nil
 }

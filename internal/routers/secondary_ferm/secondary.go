@@ -17,7 +17,6 @@ type SecondaryFermentationRouter struct {
 	TLStore         TimelineStore
 	SummaryStore    SummaryStore
 	Store           RecipeStore
-	StatsStore      StatsStore
 	Notifier        Notifier
 	ingredientCache ingredientCache
 	watchersSet     map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
@@ -400,10 +399,6 @@ func (r *SecondaryFermentationRouter) getEndHandler(c echo.Context) error {
 		return err
 	}
 	err = r.addSummaryFinishedTime(id, time.Now())
-	if err != nil {
-		return err
-	}
-	err = r.addStats(id)
 	if err != nil {
 		return err
 	}

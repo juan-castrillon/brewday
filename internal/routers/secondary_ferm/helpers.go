@@ -77,14 +77,6 @@ func (r *SecondaryFermentationRouter) addSummaryFinishedTime(id string, t time.T
 	return nil
 }
 
-// addStats saves Statistics from the finished recipe for future reference
-func (r *SecondaryFermentationRouter) addStats(id string) error {
-	if r.StatsStore != nil {
-		return r.StatsStore.AddStats(id)
-	}
-	return nil
-}
-
 // checkWatchers will check it watchers were set for a given recipe.
 // If they were not, it will fetch the notification dates from the store and set them up again
 // This method helps notifications be persistent in case of restarts.
