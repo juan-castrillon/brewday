@@ -10,6 +10,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Statistics page showcasing Evaporation and Efficiency from past recipes
+  - For existing DBs, manual cleanup is necessary
+    ```sql
+    ALTER TABLE "summaries" DROP COLUMN timeline;
+    ALTER TABLE "summaries" DROP COLUMN stats_effiency;
+    ALTER TABLE "summaries" DROP COLUMN stats_evaporation;
+    ```
 
 ### Changed
 

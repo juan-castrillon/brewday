@@ -6,26 +6,31 @@
 
 ## Table of Contents
 
-- [1. High-Level Architecture](#1-high-level-architecture)
-- [2. Technology Stack](#2-technology-stack)
-- [3. Project Structure](#3-project-structure)
-- [4. Domain Model — The Brewing Process](#4-domain-model--the-brewing-process)
-- [5. Component Architecture](#5-component-architecture)
-  - [5.1 Application Core (`internal/app`)](#51-application-core-internalapp)
-  - [5.2 Configuration (`internal/config`)](#52-configuration-internalconfig)
-  - [5.3 Recipe Domain (`internal/recipe`)](#53-recipe-domain-internalrecipe)
-  - [5.4 Router Layer (`internal/routers`)](#54-router-layer-internalrouters)
-  - [5.5 Storage Layer](#55-storage-layer)
-  - [5.6 Notifications (`internal/notifications`)](#56-notifications-internalnotifications)
-  - [5.7 Tools (`internal/tools`)](#57-tools-internaltools)
-  - [5.8 Watcher (`internal/watcher`)](#58-watcher-internalwatcher)
-  - [5.9 Frontend (`web/`)](#59-frontend-web)
-- [6. Data Flow](#6-data-flow)
-- [7. Deployment Architecture](#7-deployment-architecture)
-- [8. Design Patterns & Principles](#8-design-patterns--principles)
-- [9. Database Schema](#9-database-schema)
-- [10. CI/CD](#10-cicd)
-- [11. Open Questions & Improvement Areas](#11-open-questions--improvement-areas)
+- [BrewDay — Architecture \& Codebase Overview](#brewday--architecture--codebase-overview)
+  - [Table of Contents](#table-of-contents)
+  - [1. High-Level Architecture](#1-high-level-architecture)
+  - [2. Technology Stack](#2-technology-stack)
+  - [3. Project Structure](#3-project-structure)
+  - [4. Domain Model — The Brewing Process](#4-domain-model--the-brewing-process)
+  - [5. Component Architecture](#5-component-architecture)
+    - [5.1 Application Core (`internal/app`)](#51-application-core-internalapp)
+    - [5.2 Configuration (`internal/config`)](#52-configuration-internalconfig)
+    - [5.3 Recipe Domain (`internal/recipe`)](#53-recipe-domain-internalrecipe)
+    - [5.4 Router Layer (`internal/routers`)](#54-router-layer-internalrouters)
+    - [5.5 Storage Layer](#55-storage-layer)
+    - [5.6 Notifications (`internal/notifications`)](#56-notifications-internalnotifications)
+    - [5.7 Tools (`internal/tools`)](#57-tools-internaltools)
+    - [5.8 Watcher (`internal/watcher`)](#58-watcher-internalwatcher)
+    - [5.9 Frontend (`web/`)](#59-frontend-web)
+  - [6. Data Flow](#6-data-flow)
+  - [7. Deployment Architecture](#7-deployment-architecture)
+  - [8. Design Patterns \& Principles](#8-design-patterns--principles)
+  - [9. Database Schema](#9-database-schema)
+  - [10. CI/CD](#10-cicd)
+  - [11. Open Questions \& Improvement Areas](#11-open-questions--improvement-areas)
+    - [Architecture](#architecture)
+    - [Code Quality](#code-quality)
+    - [Features](#features)
 
 ---
 
@@ -73,19 +78,20 @@ graph TB
 
 ## 2. Technology Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Language | Go 1.24 |
-| Web Framework | [Echo v4](https://echo.labstack.com/) |
-| Templating | Go `html/template` |
-| CSS Framework | Materialize CSS |
-| Database | SQLite3 (`mattn/go-sqlite3`, CGO) |
-| Configuration | [Koanf v2](https://github.com/knadh/koanf) (YAML + env vars) |
-| Notifications | [Gotify](https://gotify.net/) (self-hosted push server) |
-| Logging | [zerolog](https://github.com/rs/zerolog) |
-| Testing | `testify` |
-| CI/CD | GitHub Actions |
-| Deployment | Docker (amd64 + arm64) |
+| Layer               | Technology                                                   |
+| ------------------- | ------------------------------------------------------------ |
+| Language            | Go 1.24                                                      |
+| Web Framework       | [Echo v4](https://echo.labstack.com/)                        |
+| Templating          | Go `html/template`                                           |
+| CSS Framework       | Materialize CSS                                              |
+| Database            | SQLite3 (`mattn/go-sqlite3`, CGO)                            |
+| Database Migrations | [migrate](https://github.com/golang-migrate/migrate)         |
+| Configuration       | [Koanf v2](https://github.com/knadh/koanf) (YAML + env vars) |
+| Notifications       | [Gotify](https://gotify.net/) (self-hosted push server)      |
+| Logging             | [zerolog](https://github.com/rs/zerolog)                     |
+| Testing             | `testify`                                                    |
+| CI/CD               | GitHub Actions                                               |
+| Deployment          | Docker (amd64 + arm64)                                       |
 
 ---
 
@@ -101,6 +107,7 @@ brewday/
 │   │   ├── handlers.go             #   Global handlers (timeline POST, error handler)
 │   │   └── models.go               #   Top-level interface definitions
 │   ├── config/                     # Configuration loading & validation
+|   ├── db_migrations               # SQLite Migrations + Tests
 │   ├── notifications/              # Gotify notification client
 │   ├── recipe/                     # Core domain model
 │   │   ├── recipe.go               #   Recipe, Malt, Hops, Yeast, status machine
@@ -314,10 +321,11 @@ graph TD
 **RecipeStore** is the richest interface (~15 methods): CRUD for recipes, results, SG measurements, dates, bool flags, and sugar results.
 
 **SQL stores** use:
-- Manual `CREATE TABLE IF NOT EXISTS` migrations (no versioning)
 - Prepared statements for hot-path queries
 - JSON marshalling for nested structs (malts, hops, rasts) stored as TEXT columns
 - Foreign keys with cascade delete
+
+**SummaryStore** also handles statistics which are **independent** of recipe ID meaning any data (even from past recipes) can be put into the stats table/memory store. 
 
 ### 5.6 Notifications (`internal/notifications`)
 
@@ -431,17 +439,17 @@ graph LR
 
 ## 8. Design Patterns & Principles
 
-| Pattern | Where | Notes |
-|---------|-------|-------|
-| **Interface Segregation** | Every router's `models.go` | Each consumer defines only the interface methods it needs |
-| **Dependency Injection** | `main.go` → `AppComponents` | All stores, renderer, notifier injected at startup |
-| **Strategy** | Store backends, parsers, printers | Swappable implementations behind interfaces |
-| **State Machine** | `recipe.RecipeStatus` | Tracks progress; enables resume after restart |
-| **Router/Handler** | `internal/routers/*` | Each phase is an isolated module with its own routes |
-| **Template Method** | `common.Timer` | Reusable start/stop/duration logic shared across routers |
-| **Observer** | `watcher.Watcher` | Time-based callbacks for async notifications |
-| **Embedded FS** | `go:embed web` | Zero external file dependencies in the binary |
-| **Graceful Shutdown** | `main.go` | Signal handling with context-based timeout |
+| Pattern                   | Where                             | Notes                                                     |
+| ------------------------- | --------------------------------- | --------------------------------------------------------- |
+| **Interface Segregation** | Every router's `models.go`        | Each consumer defines only the interface methods it needs |
+| **Dependency Injection**  | `main.go` → `AppComponents`       | All stores, renderer, notifier injected at startup        |
+| **Strategy**              | Store backends, parsers, printers | Swappable implementations behind interfaces               |
+| **State Machine**         | `recipe.RecipeStatus`             | Tracks progress; enables resume after restart             |
+| **Router/Handler**        | `internal/routers/*`              | Each phase is an isolated module with its own routes      |
+| **Template Method**       | `common.Timer`                    | Reusable start/stop/duration logic shared across routers  |
+| **Observer**              | `watcher.Watcher`                 | Time-based callbacks for async notifications              |
+| **Embedded FS**           | `go:embed web`                    | Zero external file dependencies in the binary             |
+| **Graceful Shutdown**     | `main.go`                         | Signal handling with context-based timeout                |
 
 ---
 
@@ -551,9 +559,14 @@ erDiagram
         TEXT bottling_notes
         INTEGER sec_ferm_days
         TEXT sec_ferm_notes
-        REAL stats_evaporation
-        REAL stats_effiency
         INTEGER recipe_id FK
+    }
+
+    stats {
+        TEXT recipe_title
+        INTEGER finished_epoch
+        REAL evaporation
+        REAL efficiency
     }
 
     recipes ||--|| recipe_results : "has"
