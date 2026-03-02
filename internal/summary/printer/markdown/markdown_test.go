@@ -106,6 +106,7 @@ func TestPrint(t *testing.T) {
 					SugarAmount:     70.00,
 					SugarType:       "glucose",
 					Temperature:     20.00,
+					Water:           0.5,
 					Alcohol:         5.86,
 					VolumeBottled:   10.00,
 					Notes:           "notes19",
@@ -183,7 +184,7 @@ Date | SG | Final | Notes
 
 - **Volume in tank**: 8.80L
 
-- **Sugar**: 70.00 g (glucose)
+- **Sugar**: 70.00 g (glucose) diluted in 0.50L water
 - **Temperature**: 20.00°C
 
 - **Carbonation**: 5.52 g/L
@@ -212,7 +213,8 @@ Timestamp | Event
 --- | ---
 2024-02-14T07:39:20.732108778Z | Started mashing
 2024-02-14T07:39:28.454239024Z | Finished Einmaischen
-2024-02-14T07:39:31.412846385Z | Started Rast 0`,
+2024-02-14T07:39:31.412846385Z | Started Rast 0
+`,
 			Error: false,
 		},
 	}
