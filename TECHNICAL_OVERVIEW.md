@@ -553,6 +553,7 @@ erDiagram
         REAL bottling_carbonation
         REAL bottling_sugar_amount
         TEXT bottling_sugar_type
+        REAL bottling_water
         REAL bottling_temperature
         REAL bottling_alcohol
         REAL bottling_volume_bottled

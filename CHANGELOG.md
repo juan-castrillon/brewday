@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+
+### Changed
+- Fixed summary bugs:
+  - Last rast and notes are now displayed in summary
+  - Water for sugar solution is now shown in the pre-bottling part
+    - Added `bottling_water` column to `summaries` db for persistent storage
+
 ## [2.1.0] - 2026-02-28
 
 ### Added
