@@ -87,6 +87,7 @@ type BottlingInfo struct {
 	Carbonation     float32
 	SugarAmount     float32
 	SugarType       string
+	Water           float32
 	Temperature     float32
 	Alcohol         float32
 	VolumeBottled   float32
