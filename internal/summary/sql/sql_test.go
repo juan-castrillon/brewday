@@ -1159,6 +1159,7 @@ func TestAddBottling(t *testing.T) {
 	getSt, err := db.Prepare(`SELECT bottling_carbonation  ,
 	bottling_sugar_amount  ,
 	bottling_sugar_type  ,
+	bottling_water ,
 	bottling_temperature  ,
 	bottling_alcohol  ,
 	bottling_volume_bottled  ,
@@ -1171,6 +1172,7 @@ func TestAddBottling(t *testing.T) {
 		Sugar       float32
 		SugarType   string
 		Temp        float32
+		Water       float32
 		Alcohol     float32
 		Volume      float32
 		Notes       string
@@ -1184,6 +1186,7 @@ func TestAddBottling(t *testing.T) {
 			Carbonation: 5.5,
 			Sugar:       100,
 			SugarType:   "glucose",
+			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
 			Notes:       "Some notes",
@@ -1195,6 +1198,7 @@ func TestAddBottling(t *testing.T) {
 			Carbonation: 5.5,
 			Sugar:       100,
 			SugarType:   "glucose",
+			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
 			Notes:       "Some notes",
@@ -1207,6 +1211,7 @@ func TestAddBottling(t *testing.T) {
 			Carbonation: 5.5,
 			Sugar:       100,
 			SugarType:   "glucose",
+			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
 			Notes:       "Some notes",
@@ -1220,6 +1225,7 @@ func TestAddBottling(t *testing.T) {
 			Carbonation: 5.5,
 			Sugar:       100,
 			SugarType:   "glucose",
+			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
 			Notes:       "Some notes; DROP TABLE summaries;",
@@ -1232,6 +1238,7 @@ func TestAddBottling(t *testing.T) {
 			Temp:        20.0,
 			Carbonation: 5.5,
 			Sugar:       100,
+			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
 			Notes:       "Some notes",
@@ -1244,6 +1251,7 @@ func TestAddBottling(t *testing.T) {
 			Carbonation: 5.5,
 			Sugar:       100,
 			SugarType:   "glucose",
+			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
 			Notes:       "Some notes",
@@ -1253,20 +1261,21 @@ func TestAddBottling(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			err = store.AddBottling(tc.RecipeID, tc.Carbonation, tc.Alcohol, tc.Sugar, tc.Temp, tc.Volume, tc.SugarType, tc.Notes)
+			err = store.AddBottling(tc.RecipeID, tc.Carbonation, tc.Alcohol, tc.Sugar, tc.Water, tc.Temp, tc.Volume, tc.SugarType, tc.Notes)
 			if tc.Error {
 				require.Error(err)
 			} else {
 				require.NoError(err)
 				if !tc.SkipRead {
-					var temp, carbonation, alcohol, vol, sugar float32
+					var temp, carbonation, alcohol, vol, sugar, water float32
 					var st, notes string
-					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&carbonation, &sugar, &st, &temp, &alcohol, &vol, &notes))
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&carbonation, &sugar, &st, &water, &temp, &alcohol, &vol, &notes))
 					require.Equal(tc.Notes, notes)
 					require.Equal(tc.SugarType, st)
 					require.InDelta(tc.Carbonation, carbonation, 0.001)
 					require.InDelta(tc.Temp, temp, 0.001)
 					require.InDelta(tc.Sugar, sugar, 0.001)
+					require.InDelta(tc.Water, water, 0.001)
 					require.InDelta(tc.Alcohol, alcohol, 0.001)
 					require.InDelta(tc.Volume, vol, 0.001)
 				}
@@ -1856,7 +1865,7 @@ func TestGetSummary(t *testing.T) {
 					},
 				},
 				BottlingInfo: &summary.BottlingInfo{
-					PreBottleVolume: 12, Carbonation: 5.5, SugarAmount: 100, SugarType: "glucose",
+					PreBottleVolume: 12, Carbonation: 5.5, SugarAmount: 100, SugarType: "glucose", Water: 0.5,
 					Temperature: 19, Alcohol: 6.5, VolumeBottled: 11, Notes: "notes 16",
 				},
 				SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{
@@ -1955,7 +1964,7 @@ func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStor
 		return err
 	}
 	err = store.AddBottling(id, summ.BottlingInfo.Carbonation, summ.BottlingInfo.Alcohol, summ.BottlingInfo.SugarAmount,
-		summ.BottlingInfo.Temperature, summ.BottlingInfo.VolumeBottled, summ.BottlingInfo.SugarType, summ.BottlingInfo.Notes)
+		summ.BottlingInfo.Water, summ.BottlingInfo.Temperature, summ.BottlingInfo.VolumeBottled, summ.BottlingInfo.SugarType, summ.BottlingInfo.Notes)
 	if err != nil {
 		return err
 	}
