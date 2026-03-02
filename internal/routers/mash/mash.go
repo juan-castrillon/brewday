@@ -147,8 +147,7 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	switch rastNum {
-	case 0:
+	if rastNum == 0 {
 		err = r.addTimelineEvent(id, "Finished Einmaischen")
 		if err != nil {
 			log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
@@ -162,13 +161,7 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		if err != nil {
 			log.Error().Str("id", id).Err(err).Msg("could not add mash temp to summary")
 		}
-	case len(re.Mashing.Rasts):
-		err = r.addTimelineEvent(id, "Finished mashing")
-		if err != nil {
-			log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
-		}
-		return c.Redirect(302, c.Echo().Reverse("getLautern", id))
-	default:
+	} else {
 		var req ReqPostRasts
 		err := c.Bind(&req)
 		if err != nil {
@@ -177,6 +170,13 @@ func (r *MashRouter) postRastsHandler(c echo.Context) error {
 		err = r.addSummaryRast(id, req.RealTemperature, req.RealDuration, req.Notes)
 		if err != nil {
 			log.Error().Str("id", id).Err(err).Msg("could not add rast to summary")
+		}
+		if rastNum == len(re.Mashing.Rasts) {
+			err = r.addTimelineEvent(id, "Finished mashing")
+			if err != nil {
+				log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
+			}
+			return c.Redirect(302, c.Echo().Reverse("getLautern", id))
 		}
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getRasts", id, rastNum))

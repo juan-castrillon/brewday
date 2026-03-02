@@ -229,7 +229,7 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 		res.Alcohol, req.Water, req.SugarType,
 	)
 	realCO2 := tools.CarbonationForSugar(req.RealVolume, req.SugarAmount, req.Temperature, req.SugarType)
-	err = r.addSummaryBottle(id, realCO2, realAlcohol, req.SugarAmount, req.Temperature, req.RealVolume, req.SugarType, req.Notes)
+	err = r.addSummaryBottle(id, realCO2, realAlcohol, req.SugarAmount, req.Water, req.Temperature, req.RealVolume, req.SugarType, req.Notes)
 	// TODO: Add the bottling time now that i have it, add also to the stats
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add summary bottle")
