@@ -287,7 +287,7 @@ func (r *SecondaryFermentationRouter) getSecondaryFermentationStartHandler(c ech
 		"Title":    "Start Secondary Fermentation",
 		"RecipeID": id,
 		"Subtitle": "First, let the bottles at warm temperature",
-		"MinDays":  5, //TODO: make configurable
+		"MinDays":  5,
 	})
 }
 
