@@ -42,6 +42,31 @@ func TestConfig(t *testing.T) {
 					StoreType: "sql",
 					Path:      "./bd.sqlite",
 				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "YAML complete only file - no defaults",
+			Path: "yaml/complete_no_defaults.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled:   true,
+					GotifyURL: "http://localhost:8080",
+					Username:  "gotify",
+					Password:  "gotify",
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 10,
+				},
 			},
 			Error: false,
 		},
@@ -49,13 +74,14 @@ func TestConfig(t *testing.T) {
 			Name: "Only env variables",
 			Path: "",
 			Env: map[string]string{
-				"BREWDAY_NOTIFICATION_ENABLED":    "true",
-				"BREWDAY_NOTIFICATION_USERNAME":   "gotify",
-				"BREWDAY_NOTIFICATION_PASSWORD":   "gotify",
-				"BREWDAY_NOTIFICATION_GOTIFY-URL": "http://localhost:8080",
-				"BREWDAY_APP_PORT":                "8080",
-				"BREWDAY_STORE_TYPE":              "sql",
-				"BREWDAY_STORE_PATH":              "./bd.sqlite",
+				"BREWDAY_NOTIFICATION_ENABLED":          "true",
+				"BREWDAY_NOTIFICATION_USERNAME":         "gotify",
+				"BREWDAY_NOTIFICATION_PASSWORD":         "gotify",
+				"BREWDAY_NOTIFICATION_GOTIFY-URL":       "http://localhost:8080",
+				"BREWDAY_APP_PORT":                      "8080",
+				"BREWDAY_STORE_TYPE":                    "sql",
+				"BREWDAY_STORE_PATH":                    "./bd.sqlite",
+				"BREWDAY_PROCESS_LAUTERN-REST-TIME-MIN": "5",
 			},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
@@ -68,6 +94,9 @@ func TestConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "sql",
 					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 5,
 				},
 			},
 			Error: false,
@@ -91,6 +120,9 @@ func TestConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "memory",
 				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+				},
 			},
 			Error: false,
 		},
@@ -113,6 +145,9 @@ func TestConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "memory",
 				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+				},
 			},
 			Error: false,
 		},
@@ -134,6 +169,9 @@ func TestConfig(t *testing.T) {
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
 				},
 			},
 			Error: false,
@@ -171,6 +209,9 @@ func TestConfig(t *testing.T) {
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
 				},
 			},
 			Error: false,

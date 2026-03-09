@@ -40,6 +40,10 @@ type App struct {
 	notifier Notifier
 }
 
+type ProcessConfiguration struct {
+	LauternRestTimeMin int
+}
+
 // AppComponents is the structure that contains the external components of the application
 type AppComponents struct {
 	Renderer     Renderer
@@ -47,6 +51,7 @@ type AppComponents struct {
 	Notifier     Notifier
 	Store        RecipeStore
 	SummaryStore SummaryStore
+	Config       ProcessConfiguration
 }
 
 // NewApp creates a new App
@@ -87,10 +92,11 @@ func (a *App) Initialize(components *AppComponents) error {
 			Timer:        timer,
 		},
 		&lautern.LauternRouter{
-			Store:        store,
-			TLStore:      a.TLStore,
-			SummaryStore: ss,
-			Timer:        timer,
+			Store:           store,
+			TLStore:         a.TLStore,
+			SummaryStore:    ss,
+			Timer:           timer,
+			LauternRestTime: components.Config.LauternRestTimeMin,
 		},
 		&hopping.HoppingRouter{
 			Store:        store,

@@ -94,6 +94,10 @@ func main() {
 		}
 		components.Notifier = n
 	}
+	// Add process configuration from config
+	components.Config = app.ProcessConfiguration{
+		LauternRestTimeMin: config.Process.LauternRestTimeMin,
+	}
 	app, err := app.NewApp(staticFS, components)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error while initializing the app")

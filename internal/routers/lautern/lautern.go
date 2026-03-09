@@ -10,10 +10,11 @@ import (
 )
 
 type LauternRouter struct {
-	TLStore      TimelineStore
-	SummaryStore SummaryStore
-	Store        RecipeStore
-	Timer        Timer
+	TLStore         TimelineStore
+	SummaryStore    SummaryStore
+	Store           RecipeStore
+	Timer           Timer
+	LauternRestTime int
 }
 
 // RegisterRoutes adds routes to the web server
@@ -70,7 +71,7 @@ func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 		"RecipeID":         id,
 		"MashOutTemp":      re.Mashing.MashOutTemperature,
 		"Hops":             re.Hopping.Hops,
-		"RestTime":         15,
+		"RestTime":         r.LauternRestTime,
 		"StartClickedOnce": started,
 		"Stopped":          stopped,
 	})
@@ -103,7 +104,7 @@ func (r *LauternRouter) getLauternTimestamp(c echo.Context) error {
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	dur := 15 * time.Minute //TODO: Make this configurable
+	dur := time.Duration(r.LauternRestTime) * time.Minute
 	return r.Timer.HandleStartTimer(c, id, dur, "lautern")
 }
 
