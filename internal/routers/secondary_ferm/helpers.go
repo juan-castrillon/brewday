@@ -46,9 +46,9 @@ func (r *SecondaryFermentationRouter) calculateSugar(id string, volume, carbonat
 }
 
 // addSummaryBottle adds a summary of the bottling
-func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, alcohol, sugar, water, temp, vol float32, st, notes string) error {
+func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, alcohol, sugar, water, temp, vol, time_min float32, st, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddBottling(id, carbonation, alcohol, sugar, water, temp, vol, st, notes)
+		return r.SummaryStore.AddBottling(id, carbonation, alcohol, sugar, water, temp, vol, time_min, st, notes)
 	}
 	return nil
 }

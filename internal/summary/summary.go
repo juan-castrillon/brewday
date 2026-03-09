@@ -91,6 +91,7 @@ type BottlingInfo struct {
 	Temperature     float32
 	Alcohol         float32
 	VolumeBottled   float32
+	Time            float32
 	Notes           string
 }
 

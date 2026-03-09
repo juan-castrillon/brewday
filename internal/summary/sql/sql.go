@@ -232,7 +232,7 @@ func (s *SummaryPersistentStore) AddPreBottlingVolume(id string, volume float32)
 }
 
 // AddBottling adds a summary of the bottling
-func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, sugar, water, temp, vol float32, sugarType, notes string) error {
+func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, sugar, water, temp, vol, time_min float32, sugarType, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
@@ -244,8 +244,9 @@ func (s *SummaryPersistentStore) AddBottling(id string, carbonation, alcohol, su
 		bottling_temperature = ? ,
 		bottling_alcohol = ? ,
 		bottling_volume_bottled = ? ,
-		bottling_notes = ?
-	WHERE recipe_id == ?`, carbonation, sugar, sugarType, water, temp, alcohol, vol, notes, id)
+		bottling_notes = ?,
+		bottling_time_min = ?
+	WHERE recipe_id == ?`, carbonation, sugar, sugarType, water, temp, alcohol, vol, notes, time_min, id)
 	return err
 }
 

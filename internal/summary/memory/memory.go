@@ -312,7 +312,7 @@ func (s *SummaryMemoryStore) AddPreBottlingVolume(id string, volume float32) err
 }
 
 // AddBottling adds a summary of the bottling
-func (s *SummaryMemoryStore) AddBottling(id string, carbonation, alcohol, sugar, water, temp, vol float32, sugarType, notes string) error {
+func (s *SummaryMemoryStore) AddBottling(id string, carbonation, alcohol, sugar, water, temp, vol, time_min float32, sugarType, notes string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sum, err := s.getSummary(id)
@@ -330,6 +330,7 @@ func (s *SummaryMemoryStore) AddBottling(id string, carbonation, alcohol, sugar,
 	sum.BottlingInfo.Temperature = temp
 	sum.BottlingInfo.VolumeBottled = vol
 	sum.BottlingInfo.Notes = notes
+	sum.BottlingInfo.Time = time_min
 	return nil
 }
 
