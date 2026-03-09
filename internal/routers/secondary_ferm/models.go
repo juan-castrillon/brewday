@@ -66,6 +66,7 @@ type ReqPostDryHopIn struct {
 	IngredientName string  `json:"ingredient_name"`
 	RealAmount     float32 `json:"real_amount,omitempty"`
 	RealAlpha      float32 `json:"real_alpha,omitempty"`
+	Notes          string  `json:"notes" form:"notes"`
 }
 
 type ReqPostPreBottle struct {

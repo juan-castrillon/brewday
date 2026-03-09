@@ -115,7 +115,7 @@ func (r *SecondaryFermentationRouter) postDryHopInHandler(c echo.Context) error 
 	if err != nil {
 		return err
 	}
-	err = r.SummaryStore.AddDryHopStart(id, req.IngredientName, req.RealAmount, req.RealAlpha, "") //TODO: Support notes here?
+	err = r.SummaryStore.AddDryHopStart(id, req.IngredientName, req.RealAmount, req.RealAlpha, req.Notes)
 	if err != nil {
 		return err
 	}

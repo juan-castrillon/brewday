@@ -24,6 +24,11 @@
                     <label for="alpha">Real alpha</label>
                 </div>
                 {{ end }}
+                <div class="input-field col s8">
+                    <i class="material-icons prefix">edit_note</i>
+                    <textarea id="notes_{{$i.SanitizedName}}" class="materialize-textarea" name="notes"></textarea>
+                    <label for="notes">Notes</label>
+                </div>
                 <button class="btn waves-effect waves-light col s4 green" id="send_form_{{$i.SanitizedName}}"
                     onclick="inFunc('{{$i.SanitizedName}}')">In<i class="material-icons right">archive</i></button>
             </div>
@@ -61,14 +66,13 @@
     async function inFunc(name) {
         let real_amount = 0;
         let real_alpha = -1;
-        console.log("submitted")
         const am = document.getElementById("amount_" + name);
         const alpha = document.getElementById("alpha_" + name);
+        const notes = document.getElementById("notes_" + name);
         real_amount = am.value;
         if (alpha !== null) {
             real_alpha = alpha.value;
         }
-        console.log(real_amount, real_alpha);
         show("time_" + name)
         hide("form_" + name)
         try {
@@ -76,7 +80,8 @@
                 {
                     "ingredient_name": name,
                     "real_amount": parseFloat(real_amount),
-                    "real_alpha": parseFloat(real_alpha)
+                    "real_alpha": parseFloat(real_alpha),
+                    "notes": notes.value
                 });
         } catch (error) {
             console.error("Error making request to IN:", error);
