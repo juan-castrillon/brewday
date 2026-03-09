@@ -557,6 +557,7 @@ erDiagram
         REAL bottling_temperature
         REAL bottling_alcohol
         REAL bottling_volume_bottled
+        REAL bottling_time_min
         TEXT bottling_notes
         INTEGER sec_ferm_days
         TEXT sec_ferm_notes

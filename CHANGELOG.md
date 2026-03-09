@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Notes support for individual dry hops
+- Add bottling time to summary
+- Optional configuration parameter `process.lautern-rest-time-min`. Defaults to 15 minutes
+
 ### Changed
 - Fixed summary bugs:
   - Last rast and notes are now displayed in summary
