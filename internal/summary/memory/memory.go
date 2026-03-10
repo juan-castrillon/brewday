@@ -86,14 +86,18 @@ func (s *SummaryMemoryStore) AddRast(id string, temp float32, duration float32, 
 }
 
 // AddLauternNotes adds lautern notes to the summary
-func (s *SummaryMemoryStore) AddLauternNotes(id, notes string) error {
+func (s *SummaryMemoryStore) AddLauternNotes(id, notes string, duration float32) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	sum, err := s.getSummary(id)
 	if err != nil {
 		return err
 	}
-	sum.LauternInfo = notes
+	if sum.LauternInfo == nil {
+		sum.LauternInfo = &summary.LauternInfo{}
+	}
+	sum.LauternInfo.Notes = notes
+	sum.LauternInfo.Duration = duration
 	return nil
 }
 

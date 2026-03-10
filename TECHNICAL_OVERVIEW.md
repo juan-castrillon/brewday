@@ -538,6 +538,7 @@ erDiagram
         TEXT mash_notes
         TEXT mash_rasts
         TEXT lautern_info
+        REAL lautern_duration
         REAL hopping_vol_bb
         TEXT hopping_hops
         REAL hopping_vol_ab

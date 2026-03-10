@@ -36,9 +36,9 @@ func (r *LauternRouter) addTimelineEvent(id, message string) error {
 }
 
 // addSummaryLauternNotes adds lautern notes to the summary
-func (r *LauternRouter) addSummaryLauternNotes(id, notes string) error {
+func (r *LauternRouter) addSummaryLauternNotes(id, notes string, duration float32) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddLauternNotes(id, notes)
+		return r.SummaryStore.AddLauternNotes(id, notes, duration)
 	}
 	return nil
 }
@@ -92,7 +92,7 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	err = r.addSummaryLauternNotes(id, req.Notes) //TODO: handle real duration also
+	err = r.addSummaryLauternNotes(id, req.Notes, req.RealDuration)
 	if err != nil {
 		log.Error().Err(err).Str("id", id).Msg("Failed to add lautern notes to summary")
 	}

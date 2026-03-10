@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Notes support for individual dry hops
 - Add bottling time to summary
 - Optional configuration parameter `process.lautern-rest-time-min`. Defaults to 15 minutes
+- Lautern real duration now shown in summary
 
 ### Changed
 - Fixed summary bugs:

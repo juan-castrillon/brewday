@@ -67,11 +67,11 @@ func (s *SummaryPersistentStore) AddRast(id string, temp float32, duration float
 }
 
 // AddLauternNotes adds lautern notes to the summary
-func (s *SummaryPersistentStore) AddLauternNotes(id, notes string) error {
+func (s *SummaryPersistentStore) AddLauternNotes(id, notes string, duration float32) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
 	}
-	_, err := s.dbClient.Exec(`UPDATE summaries SET lautern_info = ? WHERE recipe_id == ?`, notes, id)
+	_, err := s.dbClient.Exec(`UPDATE summaries SET lautern_info = ?, lautern_duration= ? WHERE recipe_id == ?`, notes, duration, id)
 	return err
 }
 
@@ -304,24 +304,24 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 	}
 	var title string
 	var mash_notes, mash_rasts, lautern_info, hopping_vol_bb_notes, hopping_hops, hopping_vol_ab_notes, cooling_notes, pre_ferm_vols, yeast_start_temp, yeast_start_notes, main_ferm_sgs, main_ferm_dry_hops, bottling_sugar_type, bottling_notes, sec_ferm_notes sql.NullString
-	var mash_temp, hopping_vol_bb, hopping_vol_ab, cooling_temp, cooling_time, main_ferm_alcohol, bottling_pre_bottle_volume, bottling_carbonation, bottling_sugar_amount, bottling_water, bottling_temperature, bottling_alcohol, bottling_volume_bottled, evaporation, efficiency sql.NullFloat64
+	var mash_temp, hopping_vol_bb, hopping_vol_ab, cooling_temp, cooling_time, main_ferm_alcohol, bottling_pre_bottle_volume, bottling_carbonation, bottling_sugar_amount, bottling_water, bottling_temperature, bottling_alcohol, bottling_volume_bottled, evaporation, efficiency, lautern_duration, bottling_time_min sql.NullFloat64
 	var sec_ferm_days sql.NullInt32
 	err := s.dbClient.QueryRow(
 		`SELECT title, mash_temp, mash_notes, mash_rasts,
-		lautern_info, hopping_vol_bb, hopping_vol_bb_notes, hopping_hops,
+		lautern_info, lautern_duration, hopping_vol_bb, hopping_vol_bb_notes, hopping_hops,
 		hopping_vol_ab, hopping_vol_ab_notes, cooling_temp, cooling_time,
 		cooling_notes, pre_ferm_vols, yeast_start_temp, yeast_start_notes,
 		main_ferm_sgs, main_ferm_alcohol, main_ferm_dry_hops, bottling_pre_bottle_volume,
 		bottling_carbonation, bottling_sugar_amount, bottling_sugar_type, bottling_water, bottling_temperature,
-		bottling_alcohol, bottling_volume_bottled, bottling_notes, sec_ferm_days,
+		bottling_alcohol, bottling_volume_bottled, bottling_time_min, bottling_notes, sec_ferm_days,
 		sec_ferm_notes FROM summaries WHERE recipe_id == ?`, id).Scan(
 		&title, &mash_temp, &mash_notes, &mash_rasts,
-		&lautern_info, &hopping_vol_bb, &hopping_vol_bb_notes, &hopping_hops,
+		&lautern_info, &lautern_duration, &hopping_vol_bb, &hopping_vol_bb_notes, &hopping_hops,
 		&hopping_vol_ab, &hopping_vol_ab_notes, &cooling_temp, &cooling_time,
 		&cooling_notes, &pre_ferm_vols, &yeast_start_temp, &yeast_start_notes,
 		&main_ferm_sgs, &main_ferm_alcohol, &main_ferm_dry_hops, &bottling_pre_bottle_volume,
 		&bottling_carbonation, &bottling_sugar_amount, &bottling_sugar_type, &bottling_water, &bottling_temperature,
-		&bottling_alcohol, &bottling_volume_bottled, &bottling_notes, &sec_ferm_days,
+		&bottling_alcohol, &bottling_volume_bottled, &bottling_time_min, &bottling_notes, &sec_ferm_days,
 		&sec_ferm_notes,
 	)
 	if err != nil {
@@ -362,7 +362,10 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 			MashingNotes:       s.valueFromNullString(mash_notes),
 			RastInfos:          rastInfos,
 		},
-		LauternInfo: s.valueFromNullString(lautern_info),
+		LauternInfo: &summary.LauternInfo{
+			Notes:    s.valueFromNullString(lautern_info),
+			Duration: s.valueFromNullFloat(lautern_duration),
+		},
 		HoppingInfo: &summary.HoppingInfo{
 			VolBeforeBoil: &summary.VolMeasurement{
 				Volume: s.valueFromNullFloat(hopping_vol_bb),
@@ -398,6 +401,7 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 			Water:           s.valueFromNullFloat(bottling_water),
 			Alcohol:         s.valueFromNullFloat(bottling_alcohol),
 			VolumeBottled:   s.valueFromNullFloat(bottling_volume_bottled),
+			Time:            s.valueFromNullFloat(bottling_time_min),
 			Notes:           s.valueFromNullString(bottling_notes),
 		},
 		SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{
