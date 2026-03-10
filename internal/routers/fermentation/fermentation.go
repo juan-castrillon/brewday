@@ -199,8 +199,7 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
 	}
-	// TODO: is this right? I am asking for the yeast lose somewhere else
-	volumeDiff := req.Volume - (re.BatchSize + 1) // +1 for the 1l of yeast
+	volumeDiff := req.Volume - re.BatchSize
 	sgDiff := re.InitialSG - req.SG
 	redirect := "getPreFermentationWater"
 	queryParams := fmt.Sprintf("?volumeDiff=%f&sgDiff=%f", volumeDiff, sgDiff)
@@ -233,7 +232,7 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 		return err
 	}
 	currentSG := re.InitialSG - float32(sgDiff)
-	currentVol := re.BatchSize + float32(volumeDiff) + 1
+	currentVol := re.BatchSize + float32(volumeDiff)
 	if sgDiff < 0.0 {
 		toAdd, finalVol := tools.WaterForGravity(currentSG, re.InitialSG, currentVol)
 		options = append(options, WaterOption{
@@ -243,7 +242,7 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 			FinalSGPlato: tools.SGToPlato(re.InitialSG),
 		})
 		if volumeDiff < 0.0 {
-			targetVol := re.BatchSize + 1
+			targetVol := re.BatchSize
 			toAdd, finalSG := tools.WaterForVolume(currentVol, targetVol, currentSG)
 			options = append(options, WaterOption{
 				ToAdd:        toAdd,
@@ -260,7 +259,7 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 	return c.Render(http.StatusOK, "fermentation_pre_water.html", map[string]interface{}{
 		"Title":         "Pre Fermentation Water",
 		"RecipeID":      id,
-		"RecipeVolume":  re.BatchSize + 1,
+		"RecipeVolume":  re.BatchSize,
 		"RecipeSG":      re.InitialSG,
 		"CurrentSG":     currentSG,
 		"CurrentVolume": currentVol,
