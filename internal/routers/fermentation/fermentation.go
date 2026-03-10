@@ -189,7 +189,6 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
 	}
-	// TODO: this is int he wrong place, it must be in the "hot" wort
 	results, err := r.Store.RetrieveResults(id)
 	if err != nil {
 		return err
