@@ -330,10 +330,6 @@ func (r *SecondaryFermentationRouter) getSecondaryFermentationEndHandler(c echo.
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	err := r.checkWatchers(id) // TODO: maybe move this and fermentation to its own function/handler so it can be called on app start
-	if err != nil {
-		return err
-	}
 	notDates, err := r.Store.RetrieveDates(id, "secondary_ferm_notification")
 	if err != nil {
 		return err

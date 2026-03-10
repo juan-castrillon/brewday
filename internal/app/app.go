@@ -15,6 +15,7 @@ import (
 	summary "brewday/internal/routers/summary"
 	"context"
 	"encoding/json"
+	"errors"
 	"html/template"
 	"io/fs"
 	"math"
@@ -32,12 +33,13 @@ const (
 // App is the application structure
 // It encapsulates the web server, database, and other components
 type App struct {
-	server   *echo.Echo
-	staticFs fs.FS
-	routers  []common.Router
-	renderer Renderer
-	TLStore  TimelineStore
-	notifier Notifier
+	server      *echo.Echo
+	staticFs    fs.FS
+	routers     []common.Router
+	renderer    Renderer
+	TLStore     TimelineStore
+	notifier    Notifier
+	recipeStore RecipeStore
 }
 
 type ProcessConfiguration struct {
@@ -72,40 +74,40 @@ func (a *App) Initialize(components *AppComponents) error {
 	// Register global middlewares
 	a.server.Use(middleware.Recover())
 	// Initialize internal components
-	store := components.Store
+	a.recipeStore = components.Store
 	a.renderer = components.Renderer
 	a.TLStore = components.TL
 	a.notifier = components.Notifier
 	ss := components.SummaryStore
-	timer := common.NewTimer(store, a.TLStore, a.notifier)
+	timer := common.NewTimer(a.recipeStore, a.TLStore, a.notifier)
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
-			Store:                store,
+			Store:                a.recipeStore,
 			SummaryRecorderStore: ss,
 			TLStore:              a.TLStore,
 		},
 		&mash.MashRouter{
-			Store:        store,
+			Store:        a.recipeStore,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Timer:        timer,
 		},
 		&lautern.LauternRouter{
-			Store:           store,
+			Store:           a.recipeStore,
 			TLStore:         a.TLStore,
 			SummaryStore:    ss,
 			Timer:           timer,
 			LauternRestTime: components.Config.LauternRestTimeMin,
 		},
 		&hopping.HoppingRouter{
-			Store:        store,
+			Store:        a.recipeStore,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Timer:        timer,
 		},
 		&cooling.CoolingRouter{
-			Store:        store,
+			Store:        a.recipeStore,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Timer:        timer,
@@ -113,13 +115,13 @@ func (a *App) Initialize(components *AppComponents) error {
 		&fermentation.FermentationRouter{
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
-			Store:        store,
+			Store:        a.recipeStore,
 			Notifier:     a.notifier,
 		},
 		&secondaryferm.SecondaryFermentationRouter{
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
-			Store:        store,
+			Store:        a.recipeStore,
 			Notifier:     a.notifier,
 		},
 		&summary.SummaryRouter{
@@ -127,7 +129,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 		},
 		&recipes.RecipesRouter{
-			Store:        store,
+			Store:        a.recipeStore,
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 		},
@@ -194,8 +196,34 @@ func (a *App) RegisterRoutes() {
 	a.server.POST("/timeline/:recipe_id", a.postTimelineEvent).Name = "postTimelineEvent"
 }
 
+func (a *App) CheckWatchers() error {
+	if a.recipeStore == nil {
+		return errors.New("CheckWatchers should be called after initializing the app's recipe store")
+	}
+	recipes, err := a.recipeStore.List()
+	if err != nil {
+		return err
+	}
+	for _, router := range a.routers {
+		wr, ok := router.(common.WatcherRouter)
+		if ok {
+			for _, r := range recipes {
+				err := wr.CheckWatchers(r.ID)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // Run starts the application
 func (a *App) Run(address string) error {
+	err := a.CheckWatchers()
+	if err != nil {
+		return err
+	}
 	return a.server.Start(address)
 }
 

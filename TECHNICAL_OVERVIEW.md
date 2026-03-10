@@ -243,7 +243,7 @@ graph LR
     App -->|registers| RecipesRouter
 ```
 
-- **Startup flow**: `main.go` loads config → opens DB → creates stores → builds `AppComponents` → calls `NewApp()` → `Initialize()` registers middleware, static files, templates, and routes → `Run()` starts the Echo server.
+- **Startup flow**: `main.go` loads config → opens DB → creates stores → builds `AppComponents` → calls `NewApp()` → `Initialize()` registers middleware, static files, templates, and routes. Checks for notifications pending for certain routes → `Run()` starts the Echo server.
 - **Shutdown**: Catches `SIGINT`/`SIGTERM`, calls `app.Stop(ctx)` with a 10s timeout.
 
 ### 5.2 Configuration (`internal/config`)
@@ -270,7 +270,7 @@ Both parsers use `reflect` to iterate over numbered fields (Malt1..Malt7, Hop1..
 ### 5.4 Router Layer (`internal/routers`)
 
 Each brewing phase is encapsulated in its own router package. Every router:
-- Implements `common.Router` (single method: `RegisterRoutes`)
+- Implements `common.Router` (single method: `RegisterRoutes`) or `common.WatcherRouter` (Extension of `Router` with `CheckWatchers` method to check and reconfigure notification in case of restart)
 - Defines its **own interface subset** for the stores it needs (Interface Segregation)
 - Manages HTTP handlers for GET (render page) and POST (process form, redirect to next step)
 - Delegates timer logic to the shared `common.Timer`
@@ -351,7 +351,7 @@ A lightweight goroutine-based scheduler:
 - Spawns a goroutine that sleeps via `time.After` until the target time
 - Supports cancellation via a stop channel
 - Used for fermentation SG measurement reminders and secondary fermentation notifications
-- **Persistence-aware**: On restart, the fermentation router reconstructs watchers from stored dates
+- **Persistence-aware**: On restart, the app reconstructs watchers from stored dates
 
 ### 5.9 Frontend (`web/`)
 
