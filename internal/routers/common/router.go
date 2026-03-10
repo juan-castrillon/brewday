@@ -11,3 +11,12 @@ type Router interface {
 	// Middleware can be added to the parent group in the caller and its not a concern of the router
 	RegisterRoutes(root *echo.Echo, parent *echo.Group)
 }
+
+// A WatcherRouter is a special type of router that include notifications that should be persistent
+type WatcherRouter interface {
+	Router
+	// CheckWatchers will check it watchers were set for a given recipe.
+	// If they were not, it will fetch the notification dates from the store and set them up again
+	// This method helps notifications be persistent in case of restarts.
+	CheckWatchers(id string) error
+}

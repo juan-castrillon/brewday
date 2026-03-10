@@ -115,7 +115,7 @@ func (r *SecondaryFermentationRouter) postDryHopInHandler(c echo.Context) error 
 	if err != nil {
 		return err
 	}
-	err = r.SummaryStore.AddDryHopStart(id, req.IngredientName, req.RealAmount, req.RealAlpha, "") //TODO: Support notes here?
+	err = r.SummaryStore.AddDryHopStart(id, req.IngredientName, req.RealAmount, req.RealAlpha, req.Notes)
 	if err != nil {
 		return err
 	}
@@ -229,8 +229,7 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 		res.Alcohol, req.Water, req.SugarType,
 	)
 	realCO2 := tools.CarbonationForSugar(req.RealVolume, req.SugarAmount, req.Temperature, req.SugarType)
-	err = r.addSummaryBottle(id, realCO2, realAlcohol, req.SugarAmount, req.Water, req.Temperature, req.RealVolume, req.SugarType, req.Notes)
-	// TODO: Add the bottling time now that i have it, add also to the stats
+	err = r.addSummaryBottle(id, realCO2, realAlcohol, req.SugarAmount, req.Water, req.Temperature, req.RealVolume, req.Time, req.SugarType, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add summary bottle")
 	}
@@ -287,7 +286,7 @@ func (r *SecondaryFermentationRouter) getSecondaryFermentationStartHandler(c ech
 		"Title":    "Start Secondary Fermentation",
 		"RecipeID": id,
 		"Subtitle": "First, let the bottles at warm temperature",
-		"MinDays":  5, //TODO: make configurable
+		"MinDays":  5,
 	})
 }
 
@@ -330,10 +329,6 @@ func (r *SecondaryFermentationRouter) getSecondaryFermentationEndHandler(c echo.
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
-	}
-	err := r.checkWatchers(id) // TODO: maybe move this and fermentation to its own function/handler so it can be called on app start
-	if err != nil {
-		return err
 	}
 	notDates, err := r.Store.RetrieveDates(id, "secondary_ferm_notification")
 	if err != nil {

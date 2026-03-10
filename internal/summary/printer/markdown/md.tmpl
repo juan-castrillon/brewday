@@ -12,7 +12,9 @@ The following summary was generated on {{ .GenerationDate }}
 
 ## Lautern
 
-{{.LauternInfo}}
+Duration: {{printf "%.2f" .LauternInfo.Duration}} min
+
+{{.LauternInfo.Notes}}
 
 
 ## Hopping
@@ -59,6 +61,8 @@ Date | SG | Final | Notes
 {{ end }}
 
 ## Bottling
+
+Duration: {{printf "%.2f" .BottlingInfo.Time}} min
 
 - **Volume in tank**: {{printf "%.2f" .BottlingInfo.PreBottleVolume}}L
 

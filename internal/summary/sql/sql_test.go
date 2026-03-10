@@ -390,30 +390,41 @@ func TestAddLauternNotes(t *testing.T) {
 		num := strconv.Itoa(i)
 		require.NoError(store.AddSummary(num, "t"+num))
 	}
-	getSt, err := db.Prepare(`SELECT lautern_info FROM summaries WHERE recipe_id = ?`)
+	getSt, err := db.Prepare(`SELECT lautern_info, lautern_duration FROM summaries WHERE recipe_id = ?`)
 	require.NoError(err)
 	testCases := []struct {
 		Name     string
 		RecipeID string
 		Notes    string
+		Duration float32
 		SkipRead bool
 		Error    bool
 	}{
 		{
 			Name:     "Normal case",
 			RecipeID: "1",
+			Duration: 90,
+			Notes:    "notes1",
+			Error:    false,
+		},
+		{
+			Name:     "Duration 0",
+			RecipeID: "1",
+			Duration: 0,
 			Notes:    "notes1",
 			Error:    false,
 		},
 		{
 			Name:     "Empty RecipeID",
 			RecipeID: "",
+			Duration: 90,
 			Notes:    "Some notes",
 			Error:    true,
 		},
 		{
 			Name:     "Empty Notes",
 			RecipeID: "2",
+			Duration: 90,
 			Notes:    "",
 			Error:    false,
 		},
@@ -421,6 +432,7 @@ func TestAddLauternNotes(t *testing.T) {
 			Name:     "SQL Injection in RecipeID",
 			RecipeID: "3; DROP TABLE summaries;",
 			Notes:    "Some notes",
+			Duration: 90,
 			Error:    false,
 			SkipRead: true,
 		},
@@ -428,27 +440,31 @@ func TestAddLauternNotes(t *testing.T) {
 			Name:     "SQL Injection in Notes",
 			RecipeID: "3",
 			Notes:    "Some notes; DROP TABLE summaries;",
+			Duration: 90,
 			Error:    false,
 		},
 		{
 			Name:     "Non-Existing RecipeID",
 			RecipeID: "999",
 			Notes:    "Some notes",
+			Duration: 90,
 			Error:    false,
 			SkipRead: true,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			err = store.AddLauternNotes(tc.RecipeID, tc.Notes)
+			err = store.AddLauternNotes(tc.RecipeID, tc.Notes, tc.Duration)
 			if tc.Error {
 				require.Error(err)
 			} else {
 				require.NoError(err)
 				if !tc.SkipRead {
 					var notes string
-					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&notes))
+					var dur float32
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&notes, &dur))
 					require.Equal(tc.Notes, notes)
+					require.InDelta(tc.Duration, dur, 0.001)
 				}
 			}
 		})
@@ -1163,6 +1179,7 @@ func TestAddBottling(t *testing.T) {
 	bottling_temperature  ,
 	bottling_alcohol  ,
 	bottling_volume_bottled  ,
+	bottling_time_min ,
 	bottling_notes FROM summaries WHERE recipe_id == ?`)
 	require.NoError(err)
 	testCases := []struct {
@@ -1175,6 +1192,7 @@ func TestAddBottling(t *testing.T) {
 		Water       float32
 		Alcohol     float32
 		Volume      float32
+		Time        float32
 		Notes       string
 		SkipRead    bool
 		Error       bool
@@ -1189,6 +1207,7 @@ func TestAddBottling(t *testing.T) {
 			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
+			Time:        90,
 			Notes:       "Some notes",
 			Error:       false,
 		}, {
@@ -1201,6 +1220,7 @@ func TestAddBottling(t *testing.T) {
 			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
+			Time:        90,
 			Notes:       "Some notes",
 			Error:       true,
 		},
@@ -1214,6 +1234,7 @@ func TestAddBottling(t *testing.T) {
 			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
+			Time:        90,
 			Notes:       "Some notes",
 			Error:       false,
 			SkipRead:    true,
@@ -1228,6 +1249,7 @@ func TestAddBottling(t *testing.T) {
 			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
+			Time:        90,
 			Notes:       "Some notes; DROP TABLE summaries;",
 			Error:       false,
 		},
@@ -1241,6 +1263,7 @@ func TestAddBottling(t *testing.T) {
 			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
+			Time:        90,
 			Notes:       "Some notes",
 			Error:       false,
 		},
@@ -1254,6 +1277,7 @@ func TestAddBottling(t *testing.T) {
 			Water:       0.5,
 			Alcohol:     5.69,
 			Volume:      10.3,
+			Time:        90,
 			Notes:       "Some notes",
 			Error:       false,
 			SkipRead:    true,
@@ -1261,15 +1285,15 @@ func TestAddBottling(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			err = store.AddBottling(tc.RecipeID, tc.Carbonation, tc.Alcohol, tc.Sugar, tc.Water, tc.Temp, tc.Volume, tc.SugarType, tc.Notes)
+			err = store.AddBottling(tc.RecipeID, tc.Carbonation, tc.Alcohol, tc.Sugar, tc.Water, tc.Temp, tc.Volume, tc.Time, tc.SugarType, tc.Notes)
 			if tc.Error {
 				require.Error(err)
 			} else {
 				require.NoError(err)
 				if !tc.SkipRead {
-					var temp, carbonation, alcohol, vol, sugar, water float32
+					var temp, carbonation, alcohol, vol, sugar, water, time_min float32
 					var st, notes string
-					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&carbonation, &sugar, &st, &water, &temp, &alcohol, &vol, &notes))
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&carbonation, &sugar, &st, &water, &temp, &alcohol, &vol, &time_min, &notes))
 					require.Equal(tc.Notes, notes)
 					require.Equal(tc.SugarType, st)
 					require.InDelta(tc.Carbonation, carbonation, 0.001)
@@ -1278,6 +1302,7 @@ func TestAddBottling(t *testing.T) {
 					require.InDelta(tc.Water, water, 0.001)
 					require.InDelta(tc.Alcohol, alcohol, 0.001)
 					require.InDelta(tc.Volume, vol, 0.001)
+					require.InDelta(tc.Time, time_min, 0.001)
 				}
 			}
 		})
@@ -1836,7 +1861,10 @@ func TestGetSummary(t *testing.T) {
 						{Temperature: 72, Time: 45, Notes: "notes 3"},
 					},
 				},
-				LauternInfo: "lautern",
+				LauternInfo: &summary.LauternInfo{
+					Notes:    "lautern",
+					Duration: 90,
+				},
 				HoppingInfo: &summary.HoppingInfo{
 					VolBeforeBoil: &summary.VolMeasurement{Volume: 12.5, Notes: "notes 4"},
 					VolAfterBoil:  &summary.VolMeasurement{Volume: 9.4, Notes: "notes 5"},
@@ -1866,7 +1894,7 @@ func TestGetSummary(t *testing.T) {
 				},
 				BottlingInfo: &summary.BottlingInfo{
 					PreBottleVolume: 12, Carbonation: 5.5, SugarAmount: 100, SugarType: "glucose", Water: 0.5,
-					Temperature: 19, Alcohol: 6.5, VolumeBottled: 11, Notes: "notes 16",
+					Temperature: 19, Alcohol: 6.5, VolumeBottled: 11, Time: 90, Notes: "notes 16",
 				},
 				SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{
 					Days: 5, Notes: "notes 17",
@@ -1907,7 +1935,7 @@ func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStor
 			return err
 		}
 	}
-	err = store.AddLauternNotes(id, summ.LauternInfo)
+	err = store.AddLauternNotes(id, summ.LauternInfo.Notes, summ.LauternInfo.Duration)
 	if err != nil {
 		return err
 	}
@@ -1964,7 +1992,7 @@ func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStor
 		return err
 	}
 	err = store.AddBottling(id, summ.BottlingInfo.Carbonation, summ.BottlingInfo.Alcohol, summ.BottlingInfo.SugarAmount,
-		summ.BottlingInfo.Water, summ.BottlingInfo.Temperature, summ.BottlingInfo.VolumeBottled, summ.BottlingInfo.SugarType, summ.BottlingInfo.Notes)
+		summ.BottlingInfo.Water, summ.BottlingInfo.Temperature, summ.BottlingInfo.VolumeBottled, summ.BottlingInfo.Time, summ.BottlingInfo.SugarType, summ.BottlingInfo.Notes)
 	if err != nil {
 		return err
 	}

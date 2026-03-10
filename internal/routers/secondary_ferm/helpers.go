@@ -46,9 +46,9 @@ func (r *SecondaryFermentationRouter) calculateSugar(id string, volume, carbonat
 }
 
 // addSummaryBottle adds a summary of the bottling
-func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, alcohol, sugar, water, temp, vol float32, st, notes string) error {
+func (r *SecondaryFermentationRouter) addSummaryBottle(id string, carbonation, alcohol, sugar, water, temp, vol, time_min float32, st, notes string) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddBottling(id, carbonation, alcohol, sugar, water, temp, vol, st, notes)
+		return r.SummaryStore.AddBottling(id, carbonation, alcohol, sugar, water, temp, vol, time_min, st, notes)
 	}
 	return nil
 }
@@ -77,11 +77,11 @@ func (r *SecondaryFermentationRouter) addSummaryFinishedTime(id string, t time.T
 	return nil
 }
 
-// checkWatchers will check it watchers were set for a given recipe.
+// CheckWatchers will check it watchers were set for a given recipe.
 // If they were not, it will fetch the notification dates from the store and set them up again
 // This method helps notifications be persistent in case of restarts.
 // It should be called in handlers after the initial watcher setup (where a watcher set up is assumed)
-func (r *SecondaryFermentationRouter) checkWatchers(id string) error {
+func (r *SecondaryFermentationRouter) CheckWatchers(id string) error {
 	reset := false
 	if r.watchersSet == nil {
 		reset = true
@@ -99,6 +99,10 @@ func (r *SecondaryFermentationRouter) checkWatchers(id string) error {
 		re, err := r.Store.Retrieve(id)
 		if err != nil {
 			return err
+		}
+		status, params := re.GetStatus()
+		if status != recipe.RecipeStatusFermenting || (len(params) != 1 && params[0] != "wait_secondary") {
+			return nil
 		}
 		dates, err := r.Store.RetrieveDates(id, "secondary_ferm_notification")
 		if err != nil {

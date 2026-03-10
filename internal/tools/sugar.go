@@ -60,7 +60,6 @@ func addedBySugar(sugar string) (float32, float32) {
 	case "glucose":
 		alcoholGrams = sugarAlcohol * 0.9
 	default:
-		// TODO: Handle other types of sugar or provide an error message
 		alcoholGrams = 0
 	}
 

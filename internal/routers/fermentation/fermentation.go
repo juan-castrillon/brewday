@@ -25,11 +25,11 @@ type FermentationRouter struct {
 	watchersSet  map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
 }
 
-// checkWatchers will check it watchers were set for a given recipe.
+// CheckWatchers will check it watchers were set for a given recipe.
 // If they were not, it will fetch the notification dates from the store and set them up again
 // This method helps notifications be persistent in case of restarts.
 // It should be called in handlers after the initial watcher setup (where a watcher set up is assumed)
-func (r *FermentationRouter) checkWatchers(id string) error {
+func (r *FermentationRouter) CheckWatchers(id string) error {
 	reset := false
 	if r.watchersSet == nil {
 		reset = true
@@ -47,6 +47,10 @@ func (r *FermentationRouter) checkWatchers(id string) error {
 		re, err := r.Store.Retrieve(id)
 		if err != nil {
 			return err
+		}
+		status, params := re.GetStatus()
+		if status != recipe.RecipeStatusFermenting || (len(params) != 1 && params[0] != "wait") {
+			return nil
 		}
 		dates, err := r.Store.RetrieveDates(id, notificationNamePattern)
 		if err != nil {
@@ -189,7 +193,6 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add pre fermentation summary")
 	}
-	// TODO: this is int he wrong place, it must be in the "hot" wort
 	results, err := r.Store.RetrieveResults(id)
 	if err != nil {
 		return err
@@ -200,8 +203,7 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
 	}
-	// TODO: is this right? I am asking for the yeast lose somewhere else
-	volumeDiff := req.Volume - (re.BatchSize + 1) // +1 for the 1l of yeast
+	volumeDiff := req.Volume - re.BatchSize
 	sgDiff := re.InitialSG - req.SG
 	redirect := "getPreFermentationWater"
 	queryParams := fmt.Sprintf("?volumeDiff=%f&sgDiff=%f", volumeDiff, sgDiff)
@@ -234,7 +236,7 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 		return err
 	}
 	currentSG := re.InitialSG - float32(sgDiff)
-	currentVol := re.BatchSize + float32(volumeDiff) + 1
+	currentVol := re.BatchSize + float32(volumeDiff)
 	if sgDiff < 0.0 {
 		toAdd, finalVol := tools.WaterForGravity(currentSG, re.InitialSG, currentVol)
 		options = append(options, WaterOption{
@@ -244,7 +246,7 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 			FinalSGPlato: tools.SGToPlato(re.InitialSG),
 		})
 		if volumeDiff < 0.0 {
-			targetVol := re.BatchSize + 1
+			targetVol := re.BatchSize
 			toAdd, finalSG := tools.WaterForVolume(currentVol, targetVol, currentSG)
 			options = append(options, WaterOption{
 				ToAdd:        toAdd,
@@ -261,7 +263,7 @@ func (r *FermentationRouter) getPreFermentationWaterHandler(c echo.Context) erro
 	return c.Render(http.StatusOK, "fermentation_pre_water.html", map[string]interface{}{
 		"Title":         "Pre Fermentation Water",
 		"RecipeID":      id,
-		"RecipeVolume":  re.BatchSize + 1,
+		"RecipeVolume":  re.BatchSize,
 		"RecipeSG":      re.InitialSG,
 		"CurrentSG":     currentSG,
 		"CurrentVolume": currentVol,
@@ -425,10 +427,6 @@ func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
-	}
-	err := r.checkWatchers(id)
-	if err != nil {
-		return err
 	}
 	minDate, err := r.Store.RetrieveDates(id, notificationNamePattern+"0")
 	if err != nil {

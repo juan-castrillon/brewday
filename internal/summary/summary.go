@@ -7,7 +7,7 @@ type Summary struct {
 	//GenerationDate is automatically populated by the printer when creating the summary file
 	GenerationDate            string
 	MashingInfo               *MashingInfo
-	LauternInfo               string
+	LauternInfo               *LauternInfo
 	HoppingInfo               *HoppingInfo
 	CoolingInfo               *CoolingInfo
 	PreFermentationInfos      []*PreFermentationInfo
@@ -30,6 +30,11 @@ type MashRastInfo struct {
 	Temperature float32 `json:"temperature,omitempty"`
 	Time        float32 `json:"time,omitempty"`
 	Notes       string  `json:"notes,omitempty"`
+}
+
+type LauternInfo struct {
+	Notes    string
+	Duration float32
 }
 
 type HoppingInfo struct {
@@ -91,6 +96,7 @@ type BottlingInfo struct {
 	Temperature     float32
 	Alcohol         float32
 	VolumeBottled   float32
+	Time            float32
 	Notes           string
 }
 

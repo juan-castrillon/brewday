@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/knadh/koanf/parsers/yaml"
+	"github.com/knadh/koanf/providers/confmap"
 	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
@@ -14,10 +15,19 @@ import (
 // EnvPrefix is the prefix to use for environment variables.
 const EnvPrefix = "BREWDAY_"
 
+// DEFAULT VALUES for configuration
+var defaultValues = map[string]any{
+	"process.lautern-rest-time-min": 15,
+}
+
 // LoadConfig loads the configuration from the given path.
 // If the path is empty, it will attempt to load from the environment.
 func LoadConfig(path string) (*Config, error) {
 	k := koanf.New(".") // New creates a new instance of Koanf.
+	err := k.Load(confmap.Provider(defaultValues, "."), nil)
+	if err != nil {
+		return nil, err
+	}
 	if path != "" {
 		ext := filepath.Ext(path)
 		parser, err := getParser(ext)
@@ -29,7 +39,7 @@ func LoadConfig(path string) (*Config, error) {
 			return nil, err
 		}
 	}
-	err := k.Load(env.ProviderWithValue(EnvPrefix, ".", formatEnvVariables), nil)
+	err = k.Load(env.ProviderWithValue(EnvPrefix, ".", formatEnvVariables), nil)
 	if err != nil {
 		return nil, err
 	}

@@ -5,6 +5,7 @@ type Config struct {
 	Notification NotificationConfig `koanf:"notification"`
 	App          AppConfig          `koanf:"app"`
 	Store        StoreConfig        `koanf:"store"`
+	Process      ProcessParameters  `koanf:"process"`
 }
 
 // NotificationConfig represents the configuration options for notifications.
@@ -24,4 +25,10 @@ type AppConfig struct {
 type StoreConfig struct {
 	StoreType string `koanf:"type"`
 	Path      string `koanf:"path"`
+}
+
+// ProcessParameters are OPTIONAL parameters to adjust constants in the process (like times)
+// These are advanced options
+type ProcessParameters struct {
+	LauternRestTimeMin int `koanf:"lautern-rest-time-min"`
 }

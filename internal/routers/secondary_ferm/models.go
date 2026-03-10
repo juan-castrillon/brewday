@@ -16,7 +16,7 @@ type SummaryStore interface {
 	AddDryHopStart(id string, name string, amount, alpha float32, notes string) error
 	AddDryHopEnd(id string, name string, durationHours float32) error
 	AddPreBottlingVolume(id string, volume float32) error
-	AddBottling(id string, carbonation, alcohol, sugar, water, temp, vol float32, sugarType, notes string) error
+	AddBottling(id string, carbonation, alcohol, sugar, water, temp, vol, time_min float32, sugarType, notes string) error
 	AddSummarySecondary(id string, days int, notes string) error
 	AddFinishedTime(id string, t time.Time) error
 }
@@ -66,6 +66,7 @@ type ReqPostDryHopIn struct {
 	IngredientName string  `json:"ingredient_name"`
 	RealAmount     float32 `json:"real_amount,omitempty"`
 	RealAlpha      float32 `json:"real_alpha,omitempty"`
+	Notes          string  `json:"notes" form:"notes"`
 }
 
 type ReqPostPreBottle struct {

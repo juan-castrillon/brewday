@@ -7,11 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- Notes support for individual dry hops
+- Add bottling time to summary
+- Optional configuration parameter `process.lautern-rest-time-min`. Defaults to 15 minutes
+- Lautern real duration now shown in summary
+- Notifications on fermentation and secondary fermentation now checked for all recipes when the app starts (instead of having to open the page)
+
 ### Changed
+
 - Fixed summary bugs:
   - Last rast and notes are now displayed in summary
   - Water for sugar solution is now shown in the pre-bottling part
     - Added `bottling_water` column to `summaries` db for persistent storage
+
+### Removed
+- Wrong assumption to always add 1L to the recipe volume to take into consideration yeast loss. This must be done in the recipe not here 
 
 ## [2.1.0] - 2026-02-28
 
