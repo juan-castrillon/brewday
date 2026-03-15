@@ -13,3 +13,4 @@ store:
 
 process:
   lautern-rest-time-min: 10
+  refractometer-wcf: 1.04

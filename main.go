@@ -97,6 +97,7 @@ func main() {
 	// Add process configuration from config
 	components.Config = app.ProcessConfiguration{
 		LauternRestTimeMin: config.Process.LauternRestTimeMin,
+		RefractometerWCF:   config.Process.RefractometerWCF,
 	}
 	app, err := app.NewApp(staticFS, components)
 	if err != nil {

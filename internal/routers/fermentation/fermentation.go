@@ -18,11 +18,12 @@ import (
 const notificationNamePattern = "main_ferm_notification_"
 
 type FermentationRouter struct {
-	TLStore      TimelineStore
-	SummaryStore SummaryStore
-	Store        RecipeStore
-	Notifier     Notifier
-	watchersSet  map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
+	TLStore          TimelineStore
+	SummaryStore     SummaryStore
+	Store            RecipeStore
+	Notifier         Notifier
+	RefractometerWCF float32
+	watchersSet      map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
 }
 
 // CheckWatchers will check it watchers were set for a given recipe.
