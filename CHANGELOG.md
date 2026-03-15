@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional configuration parameter `process.lautern-rest-time-min`. Defaults to 15 minutes
 - Lautern real duration now shown in summary
 - Notifications on fermentation and secondary fermentation now checked for all recipes when the app starts (instead of having to open the page)
+- Correction of Gravity measurements during fermentation both for refractometers and hydrometers based on Terril Linear and Novotny linear correlation models
 
 ### Changed
 

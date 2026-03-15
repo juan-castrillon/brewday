@@ -227,6 +227,7 @@ graph LR
         TimelineStore
         SummaryStore
         Notifier
+        ProcessConfiguration
     end
 
     main.go -->|injects| AppComponents
@@ -253,6 +254,13 @@ Configuration is loaded in priority order:
 2. Environment variables (prefix `BREWDAY_`, always loaded, overrides YAML)
 
 Validated fields: port (required), notification credentials (if enabled), store type + path.
+
+Process values can also be modified but have reasonable default values
+
+Value | Default
+--- | ---
+Lautering Rest Time | 15 min
+Wort Correction Factor (Refractometer) | 1
 
 ### 5.3 Recipe Domain (`internal/recipe`)
 
@@ -343,6 +351,7 @@ Pure-function brewing calculations:
 - **Alcohol**: ABV using the Cutaia formula from OG and FG
 - **Sugar**: Priming sugar amount (glucose/sucrose) for target carbonation using Henry's law
 - **Water**: Dilution calculations for gravity and volume targets
+- **Gravity**: Gravity measurement correction for alcohol
 
 ### 5.8 Watcher (`internal/watcher`)
 
