@@ -18,11 +18,12 @@ import (
 const notificationNamePattern = "main_ferm_notification_"
 
 type FermentationRouter struct {
-	TLStore      TimelineStore
-	SummaryStore SummaryStore
-	Store        RecipeStore
-	Notifier     Notifier
-	watchersSet  map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
+	TLStore          TimelineStore
+	SummaryStore     SummaryStore
+	Store            RecipeStore
+	Notifier         Notifier
+	RefractometerWCF float32
+	watchersSet      map[string]bool // This keeps track if watches are set. In case of restart, it will go back to nil and force reconfig of watchers
 }
 
 // CheckWatchers will check it watchers were set for a given recipe.
@@ -152,6 +153,7 @@ func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group)
 	fermentation.POST("/start/:recipe_id", r.postMainFermentationStartHandler).Name = "postMainFermentationStart"
 	fermentation.GET("/main/:recipe_id", r.getMainFermentationHandler).Name = "getMainFermentation"
 	fermentation.POST("/main/:recipe_id", r.postMainFermentationHandler).Name = "postMainFermentation"
+	fermentation.POST("/main/correct_sg/:recipe_id", r.postCorrectSGHandler).Name = "postCorrectSG"
 }
 
 // getPreFermentationHandler returns the handler for the pre fermentation page
@@ -513,4 +515,34 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHop", id))
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))
+}
+
+// postCorrectSGHandler handles the post request for correcting an sg measurement
+func (r *FermentationRouter) postCorrectSGHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	var req ReqPostCorrectSG
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	results, err := r.Store.RetrieveResults(id)
+	if err != nil {
+		return err
+	}
+	og := results.OriginalGravity
+	var apparent float32
+	if req.Refractometer {
+		apparent = tools.CorrectRefractometerAlcohol(og, req.SG, r.RefractometerWCF)
+	} else {
+		apparent = req.SG
+	}
+	real := tools.CorrectGravityAlcohol(og, apparent, r.RefractometerWCF)
+	response := RespCorrectSG{
+		ApparentSG: apparent,
+		RealSG:     real,
+	}
+	return c.JSON(http.StatusOK, response)
 }

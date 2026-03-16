@@ -30,5 +30,6 @@ type StoreConfig struct {
 // ProcessParameters are OPTIONAL parameters to adjust constants in the process (like times)
 // These are advanced options
 type ProcessParameters struct {
-	LauternRestTimeMin int `koanf:"lautern-rest-time-min"`
+	LauternRestTimeMin int     `koanf:"lautern-rest-time-min"`
+	RefractometerWCF   float32 `koanf:"refractometer-wcf"`
 }

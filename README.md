@@ -14,7 +14,8 @@ The app helps the user with the following tasks:
 
 - **Follow the recipe**. The user can import a recipe from any of the supported formats (see below), and the app will guide the user through the brewing process, step by step. 
 - **Note taking**. The user can take notes during the brew, and the app will save them for future reference. Each step in the process gives the opportunity to input real data (to compare with the recipe) and notes (to keep track of the brew).
-- **Timers**. The app will set timers for each step in the process, and will notify the user when the time is up. - **Statistics**. The app will calculate the efficiency of the brew, evaporation rate, and other useful statistics.
+- **Timers**. The app will set timers for each step in the process, and will notify the user when the time is up. 
+- **Statistics**. The app will calculate the efficiency of the brew, evaporation rate, and other useful statistics.
 - **Timeline and summary**. The app will ley the users download a timeline of the brew, and a summary of the brew day, with all the relevant data. Supported summary formats are listed below.
 
 ## Supported recipe formats
@@ -56,6 +57,10 @@ notification:
 store:
   type: sql
   path: "./bd.sqlite"
+  
+process:
+  lautern-rest-time-min: 15
+  refractometer-wcf: 1.00
 ```
 
 Store can be `sql` or `memory` depending on the need on persistent storage.
@@ -68,8 +73,11 @@ export BREWDAY_NOTIFICATION_ENABLED=true
 export BREWDAY_NOTIFICATION_GOTIFY-URL=http://localhost:8080
 export BREWDAY_NOTIFICATION_USERNAME=BrewDay
 export BREWDAY_NOTIFICATION_PASSWORD=1234567890
+export BREWDAY_PROCESS_LAUTERN-REST-TIME-MIN=15
+export BREWDAY_PROCESS_REFRACTOMETER-WCF=1.00
 ```
 
+> Process variables can be skipped. The default values are shown in the example above
 
 ## Deployment
 

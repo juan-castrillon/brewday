@@ -14,7 +14,29 @@
                 <p>If you believe the gravity measures are stable, you can submit is as final, but just after min 2 days</p>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="initial_form">
+            <div class="input-field col s4">
+                <i class="material-icons prefix">gradient</i>
+                <input type="text" id="sg_before" name="sg_before">
+                <label for="sg_before">Specific Gravity (SG)</label>
+            </div>
+            <div class="input-field col s4">
+                <p>
+                    <label>
+                        <input type="checkbox" id="refractometer" name="refractometer" value="true">
+                        <span>Refractometer?</span>
+                    </label>
+                </p>
+            </div>
+            <button class="btn waves-effect waves-light col s4 green" id="correct_sg" onclick="correctSG('{{ reverse "postCorrectSG" .RecipeID }}')">
+                Correct<i class="material-icons right">archive</i>
+            </button>
+        </div>
+        <div class="row" id="final_form" style="display: none;">
+            <div class="row">
+                <p id="corrected"></p>
+            </div>
+            <div class="row">
             <form action='{{ reverse "postMainFermentation" .RecipeID }}' method="post" class="col s12" enctype="multipart/form-data">
                 <div class="row">
                     <div class="input-field col s8">
@@ -40,6 +62,7 @@
                     <i class="material-icons right">send</i>
                 </button>
             </form>
+            </div>
         </div>
         {{ if gt (len .PastMeasurements) 0 }}
         <div class="row">
@@ -53,6 +76,25 @@
         {{ end }}
     </div>
 </main>
+<script>
+  async function correctSG(correctURL) {
+    const initial_sg = document.getElementById("sg_before").value;
+    const refractometer = document.getElementById("refractometer").value;
+    try {
+        const response = await axios.post(correctURL,{
+          sg: parseFloat(initial_sg),
+          refractometer: refractometer == "true",
+        });
+        apparent_sg = parseFloat(response.data.apparent_sg).toFixed(4);
+        real_sg = parseFloat(response.data.real_sg).toFixed(4);
+        hide("initial_form");
+        show("final_form");
+        document.getElementById("corrected").textContent = "Corrections - Apparent:" + apparent_sg + " Real:" + real_sg + " Use apparent for alcohol";
+    } catch (error) {
+        console.error("Error fetching duration:", error);
+    }
+  }
+</script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     const ctx = document.getElementById('myChart');

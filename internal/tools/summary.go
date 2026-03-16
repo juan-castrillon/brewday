@@ -31,6 +31,7 @@ func CalculateEvaporation(volumeBefore, volumeAfter, time float32) float32 {
 // CalculateAlcohol returns the alcohol percentage of a brew in %vol
 // It takes the original and final gravity in SG
 // It calculates the ABV using the cutaia formula
+// This uses apparent final gravity!
 func CalculateAlcohol(originalGravity, finalGravity float32) float32 {
 	oe := SGToPlato(originalGravity)
 	ae := SGToPlato(finalGravity)

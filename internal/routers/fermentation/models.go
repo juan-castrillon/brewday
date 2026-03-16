@@ -88,3 +88,14 @@ type ReqPostMainFermentation struct {
 	Final bool    `json:"final" form:"final"`
 	Notes string  `json:"notes" form:"notes"`
 }
+
+// ReqPostCorrectSG represents an SG measurement to be corrected
+type ReqPostCorrectSG struct {
+	SG            float32 `json:"sg"`
+	Refractometer bool    `json:"refractometer"`
+}
+
+type RespCorrectSG struct {
+	ApparentSG float32 `json:"apparent_sg"`
+	RealSG     float32 `json:"real_sg"`
+}

@@ -44,6 +44,7 @@ func TestConfig(t *testing.T) {
 				},
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
 				},
 			},
 			Error: false,
@@ -66,6 +67,7 @@ func TestConfig(t *testing.T) {
 				},
 				Process: ProcessParameters{
 					LauternRestTimeMin: 10,
+					RefractometerWCF:   1.04,
 				},
 			},
 			Error: false,
@@ -82,6 +84,7 @@ func TestConfig(t *testing.T) {
 				"BREWDAY_STORE_TYPE":                    "sql",
 				"BREWDAY_STORE_PATH":                    "./bd.sqlite",
 				"BREWDAY_PROCESS_LAUTERN-REST-TIME-MIN": "5",
+				"BREWDAY_PROCESS_REFRACTOMETER-WCF":     "1.05",
 			},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
@@ -97,6 +100,7 @@ func TestConfig(t *testing.T) {
 				},
 				Process: ProcessParameters{
 					LauternRestTimeMin: 5,
+					RefractometerWCF:   1.05,
 				},
 			},
 			Error: false,
@@ -122,6 +126,7 @@ func TestConfig(t *testing.T) {
 				},
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
 				},
 			},
 			Error: false,
@@ -147,6 +152,7 @@ func TestConfig(t *testing.T) {
 				},
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
 				},
 			},
 			Error: false,
@@ -172,6 +178,7 @@ func TestConfig(t *testing.T) {
 				},
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
 				},
 			},
 			Error: false,
@@ -212,6 +219,7 @@ func TestConfig(t *testing.T) {
 				},
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
 				},
 			},
 			Error: false,

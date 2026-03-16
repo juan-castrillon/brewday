@@ -44,6 +44,7 @@ type App struct {
 
 type ProcessConfiguration struct {
 	LauternRestTimeMin int
+	RefractometerWCF   float32
 }
 
 // AppComponents is the structure that contains the external components of the application
@@ -113,10 +114,11 @@ func (a *App) Initialize(components *AppComponents) error {
 			Timer:        timer,
 		},
 		&fermentation.FermentationRouter{
-			TLStore:      a.TLStore,
-			SummaryStore: ss,
-			Store:        a.recipeStore,
-			Notifier:     a.notifier,
+			TLStore:          a.TLStore,
+			SummaryStore:     ss,
+			Store:            a.recipeStore,
+			Notifier:         a.notifier,
+			RefractometerWCF: components.Config.RefractometerWCF,
 		},
 		&secondaryferm.SecondaryFermentationRouter{
 			TLStore:      a.TLStore,

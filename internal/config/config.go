@@ -18,6 +18,7 @@ const EnvPrefix = "BREWDAY_"
 // DEFAULT VALUES for configuration
 var defaultValues = map[string]any{
 	"process.lautern-rest-time-min": 15,
+	"process.refractometer-wcf":     1.00,
 }
 
 // LoadConfig loads the configuration from the given path.
