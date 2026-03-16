@@ -1,4 +1,4 @@
-package notifications
+package gotify
 
 // Options are the options for the notification
 // These map to the supported options as defined in the gotify API

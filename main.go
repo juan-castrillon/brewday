@@ -4,7 +4,7 @@ import (
 	"brewday/internal/app"
 	"brewday/internal/config"
 	dbmigrations "brewday/internal/db_migrations"
-	"brewday/internal/notifications"
+	"brewday/internal/notifications/gotify"
 	"brewday/internal/render"
 	recipe_store_memory "brewday/internal/store/memory"
 	recipe_store_sql "brewday/internal/store/sql"
@@ -84,7 +84,7 @@ func main() {
 		log.Fatal().Msg("Invalid store type")
 	}
 	if config.Notification.Enabled {
-		n, err := notifications.NewGotifyNotifier(
+		n, err := gotify.NewGotifyNotifier(
 			config.Notification.GotifyURL,
 			config.Notification.Username,
 			config.Notification.Password,

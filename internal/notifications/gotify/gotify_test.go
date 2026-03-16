@@ -1,4 +1,4 @@
-package notifications
+package gotify
 
 import (
 	"encoding/json"
