@@ -341,6 +341,7 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 		return err
 	}
 	evap := tools.CalculateEvaporation(initialVol, req.FinalVolume, re.Hopping.TotalCookingTime)
+	log.Info().Float32("evaporation", evap).Str("recipe_id", id).Msg("Saving evaporation")
 	err = r.addSummaryEvaporation(id, evap)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add evaporation to summary")

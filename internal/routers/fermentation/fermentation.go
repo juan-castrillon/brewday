@@ -201,6 +201,7 @@ func (r *FermentationRouter) postPreFermentationHandler(c echo.Context) error {
 	}
 	hotWortVol := results.HotWortVolume
 	eff := tools.CalculateEfficiencySG(req.SG, hotWortVol, re.Mashing.GetTotalMaltWeight())
+	log.Info().Float32("efficiency", eff).Str("recipe_id", id).Msg("Saving efficiency")
 	err = r.addSummaryEfficiency(id, eff)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add efficiency to summary")
