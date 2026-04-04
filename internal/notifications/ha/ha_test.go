@@ -1,6 +1,8 @@
 package ha
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -20,7 +22,7 @@ func mockAuth(r *http.Request) bool {
 func setupMockServer(token string) (*http.ServeMux, *httptest.Server, *HANotifer, error) {
 	mux := http.NewServeMux()
 	server := httptest.NewServer(mux)
-	mux.HandleFunc("/api/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/api/{$}", func(w http.ResponseWriter, r *http.Request) {
 		ok := mockAuth(r)
 		if !ok {
 			w.WriteHeader(http.StatusUnauthorized)
@@ -33,7 +35,7 @@ func setupMockServer(token string) (*http.ServeMux, *httptest.Server, *HANotifer
 			w.WriteHeader(http.StatusBadRequest)
 		}
 	})
-	n, err := NewHANotifier(server.URL, token)
+	n, err := NewHANotifier(server.URL, token, "device1")
 	return mux, server, n, err
 }
 
@@ -72,26 +74,111 @@ func TestSend(t *testing.T) {
 	testCases := []struct {
 		Name    string
 		Token   string
-		BaseURL string
 		Message string
 		Title   string
+		Opts    map[string]any
 		Error   bool
 	}{
-		{Name: ""},
+		{
+			Name:    "Normal case",
+			Token:   MOCK_TOKEN,
+			Message: "Test 1",
+			Title:   "Title 1",
+			Opts: map[string]any{
+				"clickAction": "noAction",
+			},
+			Error: false,
+		},
+		{
+			Name:    "False token",
+			Token:   "token",
+			Message: "Test 2",
+			Title:   "Title 2",
+			Opts: map[string]any{
+				"clickAction": "noAction",
+			},
+			Error: true,
+		},
+		{
+			Name:    "Empty message",
+			Token:   MOCK_TOKEN,
+			Message: "",
+			Title:   "Title 3",
+			Opts: map[string]any{
+				"clickAction": "noAction",
+			},
+			Error: true,
+		},
+		{
+			Name:    "Empty title",
+			Token:   MOCK_TOKEN,
+			Message: "Test 4",
+			Title:   "",
+			Opts: map[string]any{
+				"clickAction": "noAction",
+			},
+			Error: false,
+		},
+		{
+			Name:    "Empty opts",
+			Token:   MOCK_TOKEN,
+			Message: "Test 5",
+			Title:   "",
+			Opts: map[string]any{
+				"clickAction": "",
+			},
+			Error: false,
+		},
+		{
+			Name:    "Nil Opts",
+			Token:   MOCK_TOKEN,
+			Message: "Test 6",
+			Title:   "",
+			Opts:    nil,
+			Error:   false,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			mux, server, n, err := setupMockServer(tc.Token)
+			if tc.Token != MOCK_TOKEN {
+				require.Error(err)
+				return
+			}
 			require.NoError(err)
 			defer teardownMock(server)
-			mux.HandleFunc("/api/aaa", func(w http.ResponseWriter, r *http.Request) {
+			mux.HandleFunc("/api/services/notify/mobile_app_device1", func(w http.ResponseWriter, r *http.Request) {
 				ok := mockAuth(r)
 				if !ok {
 					w.WriteHeader(http.StatusUnauthorized)
 					return
 				}
+				require.Equal("POST", r.Method)
+				require.Equal("application/json", r.Header.Get("Content-Type"))
+				var msg Message
+				bytes, err := io.ReadAll(r.Body)
+				require.NoError(err)
+				defer r.Body.Close()
+				err = json.Unmarshal(bytes, &msg)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				require.Equal(tc.Title, msg.Title)
+				require.Equal(tc.Message, msg.Message)
+				if tc.Opts == nil {
+					require.Equal(&MessageData{}, msg.Data)
+				} else {
+					require.Equal(tc.Opts["clickAction"].(string), msg.Data.ClickAction)
+				}
+				if msg.Message == "" {
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte("[]"))
 			})
-			err = n.Send(tc.Message, tc.Title, nil)
+			err = n.Send(tc.Message, tc.Title, tc.Opts)
 			if tc.Error {
 				require.Error(err)
 			} else {
