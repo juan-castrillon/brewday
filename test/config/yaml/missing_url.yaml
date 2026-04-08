@@ -3,5 +3,7 @@ app:
 
 notification:
   enabled: true
-  username: "gotify"
-  password: "gotify"
+  type: gotify
+  settings:
+    gotify-username: "gotify"
+    gotify-password: "gotify"

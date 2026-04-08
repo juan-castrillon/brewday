@@ -1,5 +1,7 @@
 notification:
   enabled: true
-  gotify-url: http://localhost:8080
-  username: "gotify"
-  password: "gotify"
+  type: gotify
+  settings:
+    gotify-url: http://localhost:8080
+    gotify-username: "gotify"
+    gotify-password: "gotify"

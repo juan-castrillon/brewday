@@ -82,15 +82,15 @@ func validateConfig(config *Config) error {
 	if config.App.Port == 0 {
 		return fmt.Errorf("port is missing")
 	}
-	if config.Notification.Enabled {
-		if config.Notification.Username == "" {
-			return fmt.Errorf("notification is enabled but username is missing")
+	if config.Notification.Enabled && config.Notification.Type == "gotify" {
+		if config.Notification.Settings.GotifyUsername == "" {
+			return fmt.Errorf("gotify notification is enabled but username is missing")
 		}
-		if config.Notification.Password == "" {
-			return fmt.Errorf("notification is enabled but password is missing")
+		if config.Notification.Settings.GotifyPassword == "" {
+			return fmt.Errorf("gotify notification is enabled but password is missing")
 		}
-		if config.Notification.GotifyURL == "" {
-			return fmt.Errorf("notification is enabled but gotify-url is missing")
+		if config.Notification.Settings.GotifyURL == "" {
+			return fmt.Errorf("gotify notification is enabled but gotify-url is missing")
 		}
 	}
 	switch config.Store.StoreType {

@@ -3,9 +3,11 @@ App:
 
 Notification:
   Enabled: true
-  Gotify-URL: http://localhost:8080
-  Username: "gotify"
-  Password: "gotify"
+  Type: gotify
+  Settings:
+    Gotify-url: http://localhost:8080
+    Gotify-username: "gotify"
+    Gotify-password: "gotify"
 
 Store:
   Type: memory
