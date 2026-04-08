@@ -20,6 +20,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -84,15 +85,17 @@ func main() {
 		log.Fatal().Msg("Invalid store type")
 	}
 	if config.Notification.Enabled {
-		n, err := gotify.NewGotifyNotifier(
-			config.Notification.GotifyURL,
-			config.Notification.Username,
-			config.Notification.Password,
-		)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Error while initializing notifier")
+		if strings.ToLower(config.Notification.Type) == "gotify" {
+			n, err := gotify.NewGotifyNotifier(
+				config.Notification.Settings.GotifyURL,
+				config.Notification.Settings.GotifyUsername,
+				config.Notification.Settings.GotifyPassword,
+			)
+			if err != nil {
+				log.Fatal().Err(err).Msg("Error while initializing notifier")
+			}
+			components.Notifier = n
 		}
-		components.Notifier = n
 	}
 	// Add process configuration from config
 	components.Config = app.ProcessConfiguration{
