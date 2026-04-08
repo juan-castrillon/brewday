@@ -27,8 +27,8 @@ func TestConfig(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name: "YAML complete only file",
-			Path: "yaml/complete.yaml",
+			Name: "YAML complete only file - gotify",
+			Path: "yaml/complete_gotify.yaml",
 			Env:  map[string]string{},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
@@ -53,8 +53,8 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "YAML complete only file - no defaults",
-			Path: "yaml/complete_no_defaults.yaml",
+			Name: "YAML complete only file - no defaults - gotify",
+			Path: "yaml/complete_no_defaults_gotify.yaml",
 			Env:  map[string]string{},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
@@ -79,7 +79,7 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "Only env variables",
+			Name: "Only env variables - gotify",
 			Path: "",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED":                  "true",
@@ -116,8 +116,8 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "YAML complete file and env variables override",
-			Path: "yaml/complete.yaml",
+			Name: "YAML complete file and env variables override - gotify",
+			Path: "yaml/complete_gotify.yaml",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED": "false",
 				"BREWDAY_STORE_TYPE":           "memory",
@@ -145,8 +145,8 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "Incomplete file and env variables",
-			Path: "yaml/incomplete.yml",
+			Name: "Incomplete file and env variables - gotify",
+			Path: "yaml/incomplete_gotify.yml",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED":                  "true",
 				"BREWDAY_NOTIFICATION_TYPE":                     "gotify",
@@ -204,18 +204,18 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name:  "Missing User",
-			Path:  "yaml/missing_user.yaml",
+			Name:  "Missing User - gotify",
+			Path:  "yaml/missing_user_gotify.yaml",
 			Error: true,
 		},
 		{
-			Name:  "Missing Password",
-			Path:  "yaml/missing_password.yaml",
+			Name:  "Missing Password - gotify",
+			Path:  "yaml/missing_password_gotify.yaml",
 			Error: true,
 		},
 		{
-			Name:  "Missing URL",
-			Path:  "yaml/missing_url.yaml",
+			Name:  "Missing URL - gotify",
+			Path:  "yaml/missing_url_gotify.yaml",
 			Error: true,
 		},
 		{
