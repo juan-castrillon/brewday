@@ -167,7 +167,7 @@ func TestSend(t *testing.T) {
 				require.Equal(tc.Title, msg.Title)
 				require.Equal(tc.Message, msg.Message)
 				if tc.Opts == nil {
-					require.Equal(&MessageData{}, msg.Data)
+					require.Equal("noAction", msg.Data.ClickAction)
 				} else {
 					require.Equal(tc.Opts["clickAction"].(string), msg.Data.ClickAction)
 				}

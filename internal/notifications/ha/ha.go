@@ -53,6 +53,7 @@ func (n *HANotifer) healtcheck() error {
 // Send sends a notification
 func (n *HANotifer) Send(message, title string, opts map[string]any) error {
 	data := new(MessageData)
+	data.ClickAction = "noAction"
 	if opts != nil {
 		if clickAction, ok := opts["clickAction"].(string); ok {
 			data.ClickAction = clickAction
