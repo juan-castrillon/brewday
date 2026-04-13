@@ -5,6 +5,7 @@ import (
 	"brewday/internal/config"
 	dbmigrations "brewday/internal/db_migrations"
 	"brewday/internal/notifications/gotify"
+	"brewday/internal/notifications/ha"
 	"brewday/internal/render"
 	recipe_store_memory "brewday/internal/store/memory"
 	recipe_store_sql "brewday/internal/store/sql"
@@ -85,17 +86,25 @@ func main() {
 		log.Fatal().Msg("Invalid store type")
 	}
 	if config.Notification.Enabled {
-		if strings.ToLower(config.Notification.Type) == "gotify" {
-			n, err := gotify.NewGotifyNotifier(
+		var n app.Notifier
+		switch strings.ToLower(config.Notification.Type) {
+		case "gotify":
+			n, err = gotify.NewGotifyNotifier(
 				config.Notification.Settings.GotifyURL,
 				config.Notification.Settings.GotifyUsername,
 				config.Notification.Settings.GotifyPassword,
 			)
-			if err != nil {
-				log.Fatal().Err(err).Msg("Error while initializing notifier")
-			}
-			components.Notifier = n
+		case "ha":
+			n, err = ha.NewHANotifier(
+				config.Notification.Settings.HAURL,
+				config.Notification.Settings.HAToken,
+				config.Notification.Settings.HADeviceID,
+			)
 		}
+		if err != nil {
+			log.Fatal().Err(err).Msg("Error while initializing notifier")
+		}
+		components.Notifier = n
 	}
 	// Add process configuration from config
 	components.Config = app.ProcessConfiguration{
