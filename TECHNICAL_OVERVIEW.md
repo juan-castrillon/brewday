@@ -59,7 +59,7 @@ graph TB
     end
 
     subgraph External
-        Gotify[Gotify Server<br/>Push Notifications]
+        Notifications[Notification Server<br/>Push Notifications]
     end
 
     Browser -->|HTTP| Echo
@@ -70,8 +70,8 @@ graph TB
     Routers --> Watcher
     Routers -->|Read/Write| SQLite
     Routers -->|Read/Write| Memory
-    Timer -->|Notify| Gotify
-    Watcher -->|Notify| Gotify
+    Timer -->|Notify| Notifications
+    Watcher -->|Notify| Notifications
 ```
 
 ---
@@ -87,7 +87,7 @@ graph TB
 | Database            | SQLite3 (`mattn/go-sqlite3`, CGO)                            |
 | Database Migrations | [migrate](https://github.com/golang-migrate/migrate)         |
 | Configuration       | [Koanf v2](https://github.com/knadh/koanf) (YAML + env vars) |
-| Notifications       | [Gotify](https://gotify.net/) (self-hosted push server)      |
+| Notifications       | [Gotify](https://gotify.net/) (self-hosted push server), Home Assistant `notify` service      |
 | Logging             | [zerolog](https://github.com/rs/zerolog)                     |
 | Testing             | `testify`                                                    |
 | CI/CD               | GitHub Actions                                               |
@@ -108,7 +108,7 @@ brewday/
 │   │   └── models.go               #   Top-level interface definitions
 │   ├── config/                     # Configuration loading & validation
 |   ├── db_migrations               # SQLite Migrations + Tests
-│   ├── notifications/              # Gotify notification client
+│   ├── notifications/              # Notification client
 │   ├── recipe/                     # Core domain model
 │   │   ├── recipe.go               #   Recipe, Malt, Hops, Yeast, status machine
 │   │   ├── mmum/                   #   Maische Malz und Mehr JSON parser
@@ -337,10 +337,16 @@ graph TD
 
 ### 5.6 Notifications (`internal/notifications`)
 
+Has different implementations of a notifier to use different platforms for push notifications:
+
 The `GotifyNotifier` integrates with a self-hosted Gotify server:
 1. On startup, authenticates with basic auth to check if a "brewday" app exists
 2. Creates the app if missing, stores the app token
 3. Sends push notifications with optional extras (markdown, click URL, image)
+
+The `HANotifier` uses Home Assistant's `notify` [service](https://companion.home-assistant.io/docs/notifications/notifications-basic/) to send notifications to a device with the companion app. 
+1. Uses a long lived token and the API to send a notification
+2. By default, `clickAction` is set to none. 
 
 ### 5.7 Tools (`internal/tools`)
 
@@ -383,7 +389,7 @@ sequenceDiagram
     participant Store as RecipeStore
     participant TL as TimelineStore
     participant Sum as SummaryStore
-    participant Notifier as Gotify
+    participant Notifier as Notifier
 
     User->>Browser: Upload recipe JSON
     Browser->>Echo: POST /import/preview
@@ -429,15 +435,14 @@ sequenceDiagram
 ```mermaid
 graph LR
     subgraph Docker Network
-        Gotify[Gotify Server<br/>:8000 → :80]
+        Notifications[Notification Server<br/>]
         BrewDay[BrewDay Container<br/>:8080]
         SQLiteVol[(SQLite Volume<br/>/etc/bd.sqlite)]
     end
 
-    BrewDay -->|HTTP API| Gotify
+    BrewDay -->|HTTP API| Notifications
     BrewDay -->|Read/Write| SQLiteVol
     User[User Browser] -->|:8080| BrewDay
-    User -->|:8000| Gotify
 ```
 
 - **Docker images**: Multi-stage builds (Go builder → distroless/debian-slim runtime)
