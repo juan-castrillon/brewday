@@ -1,0 +1,9 @@
+app:
+  port: 8080
+
+notification:
+  enabled: true
+  type: ha
+  settings:
+    ha-url: http://localhost:8123
+    ha-token: "letters1234$_%@*"

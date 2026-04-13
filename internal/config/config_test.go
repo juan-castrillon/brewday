@@ -53,6 +53,32 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
+			Name: "YAML complete only file - ha",
+			Path: "yaml/complete_ha.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "letters1234$_%@*",
+						HADeviceID: "mydevice",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
 			Name: "YAML complete only file - no defaults - gotify",
 			Path: "yaml/complete_no_defaults_gotify.yaml",
 			Env:  map[string]string{},
@@ -116,6 +142,43 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
+			Name: "Only env variables - ha",
+			Path: "",
+			Env: map[string]string{
+				"BREWDAY_NOTIFICATION_ENABLED":               "true",
+				"BREWDAY_NOTIFICATION_TYPE":                  "ha",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-DEVICE-ID": "my_device",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-TOKEN":     "t0ken$#",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-URL":       "http://localhost:8123",
+				"BREWDAY_APP_PORT":                           "8080",
+				"BREWDAY_STORE_TYPE":                         "sql",
+				"BREWDAY_STORE_PATH":                         "./bd.sqlite",
+				"BREWDAY_PROCESS_LAUTERN-REST-TIME-MIN":      "5",
+				"BREWDAY_PROCESS_REFRACTOMETER-WCF":          "1.05",
+			},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "t0ken$#",
+						HADeviceID: "my_device",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 5,
+					RefractometerWCF:   1.05,
+				},
+			},
+			Error: false,
+		},
+		{
 			Name: "YAML complete file and env variables override - gotify",
 			Path: "yaml/complete_gotify.yaml",
 			Env: map[string]string{
@@ -132,6 +195,35 @@ func TestConfig(t *testing.T) {
 						GotifyURL:      "http://localhost:8080",
 						GotifyUsername: "gotify",
 						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "YAML complete file and env variables override - ha",
+			Path: "yaml/complete_ha.yaml",
+			Env: map[string]string{
+				"BREWDAY_NOTIFICATION_ENABLED": "false",
+				"BREWDAY_STORE_TYPE":           "memory",
+				"BREWDAY_STORE_PATH":           "",
+			},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: false,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "letters1234$_%@*",
+						HADeviceID: "mydevice",
 					},
 				},
 				Store: StoreConfig{
@@ -162,6 +254,36 @@ func TestConfig(t *testing.T) {
 						GotifyURL:      "http://localhost:8080",
 						GotifyUsername: "gotify",
 						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Incomplete file and env variables - ha",
+			Path: "yaml/incomplete_ha.yml",
+			Env: map[string]string{
+				"BREWDAY_NOTIFICATION_ENABLED":               "true",
+				"BREWDAY_NOTIFICATION_TYPE":                  "ha",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-URL":       "http://localhost:8123",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-DEVICE-ID": "mydevice",
+			},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "letters1234$_%@*",
+						HADeviceID: "mydevice",
 					},
 				},
 				Store: StoreConfig{
@@ -219,6 +341,21 @@ func TestConfig(t *testing.T) {
 			Error: true,
 		},
 		{
+			Name:  "Missing URL - ha",
+			Path:  "yaml/missing_url_ha.yaml",
+			Error: true,
+		},
+		{
+			Name:  "Missing Token - ha",
+			Path:  "yaml/missing_token_ha.yaml",
+			Error: true,
+		},
+		{
+			Name:  "Missing Device ID - ha",
+			Path:  "yaml/missing_did_ha.yaml",
+			Error: true,
+		},
+		{
 			Name:  "Missing Port",
 			Path:  "yaml/missing_port.yaml",
 			Error: true,
@@ -255,6 +392,31 @@ func TestConfig(t *testing.T) {
 		{
 			Name:  "Missing sql path",
 			Path:  "yaml/invalid_store.yaml",
+			Error: true,
+		},
+		{
+			Name: "Complete config no notification",
+			Path: "yaml/complete_no_notification.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: false,
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name:  "Invalid notification type",
+			Path:  "yaml/invalid_notification_type.yaml",
 			Error: true,
 		},
 	}

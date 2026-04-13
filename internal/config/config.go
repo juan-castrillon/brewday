@@ -82,15 +82,30 @@ func validateConfig(config *Config) error {
 	if config.App.Port == 0 {
 		return fmt.Errorf("port is missing")
 	}
-	if config.Notification.Enabled && config.Notification.Type == "gotify" {
-		if config.Notification.Settings.GotifyUsername == "" {
-			return fmt.Errorf("gotify notification is enabled but username is missing")
-		}
-		if config.Notification.Settings.GotifyPassword == "" {
-			return fmt.Errorf("gotify notification is enabled but password is missing")
-		}
-		if config.Notification.Settings.GotifyURL == "" {
-			return fmt.Errorf("gotify notification is enabled but gotify-url is missing")
+	if config.Notification.Enabled {
+		switch config.Notification.Type {
+		case "gotify":
+			if config.Notification.Settings.GotifyUsername == "" {
+				return fmt.Errorf("gotify notification is enabled but username is missing")
+			}
+			if config.Notification.Settings.GotifyPassword == "" {
+				return fmt.Errorf("gotify notification is enabled but password is missing")
+			}
+			if config.Notification.Settings.GotifyURL == "" {
+				return fmt.Errorf("gotify notification is enabled but gotify-url is missing")
+			}
+		case "ha":
+			if config.Notification.Settings.HAURL == "" {
+				return fmt.Errorf("ha notification enabled but URL is missing")
+			}
+			if config.Notification.Settings.HAToken == "" {
+				return fmt.Errorf("ha notification enabled but token is missing")
+			}
+			if config.Notification.Settings.HADeviceID == "" {
+				return fmt.Errorf("ha notification enabled but device id is missing")
+			}
+		default:
+			return fmt.Errorf("invalid notification type %s", config.Notification.Type)
 		}
 	}
 	switch config.Store.StoreType {
