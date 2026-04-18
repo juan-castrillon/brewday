@@ -1,0 +1,10 @@
+app:
+  port: 8080
+
+notification:
+  enabled: true
+  type: other
+
+store:
+  type: sql
+  path: "./bd.sqlite"

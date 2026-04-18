@@ -27,16 +27,19 @@ func TestConfig(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name: "YAML complete only file",
-			Path: "yaml/complete.yaml",
+			Name: "YAML complete only file - gotify",
+			Path: "yaml/complete_gotify.yaml",
 			Env:  map[string]string{},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "sql",
@@ -50,16 +53,45 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "YAML complete only file - no defaults",
-			Path: "yaml/complete_no_defaults.yaml",
+			Name: "YAML complete only file - ha",
+			Path: "yaml/complete_ha.yaml",
 			Env:  map[string]string{},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "letters1234$_%@*",
+						HADeviceID: "mydevice",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "YAML complete only file - no defaults - gotify",
+			Path: "yaml/complete_no_defaults_gotify.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "sql",
@@ -73,26 +105,30 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "Only env variables",
+			Name: "Only env variables - gotify",
 			Path: "",
 			Env: map[string]string{
-				"BREWDAY_NOTIFICATION_ENABLED":          "true",
-				"BREWDAY_NOTIFICATION_USERNAME":         "gotify",
-				"BREWDAY_NOTIFICATION_PASSWORD":         "gotify",
-				"BREWDAY_NOTIFICATION_GOTIFY-URL":       "http://localhost:8080",
-				"BREWDAY_APP_PORT":                      "8080",
-				"BREWDAY_STORE_TYPE":                    "sql",
-				"BREWDAY_STORE_PATH":                    "./bd.sqlite",
-				"BREWDAY_PROCESS_LAUTERN-REST-TIME-MIN": "5",
-				"BREWDAY_PROCESS_REFRACTOMETER-WCF":     "1.05",
+				"BREWDAY_NOTIFICATION_ENABLED":                  "true",
+				"BREWDAY_NOTIFICATION_TYPE":                     "gotify",
+				"BREWDAY_NOTIFICATION_SETTINGS_GOTIFY-USERNAME": "gotify",
+				"BREWDAY_NOTIFICATION_SETTINGS_GOTIFY-PASSWORD": "gotify",
+				"BREWDAY_NOTIFICATION_SETTINGS_GOTIFY-URL":      "http://localhost:8080",
+				"BREWDAY_APP_PORT":                              "8080",
+				"BREWDAY_STORE_TYPE":                            "sql",
+				"BREWDAY_STORE_PATH":                            "./bd.sqlite",
+				"BREWDAY_PROCESS_LAUTERN-REST-TIME-MIN":         "5",
+				"BREWDAY_PROCESS_REFRACTOMETER-WCF":             "1.05",
 			},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "sql",
@@ -106,8 +142,45 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "YAML complete file and env variables override",
-			Path: "yaml/complete.yaml",
+			Name: "Only env variables - ha",
+			Path: "",
+			Env: map[string]string{
+				"BREWDAY_NOTIFICATION_ENABLED":               "true",
+				"BREWDAY_NOTIFICATION_TYPE":                  "ha",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-DEVICE-ID": "my_device",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-TOKEN":     "t0ken$#",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-URL":       "http://localhost:8123",
+				"BREWDAY_APP_PORT":                           "8080",
+				"BREWDAY_STORE_TYPE":                         "sql",
+				"BREWDAY_STORE_PATH":                         "./bd.sqlite",
+				"BREWDAY_PROCESS_LAUTERN-REST-TIME-MIN":      "5",
+				"BREWDAY_PROCESS_REFRACTOMETER-WCF":          "1.05",
+			},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "t0ken$#",
+						HADeviceID: "my_device",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 5,
+					RefractometerWCF:   1.05,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "YAML complete file and env variables override - gotify",
+			Path: "yaml/complete_gotify.yaml",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED": "false",
 				"BREWDAY_STORE_TYPE":           "memory",
@@ -116,10 +189,13 @@ func TestConfig(t *testing.T) {
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   false,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: false,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -132,20 +208,83 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "Incomplete file and env variables",
-			Path: "yaml/incomplete.yml",
+			Name: "YAML complete file and env variables override - ha",
+			Path: "yaml/complete_ha.yaml",
 			Env: map[string]string{
-				"BREWDAY_NOTIFICATION_ENABLED":  "true",
-				"BREWDAY_NOTIFICATION_USERNAME": "gotify",
-				"BREWDAY_NOTIFICATION_PASSWORD": "gotify",
+				"BREWDAY_NOTIFICATION_ENABLED": "false",
+				"BREWDAY_STORE_TYPE":           "memory",
+				"BREWDAY_STORE_PATH":           "",
 			},
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: false,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "letters1234$_%@*",
+						HADeviceID: "mydevice",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Incomplete file and env variables - gotify",
+			Path: "yaml/incomplete_gotify.yml",
+			Env: map[string]string{
+				"BREWDAY_NOTIFICATION_ENABLED":                  "true",
+				"BREWDAY_NOTIFICATION_TYPE":                     "gotify",
+				"BREWDAY_NOTIFICATION_SETTINGS_GOTIFY-USERNAME": "gotify",
+				"BREWDAY_NOTIFICATION_SETTINGS_GOTIFY-PASSWORD": "gotify",
+			},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Incomplete file and env variables - ha",
+			Path: "yaml/incomplete_ha.yml",
+			Env: map[string]string{
+				"BREWDAY_NOTIFICATION_ENABLED":               "true",
+				"BREWDAY_NOTIFICATION_TYPE":                  "ha",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-URL":       "http://localhost:8123",
+				"BREWDAY_NOTIFICATION_SETTINGS_HA-DEVICE-ID": "mydevice",
+			},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "ha",
+					Settings: NotificationSettings{
+						HAURL:      "http://localhost:8123",
+						HAToken:    "letters1234$_%@*",
+						HADeviceID: "mydevice",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -168,10 +307,13 @@ func TestConfig(t *testing.T) {
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -184,18 +326,33 @@ func TestConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name:  "Missing User",
-			Path:  "yaml/missing_user.yaml",
+			Name:  "Missing User - gotify",
+			Path:  "yaml/missing_user_gotify.yaml",
 			Error: true,
 		},
 		{
-			Name:  "Missing Password",
-			Path:  "yaml/missing_password.yaml",
+			Name:  "Missing Password - gotify",
+			Path:  "yaml/missing_password_gotify.yaml",
 			Error: true,
 		},
 		{
-			Name:  "Missing URL",
-			Path:  "yaml/missing_url.yaml",
+			Name:  "Missing URL - gotify",
+			Path:  "yaml/missing_url_gotify.yaml",
+			Error: true,
+		},
+		{
+			Name:  "Missing URL - ha",
+			Path:  "yaml/missing_url_ha.yaml",
+			Error: true,
+		},
+		{
+			Name:  "Missing Token - ha",
+			Path:  "yaml/missing_token_ha.yaml",
+			Error: true,
+		},
+		{
+			Name:  "Missing Device ID - ha",
+			Path:  "yaml/missing_did_ha.yaml",
 			Error: true,
 		},
 		{
@@ -209,10 +366,13 @@ func TestConfig(t *testing.T) {
 			Expected: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   false,
-					GotifyURL: "",
-					Username:  "",
-					Password:  "",
+					Enabled: false,
+					Type:    "",
+					Settings: NotificationSettings{
+						GotifyURL:      "",
+						GotifyUsername: "",
+						GotifyPassword: "",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -232,6 +392,31 @@ func TestConfig(t *testing.T) {
 		{
 			Name:  "Missing sql path",
 			Path:  "yaml/invalid_store.yaml",
+			Error: true,
+		},
+		{
+			Name: "Complete config no notification",
+			Path: "yaml/complete_no_notification.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: false,
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+			},
+			Error: false,
+		},
+		{
+			Name:  "Invalid notification type",
+			Path:  "yaml/invalid_notification_type.yaml",
 			Error: true,
 		},
 	}
@@ -326,10 +511,13 @@ func TestValidateConfig(t *testing.T) {
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -342,10 +530,13 @@ func TestValidateConfig(t *testing.T) {
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "sql",
@@ -362,13 +553,16 @@ func TestValidateConfig(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name: "Missing User notification disabled",
+			Name: "Missing GOTIFY User notification disabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   false,
-					GotifyURL: "http://localhost:8080",
-					Password:  "gotify",
+					Enabled: false,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -377,13 +571,16 @@ func TestValidateConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "Missing User notification enabled",
+			Name: "Missing GOTIFY User notification enabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -392,13 +589,16 @@ func TestValidateConfig(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name: "Missing Password notification disabled",
+			Name: "Missing GOTIFY Password notification disabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   false,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
+					Enabled: false,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -407,13 +607,16 @@ func TestValidateConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "Missing Password notification enabled",
+			Name: "Missing GOTIFY Password notification enabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -422,14 +625,16 @@ func TestValidateConfig(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name: "Missing URL notification disabled",
+			Name: "Missing GOTIFY URL notification disabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   false,
-					GotifyURL: "",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: false,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -438,14 +643,16 @@ func TestValidateConfig(t *testing.T) {
 			Error: false,
 		},
 		{
-			Name: "Missing URL notification enabled",
+			Name: "Missing GOTIFY URL notification enabled",
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
@@ -458,10 +665,13 @@ func TestValidateConfig(t *testing.T) {
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "invalid",
@@ -475,10 +685,13 @@ func TestValidateConfig(t *testing.T) {
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "sql",
@@ -491,10 +704,13 @@ func TestValidateConfig(t *testing.T) {
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "SQL",
@@ -508,10 +724,13 @@ func TestValidateConfig(t *testing.T) {
 			Config: Config{
 				App: AppConfig{Port: 8080},
 				Notification: NotificationConfig{
-					Enabled:   true,
-					GotifyURL: "http://localhost:8080",
-					Username:  "gotify",
-					Password:  "gotify",
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
 				},
 				Store: StoreConfig{
 					StoreType: "MEMORY",

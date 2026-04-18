@@ -1,7 +1,9 @@
+app:
+  port: 8080
+
 notification:
   enabled: true
   type: gotify
   settings:
     gotify-url: http://localhost:8080
-    gotify-username: "gotify"
     gotify-password: "gotify"

@@ -1,0 +1,9 @@
+app:
+  port: 8080
+
+notification:
+  settings:
+    ha-token: "letters1234$_%@*"
+
+store:
+  type: memory

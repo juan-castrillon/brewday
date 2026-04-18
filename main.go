@@ -4,7 +4,8 @@ import (
 	"brewday/internal/app"
 	"brewday/internal/config"
 	dbmigrations "brewday/internal/db_migrations"
-	"brewday/internal/notifications"
+	"brewday/internal/notifications/gotify"
+	"brewday/internal/notifications/ha"
 	"brewday/internal/render"
 	recipe_store_memory "brewday/internal/store/memory"
 	recipe_store_sql "brewday/internal/store/sql"
@@ -20,6 +21,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -84,11 +86,21 @@ func main() {
 		log.Fatal().Msg("Invalid store type")
 	}
 	if config.Notification.Enabled {
-		n, err := notifications.NewGotifyNotifier(
-			config.Notification.GotifyURL,
-			config.Notification.Username,
-			config.Notification.Password,
-		)
+		var n app.Notifier
+		switch strings.ToLower(config.Notification.Type) {
+		case "gotify":
+			n, err = gotify.NewGotifyNotifier(
+				config.Notification.Settings.GotifyURL,
+				config.Notification.Settings.GotifyUsername,
+				config.Notification.Settings.GotifyPassword,
+			)
+		case "ha":
+			n, err = ha.NewHANotifier(
+				config.Notification.Settings.HAURL,
+				config.Notification.Settings.HAToken,
+				config.Notification.Settings.HADeviceID,
+			)
+		}
 		if err != nil {
 			log.Fatal().Err(err).Msg("Error while initializing notifier")
 		}

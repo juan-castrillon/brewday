@@ -1,8 +1,0 @@
-app:
-  port: 8080
-
-notification:
-  gotify-url: http://localhost:8080
-
-store:
-  type: memory

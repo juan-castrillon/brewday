@@ -8,12 +8,20 @@ type Config struct {
 	Process      ProcessParameters  `koanf:"process"`
 }
 
+type NotificationSettings struct {
+	GotifyURL      string `koanf:"gotify-url"` // Note the - instead of _ to avoid conflicts with env variables
+	GotifyUsername string `koanf:"gotify-username"`
+	GotifyPassword string `koanf:"gotify-password"`
+	HAURL          string `koanf:"ha-url"`
+	HAToken        string `koanf:"ha-token"`
+	HADeviceID     string `koanf:"ha-device-id"`
+}
+
 // NotificationConfig represents the configuration options for notifications.
 type NotificationConfig struct {
-	Enabled   bool   `koanf:"enabled"`
-	GotifyURL string `koanf:"gotify-url"` // Note the - instead of _ to avoid conflicts with env variables
-	Username  string `koanf:"username"`
-	Password  string `koanf:"password"`
+	Enabled  bool                 `koanf:"enabled"`
+	Type     string               `koanf:"type"`
+	Settings NotificationSettings `koanf:"settings"`
 }
 
 // AppConfig represents the configuration options for the application.
