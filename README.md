@@ -54,7 +54,7 @@ notification:
   type: ha
   settings:
     ha-url: http://localhost:8123
-    ha-token: "letters1234$_%@*"
+    ha-token: "letters1234$_%@"
     ha-device-id: "mydevice"
 ```
 
