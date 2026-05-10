@@ -3,6 +3,7 @@ package import_recipe
 import (
 	"brewday/internal/recipe"
 	"brewday/internal/recipe/braureka_json"
+	"brewday/internal/recipe/brewday"
 	"brewday/internal/recipe/mmum"
 	"brewday/internal/routers/common"
 	"brewday/internal/tools"
@@ -17,6 +18,7 @@ import (
 var parsers = map[string]RecipeParser{
 	"braureka_json": &braureka_json.BraurekaJSONParser{},
 	"mmum":          &mmum.MMUMParser{},
+	"brewday":       &brewday.BrewdayParser{},
 }
 
 type ImportRouter struct {
