@@ -21,6 +21,7 @@ The app helps the user with the following tasks:
 ## Supported recipe formats
 
 The app supports the following recipe formats:
+- Native (`brewday`): An example can be found under `test/recipe/brewday/All.json`
 - [Maische Malz und Mehr](https://www.maischemalzundmehr.de/index.php?inhaltmitte=lr) ([JSON](https://www.maischemalzundmehr.de/rezept.json.txt))
 - [Braureka](https://braureka.de/) (JSON) (This is supposed to be MMUM, but it differs in implementation of some fields that are parsed as strings instead of numbers)
 
