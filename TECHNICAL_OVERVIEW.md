@@ -112,7 +112,8 @@ brewday/
 │   ├── recipe/                     # Core domain model
 │   │   ├── recipe.go               #   Recipe, Malt, Hops, Yeast, status machine
 │   │   ├── mmum/                   #   Maische Malz und Mehr JSON parser
-│   │   └── braureka_json/          #   Braureka JSON parser (MMUM variant)
+│   │   ├── braureka_json/          #   Braureka JSON parser (MMUM variant)
+│   │   └── brewday/                #   Native JSON parser
 │   ├── render/                     # html/template renderer (implements echo.Renderer)
 │   ├── routers/                    # HTTP handlers organized by brewing phase
 │   │   ├── common/                 #   Shared: Router interface, Timer, Errors
@@ -272,6 +273,7 @@ The `Recipe` struct is the central domain entity. It contains:
 Two **parsers** convert external JSON formats into the internal `Recipe` model:
 - `mmum.MMUMParser` — Maische Malz und Mehr (fields are numeric)
 - `braureka_json.BraurekaJSONParser` — Braureka variant (many fields are strings instead of numbers)
+- `brewday.BrewdayParser` - Native JSON format
 
 Both parsers use `reflect` to iterate over numbered fields (Malt1..Malt7, Hop1..Hop7, etc.).
 
@@ -620,7 +622,6 @@ graph LR
 
 ### Architecture
 - **No authentication**: The app is designed for single-user, but there's no auth layer at all. Consider basic auth or session-based auth if exposed to a network.
-- **No database migration versioning**: Tables are created with `IF NOT EXISTS` but there's no mechanism for schema evolution. A tool like `golang-migrate` or `goose` would help.
 - **Watcher lifecycle**: Watchers are goroutines that only survive the process lifetime. On restart, the fermentation router reconstructs them from stored dates, but this logic is duplicated between primary and secondary fermentation.
 - **Monolithic summary store**: The `summaries` table has 30+ columns. Consider normalizing or switching to a document-oriented approach for this data.
 

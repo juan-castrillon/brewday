@@ -1,0 +1,84 @@
+{
+  "Name": "Recipe with all",
+  "Style": "Brewday IPA",
+  "InitialSG": 1.048,
+  "IBU": 28,
+  "ColorEBC": 10,
+  "Mashing": {
+    "Malts": [
+      {
+        "Name": "Pale Ale",
+        "Amount": 1540
+      },
+      {
+        "Name": "CARAHELL",
+        "Amount": 500.5
+      }
+    ],
+    "MainWaterVolume": 7.3,
+    "Nachguss": 3.7,
+    "MashTemperature": 55.0,
+    "MashOutTemperature": 78.1,
+    "Rasts": [
+      {
+        "Temperature": 63,
+        "Duration": 45
+      },
+      {
+        "Temperature": 72,
+        "Duration": 23.5
+      }
+    ]
+  },
+  "Hopping": {
+    "TotalCookingTime": 90,
+    "Hops": [
+      {
+        "Name": "Vic Secret",
+        "Alpha": 8.9,
+        "Amount": 10,
+        "Duration": 0,
+        "DryHop": false,
+        "Vorderwuerze": true
+      },
+      {
+        "Name": "Saaz",
+        "Alpha": 4,
+        "Amount": 20,
+        "Duration": 10,
+        "DryHop": false,
+        "Vorderwuerze": false
+      },
+      {
+        "Name": "Vic Secret",
+        "Alpha": 8.9,
+        "Amount": 20,
+        "Duration": 0,
+        "DryHop": true,
+        "Vorderwuerze": false
+      }
+    ],
+    "HoppingAdditionalIngredients": [
+      {
+        "Name": "Orange Peel",
+        "Amount": 25.4,
+        "Duration": 10
+      }
+    ]
+  },
+  "Fermentation": {
+    "Yeast": {
+      "Name": "Safale US-05",
+      "Amount": 11
+    },
+    "Temperature": "21",
+    "FermentationAdditionalIngredients": [
+      {
+        "Name": "Roses",
+        "Amount": 30,
+        "Duration": 10
+      }
+    ],
+    "Carbonation": 5.5
+  }
+}
