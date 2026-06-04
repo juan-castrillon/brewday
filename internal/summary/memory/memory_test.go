@@ -9,6 +9,71 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDeleteStats(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name  string
+		Stats map[string]*summary.Statistics
+		ToDel []string
+		Error bool
+	}{
+		{
+			Name:  "Simple stat",
+			Error: false,
+			Stats: map[string]*summary.Statistics{
+				"title1": &summary.Statistics{Evaporation: 50, Efficiency: 50},
+			},
+			ToDel: []string{"title1"},
+		},
+		{
+			Name:  "Two stats",
+			Error: false,
+			Stats: map[string]*summary.Statistics{
+				"title1": &summary.Statistics{Evaporation: 50, Efficiency: 50},
+				"title2": &summary.Statistics{Evaporation: 50, Efficiency: 50},
+			},
+			ToDel: []string{"title1"},
+		},
+		{
+			Name:  "Two stats delete ne",
+			Error: true,
+			Stats: map[string]*summary.Statistics{
+				"title1": &summary.Statistics{Evaporation: 50, Efficiency: 50},
+				"title2": &summary.Statistics{Evaporation: 50, Efficiency: 50},
+			},
+			ToDel: []string{"title3"},
+		},
+		{
+			Name:  "Delete from empty",
+			Error: true,
+			Stats: map[string]*summary.Statistics{},
+			ToDel: []string{"title1"},
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			s := NewSummaryMemoryStore()
+			for title, st := range tc.Stats {
+				s.stats[tools.B64Encode(title)] = st
+			}
+			initialLen := len(s.stats)
+			for _, t := range tc.ToDel {
+				err := s.DeleteStats(t)
+				if tc.Error {
+					require.Error(err)
+				} else {
+					require.NoError(err)
+					_, ok := s.stats[tools.B64Encode(t)]
+					require.False(ok)
+				}
+			}
+			if !tc.Error {
+				require.Equal(initialLen-len(tc.ToDel), len(s.stats))
+			}
+		})
+	}
+}
+
 func TestDeleteSummary(t *testing.T) {
 	require := require.New(t)
 	testCases := []struct {

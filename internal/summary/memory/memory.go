@@ -53,6 +53,19 @@ func (s *SummaryMemoryStore) DeleteSummary(recipeID string) error {
 	return nil
 }
 
+// DeleteStats deletes statistics independently from a summary given the title
+func (s *SummaryMemoryStore) DeleteStats(title string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	tb64 := tools.B64Encode(title)
+	_, ok := s.stats[tb64]
+	if !ok {
+		return errors.New("summary not found")
+	}
+	delete(s.stats, tb64)
+	return nil
+}
+
 // AddMashTemp adds a mash temperature to the summary and notes related to it
 func (s *SummaryMemoryStore) AddMashTemp(id string, temp float32, notes string) error {
 	s.lock.Lock()
