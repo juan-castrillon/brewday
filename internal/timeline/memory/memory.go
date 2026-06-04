@@ -62,6 +62,10 @@ func (s *TimelineMemoryStore) AddTimeline(recipeID string) error {
 func (s *TimelineMemoryStore) DeleteTimeline(recipeID string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	_, ok := s.timelines[recipeID]
+	if !ok {
+		return errors.New("timeline not found")
+	}
 	delete(s.timelines, recipeID)
 	return nil
 }
