@@ -45,6 +45,10 @@ func (s *SummaryMemoryStore) AddSummary(recipeID, title string) error {
 func (s *SummaryMemoryStore) DeleteSummary(recipeID string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
+	_, ok := s.summaries[recipeID]
+	if !ok {
+		return errors.New("summary not found")
+	}
 	delete(s.summaries, recipeID)
 	return nil
 }
