@@ -101,12 +101,15 @@ func (r *SecondaryFermentationRouter) CheckWatchers(id string) error {
 			return err
 		}
 		status, params := re.GetStatus()
-		if status != recipe.RecipeStatusFermenting || (len(params) != 1 && params[0] != "wait_secondary") {
+		if status != recipe.RecipeStatusFermenting || (len(params) != 1 && params[0] != "wait_secondary") || params[0] == "dry_hop" {
 			return nil
 		}
 		dates, err := r.Store.RetrieveDates(id, "secondary_ferm_notification")
 		if err != nil {
 			return err
+		}
+		if len(dates) == 0 {
+			return nil
 		}
 		date := *dates[0]
 		var logMessage, notMessage string
