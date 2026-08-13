@@ -26,7 +26,7 @@ type ingredientCache struct {
 	lock  sync.Mutex
 }
 
-var sanitationRegex = regexp.MustCompile(`\s|[()]`)
+var sanitationRegex = regexp.MustCompile(`\s|[()/]`)
 
 func sanitizeName(name string) string {
 	return strings.TrimSuffix(sanitationRegex.ReplaceAllLiteralString(name, "_"), "_")
