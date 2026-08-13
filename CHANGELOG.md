@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `brewday` native JSON recipe format
 
+### Changed
+
+- Fixed bug where dry hop ingredients could not have a "/"
+
 ## [3.0.0] - 2026-04-18
 
 ### Added
