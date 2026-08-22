@@ -78,20 +78,20 @@ graph TB
 
 ## 2. Technology Stack
 
-| Layer               | Technology                                                   |
-| ------------------- | ------------------------------------------------------------ |
-| Language            | Go 1.24                                                      |
-| Web Framework       | [Echo v4](https://echo.labstack.com/)                        |
-| Templating          | Go `html/template`                                           |
-| CSS Framework       | Materialize CSS                                              |
-| Database            | SQLite3 (`mattn/go-sqlite3`, CGO)                            |
-| Database Migrations | [migrate](https://github.com/golang-migrate/migrate)         |
-| Configuration       | [Koanf v2](https://github.com/knadh/koanf) (YAML + env vars) |
-| Notifications       | [Gotify](https://gotify.net/) (self-hosted push server), Home Assistant `notify` service      |
-| Logging             | [zerolog](https://github.com/rs/zerolog)                     |
-| Testing             | `testify`                                                    |
-| CI/CD               | GitHub Actions                                               |
-| Deployment          | Docker (amd64 + arm64)                                       |
+| Layer               | Technology                                                                               |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Language            | Go 1.24                                                                                  |
+| Web Framework       | [Echo v4](https://echo.labstack.com/)                                                    |
+| Templating          | Go `html/template`                                                                       |
+| CSS Framework       | Materialize CSS                                                                          |
+| Database            | SQLite3 (`mattn/go-sqlite3`, CGO)                                                        |
+| Database Migrations | [migrate](https://github.com/golang-migrate/migrate)                                     |
+| Configuration       | [Koanf v2](https://github.com/knadh/koanf) (YAML + env vars)                             |
+| Notifications       | [Gotify](https://gotify.net/) (self-hosted push server), Home Assistant `notify` service |
+| Logging             | [zerolog](https://github.com/rs/zerolog)                                                 |
+| Testing             | `testify`                                                                                |
+| CI/CD               | GitHub Actions                                                                           |
+| Deployment          | Docker (amd64 + arm64)                                                                   |
 
 ---
 
@@ -258,10 +258,10 @@ Validated fields: port (required), notification credentials (if enabled), store 
 
 Process values can also be modified but have reasonable default values
 
-Value | Default
---- | ---
-Lautering Rest Time | 15 min
-Wort Correction Factor (Refractometer) | 1
+| Value                                  | Default |
+| -------------------------------------- | ------- |
+| Lautering Rest Time                    | 15 min  |
+| Wort Correction Factor (Refractometer) | 1       |
 
 ### 5.3 Recipe Domain (`internal/recipe`)
 
@@ -582,6 +582,7 @@ erDiagram
     }
 
     stats {
+        INTEGER id
         TEXT recipe_title
         INTEGER finished_epoch
         REAL evaporation

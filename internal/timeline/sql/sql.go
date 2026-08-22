@@ -73,6 +73,7 @@ func (s *TimelinePersistentStore) AddTimeline(recipeID string) error {
 }
 
 // DeleteTimeline deletes the timeline for the given recipe id
+// Given the cascade model, this wont be really needed
 func (s *TimelinePersistentStore) DeleteTimeline(recipeID string) error {
 	if recipeID == "" {
 		return errors.New("invalid empty recipe id for deleting timeline")

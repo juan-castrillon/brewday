@@ -150,3 +150,61 @@ func TestList(t *testing.T) {
 		})
 	}
 }
+
+func TestDelete(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name    string
+		Initial []*recipe.Recipe
+		ToDel   []string
+		Error   bool
+	}{
+		{
+			Name:    "Single recipe",
+			Initial: []*recipe.Recipe{{Name: "recipe1"}},
+			ToDel:   []string{"72656369706531"},
+			Error:   false,
+		},
+		{
+			Name:    "Two recipes delete one",
+			Initial: []*recipe.Recipe{{Name: "recipe1"}, {Name: "recipe2"}},
+			ToDel:   []string{"72656369706531"},
+			Error:   false,
+		},
+		{
+			Name:    "Two recipes delete ne",
+			Initial: []*recipe.Recipe{{Name: "recipe1"}, {Name: "recipe2"}},
+			ToDel:   []string{"72656369706533"},
+			Error:   true,
+		},
+		{
+			Name:    "Delete from empty",
+			Initial: []*recipe.Recipe{},
+			ToDel:   []string{"72656369706531"},
+			Error:   true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			s := NewMemoryStore()
+			for _, r := range tc.Initial {
+				_, err := s.Store(r)
+				require.NoError(err)
+			}
+			for _, id := range tc.ToDel {
+				err := s.Delete(id)
+				if tc.Error {
+					require.Error(err)
+				} else {
+					require.NoError(err)
+					_, ok := s.recipes[id]
+					require.False(ok)
+					_, ok = s.dates[id]
+					require.False(ok)
+					_, ok = s.boolFlags[id]
+					require.False(ok)
+				}
+			}
+		})
+	}
+}

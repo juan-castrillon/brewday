@@ -60,6 +60,7 @@ func (r *StatsRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	stats := parent.Group("/stats")
 	stats.GET("", r.getStatsHandler).Name = "getStats"
 	stats.POST("/add", r.postAddExtStatHandler).Name = "postAddExtStat"
+	stats.POST("/delete", r.deleteStatsHandler).Name = "deleteStats"
 }
 
 func (r *StatsRouter) getStatsHandler(c echo.Context) error {
@@ -81,6 +82,22 @@ func (r *StatsRouter) postAddExtStatHandler(c echo.Context) error {
 		return err
 	}
 	err = r.addStats(&req)
+	if err != nil {
+		return err
+	}
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getStats"))
+}
+
+func (r *StatsRouter) deleteStatsHandler(c echo.Context) error {
+	if r.StatsStore == nil {
+		return errors.New("summary store not configured")
+	}
+	var req ReqPostDeleteStat
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	err = r.StatsStore.DeleteStats(req.RecipeTitle)
 	if err != nil {
 		return err
 	}
