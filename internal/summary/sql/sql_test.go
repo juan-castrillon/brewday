@@ -2261,3 +2261,45 @@ func TestAddStatsExternal(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteStats(t *testing.T) {
+	require := require.New(t)
+	testCases := []struct {
+		Name        string
+		RecipeTitle string
+		ToAdd       []string
+		Error       bool
+	}{
+		{Name: "Single stats", RecipeTitle: "title1", ToAdd: []string{"title1"}, Error: false},
+		{Name: "Two stats, delete valid", RecipeTitle: "title1", ToAdd: []string{"title1", "title2"}, Error: false},
+		{Name: "Two stats, delete ne", RecipeTitle: "title3", ToAdd: []string{"title1", "title2"}, Error: false},
+		{Name: "Delete from empty", RecipeTitle: "title1", ToAdd: []string{}, Error: false},
+		{Name: "Empty title", RecipeTitle: "", ToAdd: []string{"title1"}, Error: true},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			fileName := strings.ToLower(strings.ReplaceAll(strings.TrimSpace(t.Name()), "/", "_")) + ".sqlite"
+			db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+			require.NoError(err)
+			err = dbmigrations.RunMigrations(db, "migrations")
+			require.NoError(err)
+			store, err := NewSummaryPersistentStore(db)
+			require.NoError(err)
+			defer os.Remove(fileName)
+			for _, t := range tc.ToAdd {
+				_, err = db.Exec(`INSERT INTO stats (recipe_title) VALUES (?)`, tools.B64Encode(t))
+				require.NoError(err)
+			}
+			err = store.DeleteStats(tc.RecipeTitle)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				var epoch int
+				err = db.QueryRow(`SELECT finished_epoch FROM stats WHERE recipe_title = ?`, tools.B64Encode(tc.RecipeTitle)).Scan(&epoch)
+				require.ErrorIs(err, sql.ErrNoRows)
+			}
+		})
+	}
+
+}

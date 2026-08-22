@@ -1,12 +1,32 @@
+# Plan
+
+1. Make sure all stores can delete all stuff
+
+Stores:
+- Recipe store (memory, sql)
+- Summary store (memory, sql). Includes stats
+- Timeline store
+
+2. Implement backend for deleting components
+3. Implement frontend for calling backend
+
+
+
+# DOne so far
 Implement delete methods in memoery stores with test:
 - Recipe store
 - Summary store
     - Independent delete for summary and stats
 - Timeline store
 
-TODO
+Implement delete methods in sql stores with tests:
+- Timeline
+- Recipe
+- Summaries
+- Stats
 
-- Implement delete methods in sql stores with tests (same as memory)
+# TODO
+
 - Implement endpoint for deleting stats
 - Implement frontend for deleting stats
 - Test complete recipe deletion memory
