@@ -40,6 +40,16 @@ func (s *SummaryPersistentStore) DeleteSummary(recipeID string) error {
 	return err
 }
 
+// DeleteStats deletes the statistics for the given recipe title
+// ID is not used because stats can be deleted later than summaries so id might be reused
+func (s *SummaryPersistentStore) DeleteStats(title string) error {
+	if title == "" {
+		return errors.New("invalid empty title for deleting summary")
+	}
+	_, err := s.dbClient.Exec(`DELETE FROM stats WHERE recipe_title == ?`, tools.B64Encode(title))
+	return err
+}
+
 // AddMashTemp adds a mash temperature to the summary and notes related to it
 func (s *SummaryPersistentStore) AddMashTemp(id string, temp float32, notes string) error {
 	if id == "" {
