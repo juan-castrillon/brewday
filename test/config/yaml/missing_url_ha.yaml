@@ -7,3 +7,8 @@ notification:
   settings:
     ha-token: "letters1234$_%@*"
     ha-device-id: "mydevice"
+
+brewing-systems:
+  - name: bs1
+    lower-diameter-cm: 5.1
+    upper-diameter-cm: 5.2

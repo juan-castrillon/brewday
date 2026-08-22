@@ -108,6 +108,18 @@ func validateConfig(config *Config) error {
 			return fmt.Errorf("invalid notification type %s", config.Notification.Type)
 		}
 	}
+	if len(config.BrewingSystems) == 0 {
+		return fmt.Errorf("At least one brewing system definition is needed")
+	}
+	for _, bs := range config.BrewingSystems {
+		if bs.Name == "" {
+			return fmt.Errorf("Found brewing system with empty name")
+		}
+		if bs.LD == 0 || bs.UD == 0 {
+			return fmt.Errorf("Lower or upper diameter = 0 for brewing system %s", bs.Name)
+		}
+	}
+
 	switch config.Store.StoreType {
 	case "sql":
 		if config.Store.Path == "" {

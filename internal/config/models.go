@@ -2,10 +2,11 @@ package config
 
 // Config represents the configuration options for the application.
 type Config struct {
-	Notification NotificationConfig `koanf:"notification"`
-	App          AppConfig          `koanf:"app"`
-	Store        StoreConfig        `koanf:"store"`
-	Process      ProcessParameters  `koanf:"process"`
+	Notification   NotificationConfig    `koanf:"notification"`
+	App            AppConfig             `koanf:"app"`
+	Store          StoreConfig           `koanf:"store"`
+	Process        ProcessParameters     `koanf:"process"`
+	BrewingSystems []BrewingSystemConfig `koanf:"brewing-systems"`
 }
 
 type NotificationSettings struct {
@@ -40,4 +41,13 @@ type StoreConfig struct {
 type ProcessParameters struct {
 	LauternRestTimeMin int     `koanf:"lautern-rest-time-min"`
 	RefractometerWCF   float32 `koanf:"refractometer-wcf"`
+}
+
+// BrewingSystemConfig represent a brewing system including measurements to calculate volume based on height
+type BrewingSystemConfig struct {
+	Name   string  `koanf:"name"`
+	LD     float32 `koanf:"lower-diameter-cm"`
+	UD     float32 `koanf:"upper-diameter-cm"`
+	Power  int     `koanf:"power-watts"`
+	MaxVol float32 `koanf:"max-vol-liters"`
 }

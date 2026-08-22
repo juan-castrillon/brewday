@@ -7,3 +7,8 @@ notification:
   settings:
     gotify-url: http://localhost:8080
     gotify-password: "gotify"
+
+brewing-systems:
+  - name: bs1
+    lower-diameter-cm: 5.1
+    upper-diameter-cm: 5.2

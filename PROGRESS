@@ -24,12 +24,15 @@
   - Split stat page to display statistics per setup
 
 # Done so far
-# ToDo
 
 - Add config parameters
 - Add checks
   - Name, ld, up mandatory
 - Add to config tests
+
+# ToDo
+
+
 - Add component
   - Implement volume (L) calculation based on input height (cm)
   - Implement getters
@@ -50,3 +53,8 @@
 - Stats UI
   - Modify method to get a structure that splits by system or multiple arrays
   - Modify html template to render more graphs
+- Add docu
+  - How to configure, what the config values mean
+  - Tech doc
+    - New component
+    - Modify db schema

@@ -16,3 +16,8 @@ store:
 process:
   lautern-rest-time-min: 10
   refractometer-wcf: 1.04
+
+brewing-systems:
+  - name: bs1
+    lower-diameter-cm: 5.1
+    upper-diameter-cm: 5.2

@@ -11,3 +11,8 @@ notification:
 
 store:
   type: sql
+
+brewing-systems:
+  - name: bs1
+    lower-diameter-cm: 5.1
+    upper-diameter-cm: 5.2
