@@ -107,6 +107,14 @@ type SummaryStore interface {
 	DeleteStats(title string) error
 }
 
+type InfoProvider interface {
+	GetLD(systemName string) float32
+	GetUD(systemName string) float32
+	GetPower(systemName string) int
+	GetMaxVol(systemName string) float32
+	GetCurrentVol(systemName string, heightCM float32) (float32, error)
+}
+
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent
 type ReqPostTimelineEvent struct {
 	Message string `json:"message" form:"message"`

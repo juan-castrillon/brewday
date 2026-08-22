@@ -29,6 +29,8 @@
 - Add checks
   - Name, ld, up mandatory
 - Add to config tests
+- Initial component skeleton
+  - Add it in app so its available for routers
 
 # ToDo
 

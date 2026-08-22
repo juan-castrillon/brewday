@@ -13,6 +13,7 @@ import (
 	summary_store_sql "brewday/internal/summary/sql"
 	tl_store_memory "brewday/internal/timeline/memory"
 	tl_store_sql "brewday/internal/timeline/sql"
+	systeminfo "brewday/internal/tools/system_info"
 	"context"
 	"database/sql"
 	"embed"
@@ -111,6 +112,21 @@ func main() {
 		LauternRestTimeMin: config.Process.LauternRestTimeMin,
 		RefractometerWCF:   config.Process.RefractometerWCF,
 	}
+	// Add brewing systems information
+	systems := make(map[string]*systeminfo.SystemProperties)
+	for _, system := range config.BrewingSystems {
+		systems[system.Name] = &systeminfo.SystemProperties{
+			LD:     system.LD,
+			UD:     system.UD,
+			Power:  system.Power,
+			MaxVol: system.MaxVol,
+		}
+	}
+	ip, err := systeminfo.NewInfoProvider(systems)
+	if err != nil {
+		log.Fatal().Err(err).Msg("Error while compiling brewing systems information")
+	}
+	components.InfoProvider = ip
 	app, err := app.NewApp(staticFS, components)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error while initializing the app")

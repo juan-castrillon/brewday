@@ -55,6 +55,7 @@ type AppComponents struct {
 	Store        RecipeStore
 	SummaryStore SummaryStore
 	Config       ProcessConfiguration
+	InfoProvider InfoProvider
 }
 
 // NewApp creates a new App
