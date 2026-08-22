@@ -8,6 +8,8 @@ type StatsStore interface {
 	GetAllStats() (map[string]*summary.Statistics, error)
 	// AddStatsExternal adds statistics from recipes outside the app
 	AddStatsExternal(recipeName string, stats *summary.Statistics) error
+	// DeleteStats allows to delete statistics given a title
+	DeleteStats(title string) error
 }
 
 type StatEntry struct {
@@ -24,4 +26,9 @@ type ReqPostAddStat struct {
 	Evaporation        float32 `json:"evaporation" form:"evaporation"`
 	Efficiency         float32 `json:"efficiency" form:"efficiency"`
 	FinishedTimeString string  `json:"finished" form:"finished"`
+}
+
+// ReqPostDeleteStat represent the request for deleting a stat
+type ReqPostDeleteStat struct {
+	RecipeTitle string `json:"recipe_title" form:"recipe_title"`
 }

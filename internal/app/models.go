@@ -104,6 +104,7 @@ type SummaryStore interface {
 	GetSummary(id string) (*summary.Summary, error)
 	GetAllStats() (map[string]*summary.Statistics, error)
 	AddStatsExternal(recipeName string, stats *summary.Statistics) error
+	DeleteStats(title string) error
 }
 
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent

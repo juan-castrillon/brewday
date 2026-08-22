@@ -9,11 +9,16 @@
             <br>
         </div>
         <div class="row">
-            <div class="col s12">
+            <div class="col s6">
                 <a class="waves-effect waves-light btn modal-trigger" href="#modal1"><i
                         class="material-icons left">add_circle</i>Add
                     stats from past
                     recipe</a>
+            </div>
+            <div class="col s6">
+                <a class="waves-effect waves-light btn red modal-trigger" href="#modal2"><i
+                        class="material-icons left">delete_forever</i>
+                    Delete stats</a>
             </div>
         </div>
         <div id="modal1" class="modal">
@@ -52,7 +57,29 @@
                     </div>
                 </form>
             </div>
-
+        </div>
+        <div id="modal2" class="modal modal-large">
+            <div class="row modal-content">
+                <h5>Current recipe stats</h5>
+                <form class="col s12" action='{{ reverse "deleteStats" }}' method="post" enctype="multipart/form-data">
+                    <div class="input-field col s12">
+                        <select name="recipe_title" id="recipe_title_select">
+                            <option value="" disabled selected>No recipe selected</option>
+                            {{ range $stat := .Stats }}
+                            <option value="{{ $stat.RecipeName }}">{{ $stat.RecipeName }}</option>
+                            {{ end }}
+                        </select>
+                        <label>Choose Recipe</label>
+                    </div>
+                    <div class="modal-footer">
+                        <a href="#!" class="modal-close waves-effect btn">Cancel</a>
+                        <button class="btn waves-effect waves-light modal-close red" type="submit" name="action2"
+                            id="send_form_delete">Delete
+                            <i class="material-icons right">delete_forever</i>
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
         {{ if not .Stats }}
         <div class="row">
@@ -107,15 +134,24 @@
 {{ end }}
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        var elems = document.querySelectorAll('.modal');
+        var modal1 = document.querySelectorAll('#modal1');
+        var modal2 = document.querySelectorAll('#modal2');
         var options = {};
-        var instances = M.Modal.init(elems, options);
+        M.Modal.init(modal1, options);
+        M.Modal.init(modal2, {
+            onOpenStart: function () {
+                var selectElems = document.querySelectorAll('#modal2 select');
+                M.FormSelect.init(selectElems);
+            }
+        });
         var elems2 = document.querySelectorAll('.datepicker');
         var options2 = {
             autoClose: true,
             format: 'yyyy-mm-dd'
         };
         var instances = M.Datepicker.init(elems2, options2);
+        var elems3 = document.querySelectorAll('select');
+        var instances = M.FormSelect.init(elems3, options);
     });
 </script>
 {{ template "footer" . }}

@@ -25,9 +25,11 @@ Implement delete methods in sql stores with tests:
 - Summaries
 - Stats
 
+Delete recipe backend and frontend, uses also deleteSummary and deleteTimeline which might not be needed
+Delete stats backend and frontend
+
 # TODO
 
-- Implement endpoint for deleting stats
-- Implement frontend for deleting stats
 - Test complete recipe deletion memory
 - Test complete recipe deleting sql
+- Test stat deletion sql/memory

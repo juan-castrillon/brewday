@@ -82,3 +82,14 @@ li.logo {
     font-size: 1rem;
     color: #777;
 }
+
+.modal.modal-large {
+    height: 50%;
+    width: 75%;
+}
+
+@media only screen and (max-width: 992px) {
+    .modal.modal-large {
+        width: 85%;
+    }
+}

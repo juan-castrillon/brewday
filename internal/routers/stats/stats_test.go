@@ -21,6 +21,11 @@ func (s *mockStore) AddStatsExternal(recipeName string, stats *summary.Statistic
 	return nil
 }
 
+func (s *mockStore) DeleteStats(title string) error {
+	delete(s.store, title)
+	return nil
+}
+
 func ptrFloat32(num float32) *float32 {
 	return &num
 }
