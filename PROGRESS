@@ -1,0 +1,13 @@
+Implement delete methods in memoery stores with test:
+- Recipe store
+- Summary store
+    - Independent delete for summary and stats
+- Timeline store
+
+TODO
+
+- Implement delete methods in sql stores with tests (same as memory)
+- Implement endpoint for deleting stats
+- Implement frontend for deleting stats
+- Test complete recipe deletion memory
+- Test complete recipe deleting sql
