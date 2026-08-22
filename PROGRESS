@@ -1,3 +1,52 @@
 # PLAN
+
+- Add config parameters to define a brewing setup/system (anlage)
+  - name
+  - lower diameter (cm)
+  - upper diameter (cm)
+  - power (optional)
+  - max volume (optional)
+- Add a component (tools/systeminfo)
+  - Gets initialized by the app with the config values
+  - Stores the config values and makes them available to consumers
+  - Makes calculations based on the values (e.g volume)
+  - Gets passed to different components that will need it
+- Modify existing volume inputs
+  - Change it so the input is height
+- Add option to select system in recipe import
+  - In own format add it
+  - In external, ask for it in the ui
+    - import buttons open modal
+    - select setup from config
+    - return to after import page
+  - In import logic check for example max volume
+- Add column to stats table with the setup id
+  - Split stat page to display statistics per setup
+
 # Done so far
 # ToDo
+
+- Add config parameters
+- Add checks
+  - Name, ld, up mandatory
+- Add to config tests
+- Add component
+  - Implement volume (L) calculation based on input height (cm)
+  - Implement getters
+- Add component tests
+- Identify existing volume inputs
+  - Add component
+  - Change ui/api so input is height
+- Add system to own recipe format
+- In external, ask for it in the ui
+    - import buttons open modal
+    - select setup from config
+    - return to after import page
+- In import logic check for  max volume
+- Stats table
+  - Modify migrations
+  - Add data in prod db
+  - Add set method
+- Stats UI
+  - Modify method to get a structure that splits by system or multiple arrays
+  - Modify html template to render more graphs
