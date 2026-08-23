@@ -12,7 +12,7 @@
   - Makes calculations based on the values (e.g volume)
   - Gets passed to different components that will need it
 - Modify existing volume inputs
-  - Change it so the input is height
+  - Change it so the input is height, buy have to option to input volume
 - Add option to select system in recipe import
   - In own format add it
   - In external, ask for it in the ui
