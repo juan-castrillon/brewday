@@ -42,18 +42,16 @@
   - Pre fermentation (for water) http://localhost:8080/fermentation/pre/10
   - Preferm (final volume after water) http://localhost:8080/fermentation/pre/water/10?volumeDiff=3.000000&sgDiff=-0.029269
   - VOlume in the tank http://localhost:8080/secondary_fermentation/pre_bottle/10
+- Add bs to recipe model
+- Add bs to own recipe format
 
 
 # ToDo
 
 
-- Expand models
-  - Recipe, add setup
-  - Stats see below
 - Identify existing volume inputs
   - Add component
   - Change ui/api so input is height
-- Add system to own recipe format
 - In external, ask for it in the ui
     - import buttons open modal
     - select setup from config

@@ -80,5 +80,6 @@
       }
     ],
     "Carbonation": 5.5
-  }
+  },
+  "BrewingSystem": "system1"
 }

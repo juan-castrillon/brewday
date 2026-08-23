@@ -39,6 +39,9 @@ func (p *BrewdayParser) validate(r *recipe.Recipe) error {
 	if err := notZero(r.Fermentation.Carbonation); err != nil {
 		return errors.New("Carbonation must be defined")
 	}
+	if err := notZero(r.BrewingSystem); err != nil {
+		return errors.New("No brewing system defined")
+	}
 	return nil
 }
 

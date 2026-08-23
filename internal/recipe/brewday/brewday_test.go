@@ -61,6 +61,7 @@ func TestParse(t *testing.T) {
 					},
 					Carbonation: 5.5,
 				},
+				BrewingSystem: "system1",
 			},
 		},
 		{
@@ -90,6 +91,12 @@ func TestParse(t *testing.T) {
 		{
 			Name:     "No Carbonation",
 			FileName: "no_carb.json",
+			Error:    true,
+			Expected: nil,
+		},
+		{
+			Name:     "No bs",
+			FileName: "no_bs.json",
 			Error:    true,
 			Expected: nil,
 		},

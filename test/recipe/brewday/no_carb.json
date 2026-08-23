@@ -80,5 +80,6 @@
         "Duration": 10
       }
     ]
-  }
+  },
+  "BrewingSystem": "system1"
 }
