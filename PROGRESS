@@ -35,6 +35,13 @@
   - Implement volume (L) calculation based on input height (cm)
   - Implement getters
 - Add component tests
+- Identify existing volume inputs
+  - Before boiling: http://localhost:8080/hopping/start/10
+  - After boiling: http://localhost:8080/hopping/end/10
+  - Pre fermentation (for water) http://localhost:8080/fermentation/pre/10
+  - Preferm (final volume after water) http://localhost:8080/fermentation/pre/water/10?volumeDiff=3.000000&sgDiff=-0.029269
+  - VOlume in the tank http://localhost:8080/secondary_fermentation/pre_bottle/10
+
 
 # ToDo
 
