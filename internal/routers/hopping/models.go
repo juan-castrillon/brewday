@@ -44,10 +44,15 @@ type Timer interface {
 	HandleRealDuration(c echo.Context, id string, prefix string, suffix ...string) error
 }
 
+type InfoProvider interface {
+	GetCurrentVol(systemName string, heightCM float32) (float32, error)
+}
+
 // ReqPostStartHopping is the request for the start hopping route
 type ReqPostStartHopping struct {
-	InitialVolume float32 `json:"initial_volume" form:"initial_volume"`
-	Notes         string  `json:"notes" form:"notes"`
+	InitialVal float32 `json:"initial_value" form:"initial_value"`
+	ValUnits   string  `json:"units" form:"units"`
+	Notes      string  `json:"notes" form:"notes"`
 }
 
 // ReqPostEndHopping is the request for the end hopping route

@@ -107,6 +107,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Timer:        timer,
+			InfoProvider: components.InfoProvider,
 		},
 		&cooling.CoolingRouter{
 			Store:        a.recipeStore,

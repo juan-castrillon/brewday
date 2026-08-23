@@ -3,16 +3,30 @@
 <main>
     <div class="container">
         <div class="row">
-            <div class="col s12"><h2>{{.Subtitle}}</h2></div>
+            <div class="col s12">
+                <h2>{{.Subtitle}}</h2>
+            </div>
             <br>
         </div>
         <div class="row">
-            <form action='{{ reverse "postStartHopping" .RecipeID }}' method="post" class="col s12" enctype="multipart/form-data">
+            <form action='{{ reverse "postStartHopping" .RecipeID }}' method="post" class="col s12"
+                enctype="multipart/form-data">
                 <div class="row">
-                    <div class="input-field col s12">
+                    <div class="input-field col s8">
                         <i class="material-icons prefix">system_update_alt</i>
-                        <input type="text" id="real_vol" name="initial_volume">
-                        <label for="real_vol">Initial Volume</label>
+                        <input type="text" id="real_vol" name="initial_value">
+                        <label for="real_vol">Initial Value</label>
+                    </div>
+                    <div class="input-field col s3">
+                        <select name="units" id="units">
+                            <option value="cm">Height (cm)</option>
+                            <option value="l">Volume (l)</option>
+                        </select>
+                        <label>Type of value</label>
+                    </div>
+                    <div col s1>
+                        <i class="material-icons small tooltipped" data-position="top"
+                            data-tooltip="Either input the volume directly or input the height to calculate it based on the brewing setup measurements">help_outline</i>
                     </div>
                     <div class="input-field col s12">
                         <i class="material-icons prefix">edit_note</i>
@@ -27,4 +41,12 @@
         </div>
     </div>
 </main>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('select');
+        M.FormSelect.init(elems, {});
+        var elems2 = document.querySelectorAll('.tooltipped');
+        M.Tooltip.init(elems2, {});
+    });
+</script>
 {{ template "footer" . }}

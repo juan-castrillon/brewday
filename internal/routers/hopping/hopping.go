@@ -19,6 +19,7 @@ type HoppingRouter struct {
 	TLStore         TimelineStore
 	SummaryStore    SummaryStore
 	Timer           Timer
+	InfoProvider    InfoProvider
 	ingredientCache map[string]ingredientList
 }
 
@@ -137,11 +138,23 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = r.addSummaryPreBoilVolume(id, req.InitialVolume, req.Notes)
+	vol := req.InitialVal
+	if req.ValUnits == "cm" {
+		recipe, err := r.Store.Retrieve(id)
+		if err != nil {
+			return err
+		}
+		v, err := r.InfoProvider.GetCurrentVol(recipe.BrewingSystem, req.InitialVal)
+		if err != nil {
+			return err
+		}
+		vol = v
+	}
+	err = r.addSummaryPreBoilVolume(id, vol, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}
-	err = r.Store.UpdateResult(id, recipe.ResultVolumeBeforeBoil, req.InitialVolume)
+	err = r.Store.UpdateResult(id, recipe.ResultVolumeBeforeBoil, vol)
 	if err != nil {
 		return err
 	}
