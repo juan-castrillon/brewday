@@ -108,10 +108,10 @@ type SummaryStore interface {
 }
 
 type InfoProvider interface {
-	GetLD(systemName string) float32
-	GetUD(systemName string) float32
-	GetPower(systemName string) int
-	GetMaxVol(systemName string) float32
+	GetLD(systemName string) (float32, error)
+	GetUD(systemName string) (float32, error)
+	GetPower(systemName string) (int, error)
+	GetMaxVol(systemName string) (float32, error)
 	GetCurrentVol(systemName string, heightCM float32) (float32, error)
 }
 
