@@ -57,8 +57,9 @@ type ReqPostStartHopping struct {
 
 // ReqPostEndHopping is the request for the end hopping route
 type ReqPostEndHopping struct {
-	FinalVolume float32 `json:"final_volume" form:"final_volume"`
-	Notes       string  `json:"notes" form:"notes"`
+	FinalVal float32 `json:"final_value" form:"final_value"`
+	ValUnits string  `json:"units" form:"units"`
+	Notes    string  `json:"notes" form:"notes"`
 }
 
 // ReqPostHopping is the response for the hopping route

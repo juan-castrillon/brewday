@@ -48,6 +48,10 @@
 
 # ToDo
 
+- Fix bug, retrieve gets it without the system (maybe because of missing tables)
+
+- Fix bug, if a recipe is open and i open stats 
+{"level":"error","error":"sql: Scan error on column index 1, name \"evaporation\": converting NULL to float32 is unsupported","time":"2026-08-23T22:24:59+02:00","message":"/stats"}
 
 - Identify existing volume inputs
   - Add component
