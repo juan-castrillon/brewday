@@ -31,14 +31,15 @@
 - Add to config tests
 - Initial component skeleton
   - Add it in app so its available for routers
-
-# ToDo
-
-
 - Add component
   - Implement volume (L) calculation based on input height (cm)
   - Implement getters
 - Add component tests
+
+# ToDo
+
+
+
 - Identify existing volume inputs
   - Add component
   - Change ui/api so input is height
