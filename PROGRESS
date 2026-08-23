@@ -11,6 +11,7 @@
   - Stores the config values and makes them available to consumers
   - Makes calculations based on the values (e.g volume)
   - Gets passed to different components that will need it
+- Expand recipe to include setup
 - Modify existing volume inputs
   - Change it so the input is height, buy have to option to input volume
 - Add option to select system in recipe import
@@ -20,7 +21,7 @@
     - select setup from config
     - return to after import page
   - In import logic check for example max volume
-- Add column to stats table with the setup id
+- Add column to stats table and recipes table with the setup id
   - Split stat page to display statistics per setup
 
 # Done so far
@@ -46,7 +47,9 @@
 # ToDo
 
 
-
+- Expand models
+  - Recipe, add setup
+  - Stats see below
 - Identify existing volume inputs
   - Add component
   - Change ui/api so input is height
