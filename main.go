@@ -113,13 +113,14 @@ func main() {
 		RefractometerWCF:   config.Process.RefractometerWCF,
 	}
 	// Add brewing systems information
-	systems := make(map[string]*systeminfo.SystemProperties)
+	systems := make(map[string]systeminfo.SystemProperties)
 	for _, system := range config.BrewingSystems {
-		systems[system.Name] = &systeminfo.SystemProperties{
-			LD:     system.LD,
-			UD:     system.UD,
-			Power:  system.Power,
-			MaxVol: system.MaxVol,
+		systems[system.Name] = systeminfo.SystemProperties{
+			LD:        system.LD,
+			UD:        system.UD,
+			Power:     system.Power,
+			MaxVol:    system.MaxVol,
+			MaxHeight: system.MaxHeight,
 		}
 	}
 	ip, err := systeminfo.NewInfoProvider(systems)

@@ -16,3 +16,4 @@ Brewing-Systems:
   - Name: bs1
     Lower-Diameter-Cm: 5.1
     Upper-Diameter-Cm: 5.2
+    Max-Height-Cm: 10

@@ -51,9 +51,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -84,9 +85,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -117,9 +119,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -161,9 +164,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -205,9 +209,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -241,9 +246,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -277,9 +283,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -314,9 +321,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -351,9 +359,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -387,9 +396,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -453,9 +463,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -490,9 +501,10 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -517,14 +529,16 @@ func TestConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.2,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
 					},
 					{
-						Name: "bs2",
-						LD:   6.1,
-						UD:   6.2,
+						Name:      "bs2",
+						LD:        6.1,
+						UD:        6.2,
+						MaxHeight: 11,
 					},
 				},
 			},
@@ -640,9 +654,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -667,9 +682,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -699,9 +715,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -724,9 +741,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -749,9 +767,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -774,9 +793,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -799,9 +819,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -824,9 +845,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -851,9 +873,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -877,9 +900,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -904,9 +928,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -930,9 +955,10 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
-						UD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -956,11 +982,12 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:   "bs1",
-						LD:     5.1,
-						UD:     5.1,
-						Power:  2500,
-						MaxVol: 27.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -984,10 +1011,11 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:  "bs1",
-						LD:    5.1,
-						UD:    5.1,
-						Power: 2500,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1011,10 +1039,11 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:   "bs1",
-						LD:     5.1,
-						UD:     5.1,
-						MaxVol: 27.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1038,8 +1067,9 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						LD:   5.1,
+						Name:      "bs1",
+						LD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1063,8 +1093,9 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name: "bs1",
-						UD:   5.1,
+						Name:      "bs1",
+						UD:        5.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1088,10 +1119,11 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						LD:     5.1,
-						UD:     5.1,
-						Power:  2500,
-						MaxVol: 27.1,
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1115,11 +1147,12 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:   "",
-						LD:     5.1,
-						UD:     5.1,
-						Power:  2500,
-						MaxVol: 27.1,
+						Name:      "",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1143,11 +1176,12 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:   "bs1",
-						LD:     0,
-						UD:     5.1,
-						Power:  2500,
-						MaxVol: 27.1,
+						Name:      "bs1",
+						LD:        0,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1171,11 +1205,12 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:   "bs1",
-						LD:     5.1,
-						UD:     0,
-						Power:  2500,
-						MaxVol: 27.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        0,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1199,18 +1234,20 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:   "bs1",
-						LD:     5.1,
-						UD:     5.1,
-						Power:  2500,
-						MaxVol: 27.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 					{
-						Name:   "bs2",
-						LD:     5.1,
-						UD:     5.1,
-						Power:  2500,
-						MaxVol: 27.1,
+						Name:      "bs2",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
 					},
 				},
 			},
@@ -1234,17 +1271,76 @@ func TestValidateConfig(t *testing.T) {
 				},
 				BrewingSystems: []BrewingSystemConfig{
 					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
+					},
+					{
+						Name:      "bs2",
+						LD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: missing maxHeight",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
 						Name:   "bs1",
 						LD:     5.1,
 						UD:     5.1,
 						Power:  2500,
 						MaxVol: 27.1,
 					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: maxHeight 0",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
 					{
-						Name:   "bs2",
-						LD:     5.1,
-						Power:  2500,
-						MaxVol: 27.1,
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxVol:    27.1,
+						MaxHeight: 0,
 					},
 				},
 			},

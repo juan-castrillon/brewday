@@ -45,9 +45,10 @@ type ProcessParameters struct {
 
 // BrewingSystemConfig represent a brewing system including measurements to calculate volume based on height
 type BrewingSystemConfig struct {
-	Name   string  `koanf:"name"`
-	LD     float32 `koanf:"lower-diameter-cm"`
-	UD     float32 `koanf:"upper-diameter-cm"`
-	Power  int     `koanf:"power-watts"`
-	MaxVol float32 `koanf:"max-vol-liters"`
+	Name      string  `koanf:"name"`
+	LD        float32 `koanf:"lower-diameter-cm"`
+	UD        float32 `koanf:"upper-diameter-cm"`
+	Power     int     `koanf:"power-watts"`
+	MaxVol    float32 `koanf:"max-vol-liters"`
+	MaxHeight float32 `koanf:"max-height-cm"`
 }

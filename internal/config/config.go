@@ -118,6 +118,9 @@ func validateConfig(config *Config) error {
 		if bs.LD == 0 || bs.UD == 0 {
 			return fmt.Errorf("Lower or upper diameter = 0 for brewing system %s", bs.Name)
 		}
+		if bs.MaxHeight == 0 {
+			return fmt.Errorf("Max height = 0 for brewing system %s", bs.Name)
+		}
 	}
 
 	switch config.Store.StoreType {
