@@ -23,7 +23,8 @@ func NewPersistentStore(db *sql.DB) (*PersistentStore, error) {
 		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
 		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,
 		hop_cooking_time, hop_hops, hop_additional,
-		ferm_yeast, ferm_temp, ferm_additional, ferm_carbonation
+		ferm_yeast, ferm_temp, ferm_additional, ferm_carbonation,
+		brewing_system
 	FROM recipes WHERE id == ?`)
 	if err != nil {
 		return nil, err
@@ -64,13 +65,14 @@ func (s *PersistentStore) Store(r *recipe.Recipe) (string, error) {
 		name, style, batch_size_l, initial_sg, ibu, ebc, status, status_args,
 		mash_malts, mash_main_water, mash_nachguss, mash_temp, mash_out_temp, mash_rasts,
 		hop_cooking_time, hop_hops, hop_additional,
-		ferm_yeast, ferm_temp, ferm_additional, ferm_carbonation
+		ferm_yeast, ferm_temp, ferm_additional, ferm_carbonation,
+		brewing_system
 	) 
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`, r.Name, r.Style, r.BatchSize, r.InitialSG, r.Bitterness, r.ColorEBC, status, marshalled.StatusParams,
 		marshalled.MashingMalts, r.Mashing.MainWaterVolume, r.Mashing.Nachguss, r.Mashing.MashTemperature, r.Mashing.MashOutTemperature, marshalled.MashingRasts,
 		r.Hopping.TotalCookingTime, marshalled.HopHops, marshalled.HopAdd,
-		marshalled.Yeast, r.Fermentation.Temperature, marshalled.FermAdd, r.Fermentation.Carbonation,
+		marshalled.Yeast, r.Fermentation.Temperature, marshalled.FermAdd, r.Fermentation.Carbonation, r.BrewingSystem,
 	)
 	if err != nil {
 		return "", err
@@ -96,14 +98,14 @@ func (s *PersistentStore) Store(r *recipe.Recipe) (string, error) {
 
 // Retrieve retrieves a recipe based on an identifier
 func (s *PersistentStore) Retrieve(id string) (*recipe.Recipe, error) {
-	var name, style, fermTemp string
+	var name, style, fermTemp, brewingSystem string
 	var batchSizeL, initialSg, ibu, ebc, mashMainWater, mashNachguss, mashTemp, mashOutTemp, hopCooking, fermCarbonation float32
 	var status recipe.RecipeStatus
 	toUnmarshall := &MarshalResult{}
 	err := s.retrieveStatement.QueryRow(id).Scan(&name, &style, &batchSizeL, &initialSg, &ibu, &ebc, &status, &toUnmarshall.StatusParams,
 		&toUnmarshall.MashingMalts, &mashMainWater, &mashNachguss, &mashTemp, &mashOutTemp, &toUnmarshall.MashingRasts,
 		&hopCooking, &toUnmarshall.HopHops, &toUnmarshall.HopAdd,
-		&toUnmarshall.Yeast, &fermTemp, &toUnmarshall.FermAdd, &fermCarbonation)
+		&toUnmarshall.Yeast, &fermTemp, &toUnmarshall.FermAdd, &fermCarbonation, &brewingSystem)
 	if err != nil {
 		return nil, err
 	}
@@ -138,6 +140,7 @@ func (s *PersistentStore) Retrieve(id string) (*recipe.Recipe, error) {
 			AdditionalIngredients: unmarshaled.FermAdd,
 			Carbonation:           fermCarbonation,
 		},
+		BrewingSystem: brewingSystem,
 	}
 	r.SetStatus(status, unmarshaled.StatusParams...)
 	return r, nil

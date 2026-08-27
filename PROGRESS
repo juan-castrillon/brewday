@@ -44,18 +44,18 @@
   - VOlume in the tank http://localhost:8080/secondary_fermentation/pre_bottle/10
 - Add bs to recipe model
 - Add bs to own recipe format
+- Add bs to sql store and migratiions
 
 
 # ToDo
 
-- Fix bug, retrieve gets it without the system (maybe because of missing tables)
 
 - Fix bug, if a recipe is open and i open stats 
 {"level":"error","error":"sql: Scan error on column index 1, name \"evaporation\": converting NULL to float32 is unsupported","time":"2026-08-23T22:24:59+02:00","message":"/stats"}
 
-- Identify existing volume inputs
-  - Add component
-  - Change ui/api so input is height
+- Avoid hardcode default in migrations
+  - Set it manually
+  - Handle missing one in ui, no option to input cm
 - In external, ask for it in the ui
     - import buttons open modal
     - select setup from config
@@ -63,7 +63,6 @@
 - In import logic check for  max volume
 - Stats table
   - Modify migrations
-  - Add data in prod db
   - Add set method
 - Stats UI
   - Modify method to get a structure that splits by system or multiple arrays
@@ -73,3 +72,4 @@
   - Tech doc
     - New component
     - Modify db schema
+- - Add data in prod db (modify wittle wit to change default bs)
