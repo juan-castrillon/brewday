@@ -97,8 +97,49 @@ func TestParse(t *testing.T) {
 		{
 			Name:     "No bs",
 			FileName: "no_bs.json",
-			Error:    true,
-			Expected: nil,
+			Error:    false,
+			Expected: &recipe.Recipe{
+				Name:       "Recipe with all",
+				Style:      "Brewday IPA",
+				BatchSize:  10.5,
+				InitialSG:  1.048,
+				Bitterness: 28,
+				ColorEBC:   10,
+				Mashing: recipe.MashInstructions{
+					Malts: []recipe.Malt{
+						{Name: "Pale Ale", Amount: 1540},
+						{Name: "CARAHELL", Amount: 500.5},
+					},
+					MainWaterVolume:    7.3,
+					Nachguss:           3.7,
+					MashTemperature:    55,
+					MashOutTemperature: 78.1,
+					Rasts: []recipe.Rast{
+						{Temperature: 63, Duration: 45},
+						{Temperature: 72, Duration: 23.5},
+					},
+				},
+				Hopping: recipe.HopInstructions{
+					TotalCookingTime: 90,
+					Hops: []recipe.Hops{
+						{Name: "Vic Secret", Alpha: 8.9, Amount: 10, Duration: 0, DryHop: false, Vorderwuerze: true},
+						{Name: "Saaz", Alpha: 4, Amount: 20, Duration: 10, DryHop: false, Vorderwuerze: false},
+						{Name: "Vic Secret", Alpha: 8.9, Amount: 20, Duration: 0, DryHop: true, Vorderwuerze: false},
+					},
+					AdditionalIngredients: []recipe.AdditionalIngredient{
+						{Name: "Orange Peel", Amount: 25.4, Duration: 10},
+					},
+				},
+				Fermentation: recipe.FermentationInstructions{
+					Yeast:       recipe.Yeast{Name: "Safale US-05", Amount: 11},
+					Temperature: "21",
+					AdditionalIngredients: []recipe.AdditionalIngredient{
+						{Name: "Roses", Amount: 30, Duration: 10},
+					},
+					Carbonation: 5.5,
+				},
+				BrewingSystem: "",
+			},
 		},
 	}
 	parser := BrewdayParser{}

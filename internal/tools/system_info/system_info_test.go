@@ -51,6 +51,35 @@ func TestNewInfoProvider(t *testing.T) {
 	}
 }
 
+func TestHasSystems(t *testing.T) {
+	require := require.New(t)
+	tests := []struct {
+		name     string
+		systems  map[string]SystemProperties
+		expected bool
+	}{
+		{
+			name:     "Empty",
+			systems:  make(map[string]SystemProperties),
+			expected: false,
+		},
+		{
+			name: "Non empty",
+			systems: map[string]SystemProperties{
+				"system1": SystemProperties{},
+			},
+			expected: true,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ip, err := NewInfoProvider(tc.systems)
+			require.NoError(err)
+			require.Equal(tc.expected, ip.HasSystems())
+		})
+	}
+}
+
 func TestGetLD(t *testing.T) {
 	require := require.New(t)
 	tests := []struct {

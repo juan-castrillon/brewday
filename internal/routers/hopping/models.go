@@ -45,6 +45,7 @@ type Timer interface {
 }
 
 type InfoProvider interface {
+	HasSystems() bool
 	GetCurrentVol(systemName string, heightCM float32) (float32, error)
 }
 

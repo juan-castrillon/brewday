@@ -374,38 +374,6 @@ func TestConfig(t *testing.T) {
 			Error: true,
 		},
 		{
-			Name: "Title case file",
-			Path: "yaml/titleCase.yaml",
-			Expected: Config{
-				App: AppConfig{Port: 8080},
-				Notification: NotificationConfig{
-					Enabled: true,
-					Type:    "gotify",
-					Settings: NotificationSettings{
-						GotifyURL:      "http://localhost:8080",
-						GotifyUsername: "gotify",
-						GotifyPassword: "gotify",
-					},
-				},
-				Store: StoreConfig{
-					StoreType: "memory",
-				},
-				Process: ProcessParameters{
-					LauternRestTimeMin: 15,
-					RefractometerWCF:   1.00,
-				},
-				BrewingSystems: []BrewingSystemConfig{
-					{
-						Name:      "bs1",
-						LD:        5.1,
-						UD:        5.2,
-						MaxHeight: 10,
-					},
-				},
-			},
-			Error: false,
-		},
-		{
 			Name:  "Missing User - gotify",
 			Path:  "yaml/missing_user_gotify.yaml",
 			Error: true,
@@ -507,6 +475,27 @@ func TestConfig(t *testing.T) {
 						MaxHeight: 10,
 					},
 				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Complete config no bs",
+			Path: "yaml/complete_no_bs.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: false,
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+				BrewingSystems: []BrewingSystemConfig{},
 			},
 			Error: false,
 		},

@@ -117,9 +117,10 @@ func (r *HoppingRouter) getStartHoppingHandler(c echo.Context) error {
 		return err
 	}
 	return c.Render(http.StatusOK, "hopping_start.html", map[string]interface{}{
-		"Title":    "Hopping " + re.Name,
-		"Subtitle": "1. Measure volume before boiling",
-		"RecipeID": id,
+		"Title":        "Hopping " + re.Name,
+		"Subtitle":     "1. Measure volume before boiling",
+		"RecipeID":     id,
+		"EnableHeight": r.InfoProvider.HasSystems() && re.BrewingSystem != "undefined",
 	})
 }
 
@@ -139,12 +140,12 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 		return err
 	}
 	vol := req.InitialVal
-	if req.ValUnits == "cm" {
-		recipe, err := r.Store.Retrieve(id)
-		if err != nil {
-			return err
-		}
-		v, err := r.InfoProvider.GetCurrentVol(recipe.BrewingSystem, req.InitialVal)
+	rp, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	if req.ValUnits == "cm" && r.InfoProvider.HasSystems() && rp.BrewingSystem != "undefined" {
+		v, err := r.InfoProvider.GetCurrentVol(rp.BrewingSystem, req.InitialVal)
 		if err != nil {
 			return err
 		}
@@ -316,9 +317,10 @@ func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 		log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
 	}
 	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
-		"Title":    "Hopping " + re.Name,
-		"Subtitle": "4. Measure volume after boiling",
-		"RecipeID": id,
+		"Title":        "Hopping " + re.Name,
+		"Subtitle":     "4. Measure volume after boiling",
+		"RecipeID":     id,
+		"EnableHeight": r.InfoProvider.HasSystems() && re.BrewingSystem != "undefined",
 	})
 }
 
@@ -346,7 +348,7 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 		return err
 	}
 	vol := req.FinalVal
-	if req.ValUnits == "cm" {
+	if req.ValUnits == "cm" && r.InfoProvider.HasSystems() && re.BrewingSystem != "undefined" {
 		v, err := r.InfoProvider.GetCurrentVol(re.BrewingSystem, req.FinalVal)
 		if err != nil {
 			return err

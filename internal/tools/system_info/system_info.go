@@ -27,6 +27,12 @@ func NewInfoProvider(i map[string]SystemProperties) (*InfoProvider, error) {
 
 }
 
+// HasSystems can be used as a check before calling methods to verify this info provider
+// has at least one brewing system configured
+func (ip *InfoProvider) HasSystems() bool {
+	return len(ip.systems) > 0
+}
+
 // GetLD returns the lower diameter (LD) of the named system, in the same
 // units as stored on SystemProperties (e.g. cm).
 //

@@ -12,6 +12,7 @@
             <form action='{{ reverse "postStartHopping" .RecipeID }}' method="post" class="col s12"
                 enctype="multipart/form-data">
                 <div class="row">
+                    {{ if .EnableHeight }}
                     <div class="input-field col s8">
                         <i class="material-icons prefix">system_update_alt</i>
                         <input type="text" id="real_vol" name="initial_value">
@@ -28,6 +29,13 @@
                         <i class="material-icons small tooltipped" data-position="top"
                             data-tooltip="Either input the volume directly or input the height to calculate it based on the brewing setup measurements">help_outline</i>
                     </div>
+                    {{ else }}
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">system_update_alt</i>
+                        <input type="text" id="real_vol" name="initial_value">
+                        <label for="real_vol">Initial Volume (L)</label>
+                    </div>
+                    {{ end }}
                     <div class="input-field col s12">
                         <i class="material-icons prefix">edit_note</i>
                         <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>

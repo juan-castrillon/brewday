@@ -108,6 +108,7 @@ type SummaryStore interface {
 }
 
 type InfoProvider interface {
+	HasSystems() bool
 	GetLD(systemName string) (float32, error)
 	GetUD(systemName string) (float32, error)
 	GetPower(systemName string) (int, error)
