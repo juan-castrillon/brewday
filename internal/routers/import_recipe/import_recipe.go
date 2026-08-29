@@ -51,6 +51,7 @@ func (r *ImportRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	imp.GET("", r.getImportHandler).Name = "getImport"
 	imp.POST("/preview", r.postImportPreviewHandler).Name = "postImportPreview"
 	imp.GET("/:recipe_id/:next_action", r.getImportNextHandler).Name = "getImportNext"
+	imp.POST("/setbs", r.postImportSetBSHandler).Name = "postSetBS"
 }
 
 // getImportHandler is the handler for the import page

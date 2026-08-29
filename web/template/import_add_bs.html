@@ -1,0 +1,29 @@
+{{ template "header" . }}
+{{ template "sidebar" . }}
+<main>
+    <div class="container">
+        <div class="row">
+            <h5>Select a brewing system?</h5>
+            <form class="col s12" action='{{ reverse "postSetBS" }}' method="post" enctype="multipart/form-data">
+                <div class="input-field col s12">
+                    <select name="bs" id="bs_select">
+                        <option value="" disabled selected>No system</option>
+                        {{ range $bs := .BrewingSystems }}
+                        <option value="{{ $bs }}">{{ $bs }}</option>
+                        {{ end }}
+                    </select>
+                    <label>Choose Brewing System</label>
+                </div>
+                <button class="btn waves-effect waves-light green" type="submit" name="action2"
+                    id="send_form_bs">Select
+                    <i class="material-icons right">send</i>
+                </button>
+            </form>
+        </div>
+    </div>
+</main>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+    });
+</script>
+{{ template "footer" . }}
