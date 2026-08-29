@@ -88,6 +88,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			Store:                a.recipeStore,
 			SummaryRecorderStore: ss,
 			TLStore:              a.TLStore,
+			InfoProvider:         components.InfoProvider,
 		},
 		&mash.MashRouter{
 			Store:        a.recipeStore,

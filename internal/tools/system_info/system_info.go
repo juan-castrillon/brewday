@@ -125,3 +125,12 @@ func (ip *InfoProvider) GetCurrentVol(systemName string, heightCM float32) (floa
 	const cm3PerLiter = 1000
 	return float32(volCM3 / cm3PerLiter), nil
 }
+
+// GetSystemNames returns the names of all available systems
+func (ip *InfoProvider) GetSystemNames() []string {
+	result := []string{}
+	for k, _ := range ip.systems {
+		result = append(result, k)
+	}
+	return result
+}

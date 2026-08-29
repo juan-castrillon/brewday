@@ -3,19 +3,27 @@
 <main>
     <div class="container">
         <div class="row">
-            <h5>Select a brewing system?</h5>
-            <form class="col s12" action='{{ reverse "postSetBS" }}' method="post" enctype="multipart/form-data">
-                <div class="input-field col s12">
-                    <select name="bs" id="bs_select">
-                        <option value="" disabled selected>No system</option>
-                        {{ range $bs := .BrewingSystems }}
-                        <option value="{{ $bs }}">{{ $bs }}</option>
-                        {{ end }}
-                    </select>
-                    <label>Choose Brewing System</label>
+            <div class="col s12">
+                <h4>{{.Subtitle}}</h4>
+            </div>
+            <br>
+        </div>
+        <div class="row">
+            {{ $id := urlEncode .RecipeID }}
+            <form class="col s12" action='{{ reverse "postSetBS" $id .NextAction }}' method="post"
+                enctype="multipart/form-data">
+                <div class="row">
+                    <div class="input-field col s12">
+                        <select name="bs" id="bs_select">
+                            <option value="undefined" selected>No system</option>
+                            {{ range $bs := .BrewingSystems }}
+                            <option value="{{ $bs }}">{{ $bs }}</option>
+                            {{ end }}
+                        </select>
+                        <label>Choose Brewing System</label>
+                    </div>
                 </div>
-                <button class="btn waves-effect waves-light green" type="submit" name="action2"
-                    id="send_form_bs">Select
+                <button class="btn waves-effect waves-light green" type="submit" id="send_form_bs">Select
                     <i class="material-icons right">send</i>
                 </button>
             </form>
@@ -24,6 +32,8 @@
 </main>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
+        var elems = document.querySelectorAll('select');
+        M.FormSelect.init(elems, {});
     });
 </script>
 {{ template "footer" . }}

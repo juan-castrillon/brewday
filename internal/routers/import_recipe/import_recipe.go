@@ -26,6 +26,7 @@ type ImportRouter struct {
 	SummaryRecorderStore SummaryStore
 	TLStore              TimelineStore
 	TempCache            map[string]*recipe.Recipe
+	InfoProvider         InfoProvider
 }
 
 // storeRecipe stores a recipe in the temporary cache
@@ -51,7 +52,7 @@ func (r *ImportRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	imp.GET("", r.getImportHandler).Name = "getImport"
 	imp.POST("/preview", r.postImportPreviewHandler).Name = "postImportPreview"
 	imp.GET("/:recipe_id/:next_action", r.getImportNextHandler).Name = "getImportNext"
-	imp.POST("/setbs", r.postImportSetBSHandler).Name = "postSetBS"
+	imp.POST("/set_bs/:recipe_id/:next_action", r.postImportSetBSHandler).Name = "postSetBS"
 }
 
 // getImportHandler is the handler for the import page
@@ -128,7 +129,14 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 		return errors.New("no recipe found")
 	}
 	if re.BrewingSystem == "" {
-		re.BrewingSystem = "undefined"
+		available := r.InfoProvider.GetSystemNames()
+		return c.Render(200, "import_add_bs.html", map[string]interface{}{
+			"Title":          "Add brewing system",
+			"Subtitle":       "No brewing system detected, add one?",
+			"RecipeID":       decodedID,
+			"NextAction":     nextAction,
+			"BrewingSystems": available,
+		})
 	}
 	id, err = r.Store.Store(re)
 	if err != nil {
@@ -156,4 +164,27 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	default:
 		return errors.New("invalid next action")
 	}
+}
+
+// postImportSetBSHandler is the handler for adding a brewing system to a recipe
+func (r *ImportRouter) postImportSetBSHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	decodedID, err := url.QueryUnescape(id)
+	if err != nil {
+		return err
+	}
+	nextAction := c.Param("next_action")
+	if nextAction == "" {
+		return errors.New("no next action provided")
+	}
+	re := r.getRecipe(decodedID)
+	if re == nil {
+		return errors.New("no recipe found")
+	}
+	bs := c.FormValue("bs")
+	re.BrewingSystem = bs
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getImportNext", id, nextAction))
 }

@@ -27,3 +27,7 @@ type SummaryStore interface {
 type TimelineStore interface {
 	AddTimeline(recipeID string) error
 }
+
+type InfoProvider interface {
+	GetSystemNames() []string
+}

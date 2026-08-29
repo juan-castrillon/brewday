@@ -325,3 +325,32 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		})
 	}
 }
+
+func TestGetSystemNames(t *testing.T) {
+	require := require.New(t)
+	tests := []struct {
+		name     string
+		systems  map[string]SystemProperties
+		expected []string
+	}{
+		{
+			name:     "Empty",
+			systems:  make(map[string]SystemProperties),
+			expected: []string{},
+		},
+		{
+			name: "Non empty",
+			systems: map[string]SystemProperties{
+				"system1": {},
+			},
+			expected: []string{"system1"},
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			ip, err := NewInfoProvider(tc.systems)
+			require.NoError(err)
+			require.Equal(tc.expected, ip.GetSystemNames())
+		})
+	}
+}
