@@ -21,6 +21,11 @@ var parsers = map[string]RecipeParser{
 	"brewday":       &brewday.BrewdayParser{},
 }
 
+// errorMsgs maps parsing errors to messages to display
+var errorMsgs = map[string]string{
+	"max_vol_surpassed": "The recipe batch size is bigger than the brewing system max volume",
+}
+
 type ImportRouter struct {
 	Store                RecipeStore
 	SummaryRecorderStore SummaryStore
@@ -58,6 +63,7 @@ func (r *ImportRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 // getImportHandler is the handler for the import page
 func (r *ImportRouter) getImportHandler(c echo.Context) error {
 	id := c.QueryParam("recipe")
+	errRaw := c.QueryParam("error")
 	re := r.getRecipe(id)
 	if re == nil {
 		return c.Render(200, "import.html", map[string]interface{}{
@@ -66,10 +72,18 @@ func (r *ImportRouter) getImportHandler(c echo.Context) error {
 			"SquareColor": "#000000",
 		})
 	}
+	if errRaw != "" {
+		err, ok := errorMsgs[errRaw]
+		if !ok {
+			err = "Unknown error"
+		}
+		errRaw = err
+	}
 	return c.Render(200, "import.html", map[string]interface{}{
 		"Title":       "Import Recipe",
 		"Recipe":      re,
 		"RecipeID":    id,
+		"Error":       errRaw,
 		"SquareColor": tools.EBCtoHex(re.ColorEBC),
 	})
 }
@@ -137,6 +151,18 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 			"NextAction":     nextAction,
 			"BrewingSystems": available,
 		})
+	} else if re.BrewingSystem != "undefined" {
+		maxVol, err := r.InfoProvider.GetMaxVol(re.BrewingSystem)
+		if err != nil {
+			return err
+		}
+		if re.BatchSize > maxVol {
+			redirect := "getImport"
+			params := url.Values{}
+			params.Add("recipe", decodedID)
+			params.Add("error", "max_vol_surpassed")
+			return c.Redirect(http.StatusFound, c.Echo().Reverse(redirect)+"?"+params.Encode())
+		}
 	}
 	id, err = r.Store.Store(re)
 	if err != nil {

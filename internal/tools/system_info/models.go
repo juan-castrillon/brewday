@@ -5,6 +5,5 @@ type SystemProperties struct {
 	LD        float32
 	UD        float32
 	Power     int
-	MaxVol    float32
 	MaxHeight float32
 }

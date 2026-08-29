@@ -76,7 +76,7 @@ func (ip *InfoProvider) GetMaxVol(systemName string) (float32, error) {
 	if !ok {
 		return 0, errors.New("System not found")
 	}
-	return val.MaxVol, nil
+	return ip.GetCurrentVol(systemName, val.MaxHeight)
 }
 
 // GetCurrentVol calculates the volume of liquid, in liters, held in the

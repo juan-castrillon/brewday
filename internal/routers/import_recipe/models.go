@@ -30,4 +30,5 @@ type TimelineStore interface {
 
 type InfoProvider interface {
 	GetSystemNames() []string
+	GetMaxVol(systemName string) (float32, error)
 }

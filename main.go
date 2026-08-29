@@ -119,7 +119,6 @@ func main() {
 			LD:        system.LD,
 			UD:        system.UD,
 			Power:     system.Power,
-			MaxVol:    system.MaxVol,
 			MaxHeight: system.MaxHeight,
 		}
 	}

@@ -10,22 +10,22 @@ import (
 func testSystems() map[string]SystemProperties {
 	return map[string]SystemProperties{
 		"sysA": {
-			LD:     10.5,
-			UD:     25.5,
-			Power:  100,
-			MaxVol: 500.0,
+			LD:        10.5,
+			UD:        25.5,
+			Power:     100,
+			MaxHeight: 10,
 		},
 		"sysB": {
-			LD:     0,
-			UD:     0,
-			Power:  0,
-			MaxVol: 0,
+			LD:        0,
+			UD:        0,
+			Power:     0,
+			MaxHeight: 0,
 		},
 		"sysC": {
-			LD:     5.25,
-			UD:     99.99,
-			Power:  10,
-			MaxVol: 1234.5,
+			LD:        5.25,
+			UD:        99.99,
+			Power:     10,
+			MaxHeight: 10,
 		},
 	}
 }
@@ -167,35 +167,6 @@ func TestGetPower(t *testing.T) {
 	}
 }
 
-func TestGetMaxVol(t *testing.T) {
-	require := require.New(t)
-	tests := []struct {
-		name       string
-		systemName string
-		want       float32
-		Error      bool
-	}{
-		{name: "positive value", systemName: "sysA", want: 500.0, Error: false},
-		{name: "zero value", systemName: "sysB", want: 0, Error: false},
-		{name: "fractional value", systemName: "sysC", want: 1234.5, Error: false},
-		{name: "ne value", systemName: "sysD", Error: true},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			ip, err := NewInfoProvider(testSystems())
-			require.NoError(err)
-			got, err := ip.GetMaxVol(tc.systemName)
-			if tc.Error {
-				require.Error(err)
-			} else {
-				require.NoError(err)
-				require.Equal(tc.want, got)
-			}
-		})
-	}
-}
-
 func TestInfoProvider_GetCurrentVol(t *testing.T) {
 	require := require.New(t)
 	tests := []struct {
@@ -209,7 +180,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "unknown system returns error",
 			systems: map[string]SystemProperties{
-				"sysA": {LD: 20, UD: 20, MaxHeight: 30, MaxVol: 9.42478},
+				"sysA": {LD: 20, UD: 20, MaxHeight: 30},
 			},
 			systemName: "does-not-exist",
 			heightCM:   10,
@@ -219,7 +190,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "cylinder (LD == UD) at half height matches pi*r^2*h",
 			systems: map[string]SystemProperties{
-				"cylinder": {LD: 20, UD: 20, MaxHeight: 30, MaxVol: 9.42478},
+				"cylinder": {LD: 20, UD: 20, MaxHeight: 30},
 			},
 			systemName: "cylinder",
 			heightCM:   15,
@@ -229,7 +200,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "cylinder (LD == UD) at full height matches MaxVol",
 			systems: map[string]SystemProperties{
-				"cylinder": {LD: 20, UD: 20, MaxHeight: 30, MaxVol: 9.42478},
+				"cylinder": {LD: 20, UD: 20, MaxHeight: 30},
 			},
 			systemName: "cylinder",
 			heightCM:   30,
@@ -239,7 +210,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "bucket-shaped frustum (LD < UD) at full height matches formula",
 			systems: map[string]SystemProperties{
-				"bucket": {LD: 20, UD: 30, MaxHeight: 30, MaxVol: 14.92257},
+				"bucket": {LD: 20, UD: 30, MaxHeight: 30},
 			},
 			systemName: "bucket",
 			heightCM:   30,
@@ -249,7 +220,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "bucket-shaped frustum (LD < UD) at partial height",
 			systems: map[string]SystemProperties{
-				"bucket": {LD: 20, UD: 30, MaxHeight: 30, MaxVol: 14.92257},
+				"bucket": {LD: 20, UD: 30, MaxHeight: 30},
 			},
 			systemName: "bucket",
 			heightCM:   15,
@@ -259,7 +230,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "inverted taper (LD > UD, e.g. pot narrower at rim) at partial height",
 			systems: map[string]SystemProperties{
-				"pot": {LD: 30, UD: 20, MaxHeight: 20, MaxVol: 15},
+				"pot": {LD: 30, UD: 20, MaxHeight: 20},
 			},
 			systemName: "pot",
 			heightCM:   10,
@@ -272,7 +243,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "rechneronline: bottom 30cm, top 33cm, height 25cm, full - ~19.5L",
 			systems: map[string]SystemProperties{
-				"rol-bucket-1": {LD: 30, UD: 33, MaxHeight: 25, MaxVol: 19.4977},
+				"rol-bucket-1": {LD: 30, UD: 33, MaxHeight: 25},
 			},
 			systemName: "rol-bucket-1",
 			heightCM:   25,
@@ -282,7 +253,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "rechneronline: bottom 30cm, top 33cm, height 25cm, filled to 13cm - ~9.7L",
 			systems: map[string]SystemProperties{
-				"rol-bucket-1": {LD: 30, UD: 33, MaxHeight: 25, MaxVol: 19.4977},
+				"rol-bucket-1": {LD: 30, UD: 33, MaxHeight: 25},
 			},
 			systemName: "rol-bucket-1",
 			heightCM:   13,
@@ -292,7 +263,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "rechneronline: bottom 19.5cm, top 25.8cm, height 25cm, full - ~10.1L",
 			systems: map[string]SystemProperties{
-				"rol-bucket-2": {LD: 19.5, UD: 25.8, MaxHeight: 25, MaxVol: 10.13812},
+				"rol-bucket-2": {LD: 19.5, UD: 25.8, MaxHeight: 25},
 			},
 			systemName: "rol-bucket-2",
 			heightCM:   25,
@@ -302,7 +273,7 @@ func TestInfoProvider_GetCurrentVol(t *testing.T) {
 		{
 			name: "rechneronline: bottom 19.5cm, top 25.8cm, height 25cm, filled to 20cm - ~3/4 full",
 			systems: map[string]SystemProperties{
-				"rol-bucket-2": {LD: 19.5, UD: 25.8, MaxHeight: 25, MaxVol: 10.13812},
+				"rol-bucket-2": {LD: 19.5, UD: 25.8, MaxHeight: 25},
 			},
 			systemName: "rol-bucket-2",
 			heightCM:   20,

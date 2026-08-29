@@ -49,6 +49,5 @@ type BrewingSystemConfig struct {
 	LD        float32 `koanf:"lower-diameter-cm"`
 	UD        float32 `koanf:"upper-diameter-cm"`
 	Power     int     `koanf:"power-watts"`
-	MaxVol    float32 `koanf:"max-vol-liters"`
 	MaxHeight float32 `koanf:"max-height-cm"`
 }
