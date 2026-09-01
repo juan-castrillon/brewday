@@ -20,6 +20,7 @@ type RecipeStore interface {
 // The recipe id is used as key
 type SummaryStore interface {
 	AddSummary(recipeID, title string) error
+	AddBrewingSystem(id, bs string) error
 }
 
 // TimelineStore represents a component that stores timelines

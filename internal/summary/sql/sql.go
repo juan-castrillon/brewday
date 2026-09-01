@@ -307,6 +307,22 @@ func (s *SummaryPersistentStore) AddEfficiency(id string, efficiencyPercentage f
 	return err
 }
 
+// AddBrewingSystem adds a brewing system to the statistics
+func (s *SummaryPersistentStore) AddBrewingSystem(id, bs string) error {
+	if id == "" {
+		return errors.New("invalid empty recipe id")
+	}
+	if bs == "" {
+		bs = "undefined"
+	}
+	t, err := s.getRecipeTitleB64(id)
+	if err != nil {
+		return err
+	}
+	_, err = s.dbClient.Exec(`UPDATE stats SET brewing_system = ? WHERE recipe_title == ?`, bs, t)
+	return err
+}
+
 // GetSummary returns the summary
 func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error) {
 	if id == "" {
@@ -428,17 +444,20 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 
 // GetAllStats returns all the statistics
 func (s *SummaryPersistentStore) GetAllStats() (map[string]*summary.Statistics, error) {
-	rows, err := s.dbClient.Query(`SELECT recipe_title, evaporation, efficiency, finished_epoch FROM stats`)
+	rows, err := s.dbClient.Query(`SELECT recipe_title, evaporation, efficiency, finished_epoch, brewing_system FROM stats`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
 	res := make(map[string]*summary.Statistics)
 	for rows.Next() {
 		r := summary.Statistics{}
 		var title string
 		var epoch sql.NullInt64
-		err = rows.Scan(&title, &r.Evaporation, &r.Efficiency, &epoch)
+		err = rows.Scan(&title, &r.Evaporation, &r.Efficiency, &epoch, &r.BrewingSystem)
 		if err != nil {
 			return nil, err
 		}
@@ -466,11 +485,12 @@ func (s *SummaryPersistentStore) AddFinishedTime(id string, t time.Time) error {
 }
 
 func (s *SummaryPersistentStore) AddStatsExternal(recipeName string, stats *summary.Statistics) error {
-	_, err := s.dbClient.Exec(`INSERT INTO stats (recipe_title, finished_epoch, evaporation, efficiency) VALUES (?, ?, ?, ?)`,
+	_, err := s.dbClient.Exec(`INSERT INTO stats (recipe_title, finished_epoch, evaporation, efficiency, brewing_system) VALUES (?, ?, ?, ?, ?)`,
 		tools.B64Encode(recipeName),
 		stats.FinishedTime.Unix(),
 		stats.Evaporation,
 		stats.Efficiency,
+		stats.BrewingSystem,
 	)
 	return err
 }

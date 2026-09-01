@@ -11,7 +11,7 @@ require (
 	github.com/knadh/koanf/providers/file v1.2.1
 	github.com/knadh/koanf/v2 v2.3.2
 	github.com/labstack/echo/v4 v4.15.1
-	github.com/mattn/go-sqlite3 v1.14.34
+	github.com/mattn/go-sqlite3 v1.14.50
 	github.com/rs/zerolog v1.34.0
 	github.com/stretchr/testify v1.11.1
 )

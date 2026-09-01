@@ -101,6 +101,7 @@ type SummaryStore interface {
 	AddFinishedTime(id string, t time.Time) error
 	AddEvaporation(id string, amount float32) error
 	AddEfficiency(id string, efficiencyPercentage float32) error
+	AddBrewingSystem(id, bs string) error
 	GetSummary(id string) (*summary.Summary, error)
 	GetAllStats() (map[string]*summary.Statistics, error)
 	AddStatsExternal(recipeName string, stats *summary.Statistics) error

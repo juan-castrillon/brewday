@@ -178,6 +178,10 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
+	err = r.SummaryRecorderStore.AddBrewingSystem(id, re.BrewingSystem)
+	if err != nil {
+		return err
+	}
 	err = r.TLStore.AddTimeline(id)
 	if err != nil {
 		return err

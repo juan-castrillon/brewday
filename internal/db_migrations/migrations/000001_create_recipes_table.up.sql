@@ -21,6 +21,5 @@ CREATE TABLE
         ferm_yeast TEXT,
         ferm_temp TEXT,
         ferm_additional TEXT,
-        ferm_carbonation REAL,
-        brewing_system TEXT
+        ferm_carbonation REAL
     );

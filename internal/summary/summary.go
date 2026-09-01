@@ -106,9 +106,10 @@ type SecondaryFermentationInfo struct {
 }
 
 type Statistics struct {
-	Evaporation  float32
-	Efficiency   float32
-	FinishedTime time.Time
+	Evaporation   float32
+	Efficiency    float32
+	FinishedTime  time.Time
+	BrewingSystem string
 }
 
 func NewSummary() *Summary {
