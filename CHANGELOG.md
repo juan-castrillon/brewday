@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Fixed bug where dry hop ingredients could not have a "/"
+- Fixed bug where going to stats while working on a recipe before boiling resulted in a broken page
 
 ## [3.0.0] - 2026-04-18
 

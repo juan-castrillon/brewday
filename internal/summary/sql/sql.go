@@ -457,10 +457,13 @@ func (s *SummaryPersistentStore) GetAllStats() (map[string]*summary.Statistics, 
 		r := summary.Statistics{}
 		var title string
 		var epoch sql.NullInt64
-		err = rows.Scan(&title, &r.Evaporation, &r.Efficiency, &epoch, &r.BrewingSystem)
+		var evaporation, efficiency sql.NullFloat64
+		err = rows.Scan(&title, &evaporation, &efficiency, &epoch, &r.BrewingSystem)
 		if err != nil {
 			return nil, err
 		}
+		r.Efficiency = s.valueFromNullFloat(efficiency)
+		r.Evaporation = s.valueFromNullFloat(evaporation)
 		r.FinishedTime = time.Unix(s.valueFromNullInt64(epoch), 0)
 		titleDecoded, err := tools.B64Decode(title)
 		if err != nil {
