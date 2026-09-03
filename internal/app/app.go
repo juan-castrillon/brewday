@@ -55,6 +55,7 @@ type AppComponents struct {
 	Store        RecipeStore
 	SummaryStore SummaryStore
 	Config       ProcessConfiguration
+	InfoProvider InfoProvider
 }
 
 // NewApp creates a new App
@@ -87,6 +88,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			Store:                a.recipeStore,
 			SummaryRecorderStore: ss,
 			TLStore:              a.TLStore,
+			InfoProvider:         components.InfoProvider,
 		},
 		&mash.MashRouter{
 			Store:        a.recipeStore,
@@ -106,6 +108,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:      a.TLStore,
 			SummaryStore: ss,
 			Timer:        timer,
+			InfoProvider: components.InfoProvider,
 		},
 		&cooling.CoolingRouter{
 			Store:        a.recipeStore,
@@ -136,7 +139,8 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore: ss,
 		},
 		&stats.StatsRouter{
-			StatsStore: ss,
+			StatsStore:   ss,
+			InfoProvider: components.InfoProvider,
 		},
 	}
 	a.RegisterStaticFiles()

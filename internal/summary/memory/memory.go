@@ -447,3 +447,18 @@ func (s *SummaryMemoryStore) AddStatsExternal(recipeName string, stats *summary.
 	s.stats[tools.B64Encode(recipeName)] = stats
 	return nil
 }
+
+func (s *SummaryMemoryStore) AddBrewingSystem(id, bs string) error {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	sum, err := s.getSummary(id)
+	if err != nil {
+		return err
+	}
+	if sum.Statistics == nil {
+		sum.Statistics = &summary.Statistics{}
+	}
+	sum.Statistics.BrewingSystem = bs
+	s.stats[tools.B64Encode(sum.Title)] = sum.Statistics
+	return nil
+}

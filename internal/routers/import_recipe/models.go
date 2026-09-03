@@ -20,10 +20,17 @@ type RecipeStore interface {
 // The recipe id is used as key
 type SummaryStore interface {
 	AddSummary(recipeID, title string) error
+	AddBrewingSystem(id, bs string) error
 }
 
 // TimelineStore represents a component that stores timelines
 // The recipe id is used as key
 type TimelineStore interface {
 	AddTimeline(recipeID string) error
+}
+
+type InfoProvider interface {
+	GetSystemNames() []string
+	HasSystems() bool
+	GetMaxVol(systemName string) (float32, error)
 }

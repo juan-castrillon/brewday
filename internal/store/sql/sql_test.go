@@ -60,6 +60,7 @@ var testRecipe = recipe.Recipe{
 		AdditionalIngredients: nil,
 		Carbonation:           5,
 	},
+	BrewingSystem: "system1",
 }
 
 func TestStoreAndRetrieve(t *testing.T) {

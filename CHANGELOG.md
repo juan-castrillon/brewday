@@ -11,10 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `brewday` native JSON recipe format
 - Delete functionality including recipes and stats independently
+- `brewing-systems` support to define brewing systems and their measurement to facilitate volume measurements and split statistics
+- `brewing_system` column to `recipes` and `stats` tables in sqlite database. By default all recipes will have `undefined`
 
 ### Changed
 
 - Fixed bug where dry hop ingredients could not have a "/"
+- Fixed bug where going to stats while working on a recipe before boiling resulted in a broken page
 
 ## [3.0.0] - 2026-04-18
 

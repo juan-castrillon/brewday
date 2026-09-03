@@ -101,10 +101,21 @@ type SummaryStore interface {
 	AddFinishedTime(id string, t time.Time) error
 	AddEvaporation(id string, amount float32) error
 	AddEfficiency(id string, efficiencyPercentage float32) error
+	AddBrewingSystem(id, bs string) error
 	GetSummary(id string) (*summary.Summary, error)
 	GetAllStats() (map[string]*summary.Statistics, error)
 	AddStatsExternal(recipeName string, stats *summary.Statistics) error
 	DeleteStats(title string) error
+}
+
+type InfoProvider interface {
+	HasSystems() bool
+	GetSystemNames() []string
+	GetLD(systemName string) (float32, error)
+	GetUD(systemName string) (float32, error)
+	GetPower(systemName string) (int, error)
+	GetMaxVol(systemName string) (float32, error)
+	GetCurrentVol(systemName string, heightCM float32) (float32, error)
 }
 
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent

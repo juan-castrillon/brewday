@@ -1462,6 +1462,84 @@ func TestAddEvaporation(t *testing.T) {
 	}
 }
 
+func TestAddBrewingSystem(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
+	store, err := NewSummaryPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT brewing_system FROM stats WHERE recipe_title = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name        string
+		RecipeTitle string
+		RecipeID    string
+		BS          string
+		Error       bool
+	}{
+		{
+			Name:        "Valid Inputs",
+			RecipeTitle: "t1",
+			RecipeID:    "1",
+			BS:          "system1",
+			Error:       false,
+		}, {
+			Name:        "Empty RecipeTitle",
+			RecipeTitle: "",
+			RecipeID:    "",
+			BS:          "system1",
+			Error:       true,
+		},
+		{
+			Name:        "SQL Injection in RecipeID",
+			RecipeTitle: "t1",
+			RecipeID:    "123; DROP TABLE summaries;",
+			BS:          "system1",
+			Error:       true,
+		},
+		{
+			Name:        "Non-Existing RecipeID",
+			RecipeTitle: "999",
+			RecipeID:    "999",
+			BS:          "system1",
+			Error:       true,
+		},
+		{
+			Name:        "Empty bs",
+			RecipeTitle: "t2",
+			RecipeID:    "1",
+			BS:          "",
+			Error:       false,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddBrewingSystem(tc.RecipeID, tc.BS)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				var bs string
+				require.NoError(getSt.QueryRow(tools.B64Encode(tc.RecipeTitle)).Scan(&bs))
+				if tc.BS != "" {
+					require.Equal(tc.BS, bs)
+				} else {
+					require.Equal("undefined", bs)
+				}
+			}
+		})
+	}
+}
+
 func TestAddEfficiency(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
@@ -2022,16 +2100,16 @@ func TestGetAllStats(t *testing.T) {
 			Name:  "One stat",
 			Error: false,
 			Stats: map[string]*summary.Statistics{
-				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(150, 0)},
+				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(150, 0), BrewingSystem: "system1"},
 			},
 		},
 		{
 			Name:  "Multiple stats",
 			Error: false,
 			Stats: map[string]*summary.Statistics{
-				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(152, 0)},
-				"2": {Evaporation: 63, Efficiency: 74.1, FinishedTime: time.Unix(154, 0)},
-				"3": {Evaporation: 64, Efficiency: 72.1, FinishedTime: time.Unix(156, 0)},
+				"1": {Evaporation: 62, Efficiency: 73.1, FinishedTime: time.Unix(152, 0), BrewingSystem: "system1"},
+				"2": {Evaporation: 63, Efficiency: 74.1, FinishedTime: time.Unix(154, 0), BrewingSystem: "system2"},
+				"3": {Evaporation: 64, Efficiency: 72.1, FinishedTime: time.Unix(156, 0), BrewingSystem: "system3"},
 			},
 		},
 		{
@@ -2080,6 +2158,10 @@ func storeStats(stats map[string]*summary.Statistics, store *SummaryPersistentSt
 			return err
 		}
 		err = store.AddFinishedTime(id, stat.FinishedTime)
+		if err != nil {
+			return err
+		}
+		err = store.AddBrewingSystem(id, stat.BrewingSystem)
 		if err != nil {
 			return err
 		}
@@ -2176,9 +2258,10 @@ func TestAddStatsExternal(t *testing.T) {
 				{
 					Name: "Recipe1", // Callers will encode, this does not handle this
 					Stat: &summary.Statistics{
-						Evaporation:  60,
-						Efficiency:   20,
-						FinishedTime: time.Unix(150, 0),
+						Evaporation:   60,
+						Efficiency:    20,
+						FinishedTime:  time.Unix(150, 0),
+						BrewingSystem: "system1",
 					},
 				},
 			},
@@ -2190,17 +2273,19 @@ func TestAddStatsExternal(t *testing.T) {
 				{
 					Name: "Recipe1", // Callers will encode, this does not handle this
 					Stat: &summary.Statistics{
-						Evaporation:  60,
-						Efficiency:   20,
-						FinishedTime: time.Unix(150, 0),
+						Evaporation:   60,
+						Efficiency:    20,
+						FinishedTime:  time.Unix(150, 0),
+						BrewingSystem: "system1",
 					},
 				},
 				{
 					Name: "Recipe2", // Callers will encode, this does not handle this
 					Stat: &summary.Statistics{
-						Evaporation:  70,
-						Efficiency:   50,
-						FinishedTime: time.Unix(150000, 0),
+						Evaporation:   70,
+						Efficiency:    50,
+						FinishedTime:  time.Unix(150000, 0),
+						BrewingSystem: "system2",
 					},
 				},
 			},
@@ -2212,17 +2297,19 @@ func TestAddStatsExternal(t *testing.T) {
 				{
 					Name: "Recipe1", // Callers will encode, this does not handle this
 					Stat: &summary.Statistics{
-						Evaporation:  60,
-						Efficiency:   20,
-						FinishedTime: time.Unix(150, 0),
+						Evaporation:   60,
+						Efficiency:    20,
+						FinishedTime:  time.Unix(150, 0),
+						BrewingSystem: "system1",
 					},
 				},
 				{
 					Name: "Recipe1", // Callers will encode, this does not handle this
 					Stat: &summary.Statistics{
-						Evaporation:  70,
-						Efficiency:   50,
-						FinishedTime: time.Unix(150000, 0),
+						Evaporation:   70,
+						Efficiency:    50,
+						FinishedTime:  time.Unix(150000, 0),
+						BrewingSystem: "system1",
 					},
 				},
 			},

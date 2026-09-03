@@ -12,6 +12,10 @@ type StatsStore interface {
 	DeleteStats(title string) error
 }
 
+type InfoProvider interface {
+	GetSystemNames() []string
+}
+
 type StatEntry struct {
 	RecipeName         string
 	Evaporation        *float32
@@ -31,4 +35,8 @@ type ReqPostAddStat struct {
 // ReqPostDeleteStat represent the request for deleting a stat
 type ReqPostDeleteStat struct {
 	RecipeTitle string `json:"recipe_title" form:"recipe_title"`
+}
+
+type ReqPostSetBs struct {
+	BrewingSystem string `json:"brewing_system" form:"bs"`
 }

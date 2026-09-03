@@ -49,6 +49,14 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -74,6 +82,14 @@ func TestConfig(t *testing.T) {
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
 				},
 			},
 			Error: false,
@@ -101,12 +117,20 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 10,
 					RefractometerWCF:   1.04,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
 		{
 			Name: "Only env variables - gotify",
-			Path: "",
+			Path: "yaml/only_bs.yaml",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED":                  "true",
 				"BREWDAY_NOTIFICATION_TYPE":                     "gotify",
@@ -138,12 +162,20 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 5,
 					RefractometerWCF:   1.05,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
 		{
 			Name: "Only env variables - ha",
-			Path: "",
+			Path: "yaml/only_bs.yaml",
 			Env: map[string]string{
 				"BREWDAY_NOTIFICATION_ENABLED":               "true",
 				"BREWDAY_NOTIFICATION_TYPE":                  "ha",
@@ -175,6 +207,14 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 5,
 					RefractometerWCF:   1.05,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -204,6 +244,14 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -232,6 +280,14 @@ func TestConfig(t *testing.T) {
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
 				},
 			},
 			Error: false,
@@ -263,6 +319,14 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -293,6 +357,14 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -300,30 +372,6 @@ func TestConfig(t *testing.T) {
 			Name:  "Invalid extension",
 			Path:  "yaml/invalid.json",
 			Error: true,
-		},
-		{
-			Name: "Title case file",
-			Path: "yaml/titleCase.yaml",
-			Expected: Config{
-				App: AppConfig{Port: 8080},
-				Notification: NotificationConfig{
-					Enabled: true,
-					Type:    "gotify",
-					Settings: NotificationSettings{
-						GotifyURL:      "http://localhost:8080",
-						GotifyUsername: "gotify",
-						GotifyPassword: "gotify",
-					},
-				},
-				Store: StoreConfig{
-					StoreType: "memory",
-				},
-				Process: ProcessParameters{
-					LauternRestTimeMin: 15,
-					RefractometerWCF:   1.00,
-				},
-			},
-			Error: false,
 		},
 		{
 			Name:  "Missing User - gotify",
@@ -381,6 +429,14 @@ func TestConfig(t *testing.T) {
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -410,6 +466,69 @@ func TestConfig(t *testing.T) {
 				Process: ProcessParameters{
 					LauternRestTimeMin: 15,
 					RefractometerWCF:   1.00,
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "Complete config no bs",
+			Path: "yaml/complete_no_bs.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: false,
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+				BrewingSystems: []BrewingSystemConfig{},
+			},
+			Error: false,
+		},
+		{
+			Name: "Complete config multiple bs",
+			Path: "yaml/complete_multiple_bs.yaml",
+			Env:  map[string]string{},
+			Expected: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: false,
+				},
+				Store: StoreConfig{
+					StoreType: "sql",
+					Path:      "./bd.sqlite",
+				},
+				Process: ProcessParameters{
+					LauternRestTimeMin: 15,
+					RefractometerWCF:   1.00,
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.2,
+						MaxHeight: 10,
+					},
+					{
+						Name:      "bs2",
+						LD:        6.1,
+						UD:        6.2,
+						MaxHeight: 11,
+					},
 				},
 			},
 			Error: false,
@@ -522,6 +641,14 @@ func TestValidateConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "memory",
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -541,6 +668,14 @@ func TestValidateConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "sql",
 					Path:      "./bd.sqlite",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
 				},
 			},
 			Error: false,
@@ -567,6 +702,14 @@ func TestValidateConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "memory",
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -584,6 +727,14 @@ func TestValidateConfig(t *testing.T) {
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
 				},
 			},
 			Error: true,
@@ -603,6 +754,14 @@ func TestValidateConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "memory",
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -620,6 +779,14 @@ func TestValidateConfig(t *testing.T) {
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
 				},
 			},
 			Error: true,
@@ -639,6 +806,14 @@ func TestValidateConfig(t *testing.T) {
 				Store: StoreConfig{
 					StoreType: "memory",
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: false,
 		},
@@ -656,6 +831,14 @@ func TestValidateConfig(t *testing.T) {
 				},
 				Store: StoreConfig{
 					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
 				},
 			},
 			Error: true,
@@ -677,6 +860,14 @@ func TestValidateConfig(t *testing.T) {
 					StoreType: "invalid",
 					Path:      "./bd.sqlite",
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: true,
 		},
@@ -695,6 +886,14 @@ func TestValidateConfig(t *testing.T) {
 				},
 				Store: StoreConfig{
 					StoreType: "sql",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
 				},
 			},
 			Error: true,
@@ -716,6 +915,14 @@ func TestValidateConfig(t *testing.T) {
 					StoreType: "SQL",
 					Path:      "./bd.sqlite",
 				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
 			},
 			Error: true,
 		},
@@ -734,6 +941,356 @@ func TestValidateConfig(t *testing.T) {
 				},
 				Store: StoreConfig{
 					StoreType: "MEMORY",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "All parameters in a brewing system",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "BS: missing power",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "BS: Missing UD",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: missing ld",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						UD:        5.1,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: missing name",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: empty name",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: 0 ld",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        0,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: 0 ud",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        0,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: multiple ",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+					{
+						Name:      "bs2",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: false,
+		},
+		{
+			Name: "BS: multiple, one wrong ",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+					{
+						Name:      "bs2",
+						LD:        5.1,
+						Power:     2500,
+						MaxHeight: 10,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: missing maxHeight",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:  "bs1",
+						LD:    5.1,
+						UD:    5.1,
+						Power: 2500,
+					},
+				},
+			},
+			Error: true,
+		},
+		{
+			Name: "BS: maxHeight 0",
+			Config: Config{
+				App: AppConfig{Port: 8080},
+				Notification: NotificationConfig{
+					Enabled: true,
+					Type:    "gotify",
+					Settings: NotificationSettings{
+						GotifyURL:      "http://localhost:8080",
+						GotifyUsername: "gotify",
+						GotifyPassword: "gotify",
+					},
+				},
+				Store: StoreConfig{
+					StoreType: "memory",
+				},
+				BrewingSystems: []BrewingSystemConfig{
+					{
+						Name:      "bs1",
+						LD:        5.1,
+						UD:        5.1,
+						Power:     2500,
+						MaxHeight: 0,
+					},
 				},
 			},
 			Error: true,

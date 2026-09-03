@@ -4,6 +4,7 @@ import (
 	"brewday/internal/summary"
 	"errors"
 	"net/http"
+	"net/url"
 	"sort"
 	"time"
 
@@ -11,10 +12,11 @@ import (
 )
 
 type StatsRouter struct {
-	StatsStore StatsStore
+	StatsStore   StatsStore
+	InfoProvider InfoProvider
 }
 
-func (r *StatsRouter) getStats() ([]StatEntry, error) {
+func (r *StatsRouter) getStats(bs string) ([]StatEntry, error) {
 	if r.StatsStore == nil {
 		return nil, errors.New("summary store not configured")
 	}
@@ -24,13 +26,15 @@ func (r *StatsRouter) getStats() ([]StatEntry, error) {
 	}
 	res := []StatEntry{}
 	for name, s := range rawStats {
-		res = append(res, StatEntry{
-			RecipeName:         name,
-			Evaporation:        nullIf0(s.Evaporation),
-			Efficiency:         nullIf0(s.Efficiency),
-			FinishedTimeEpoch:  s.FinishedTime.Unix(),
-			FinishedTimeString: s.FinishedTime.Format("2006-01-02"),
-		})
+		if s.BrewingSystem == bs {
+			res = append(res, StatEntry{
+				RecipeName:         name,
+				Evaporation:        nullIf0(s.Evaporation),
+				Efficiency:         nullIf0(s.Efficiency),
+				FinishedTimeEpoch:  s.FinishedTime.Unix(),
+				FinishedTimeString: s.FinishedTime.Format("2006-01-02"),
+			})
+		}
 	}
 	sort.Slice(res, func(i, j int) bool {
 		return res[i].FinishedTimeEpoch < res[j].FinishedTimeEpoch
@@ -61,17 +65,25 @@ func (r *StatsRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	stats.GET("", r.getStatsHandler).Name = "getStats"
 	stats.POST("/add", r.postAddExtStatHandler).Name = "postAddExtStat"
 	stats.POST("/delete", r.deleteStatsHandler).Name = "deleteStats"
+	stats.POST("/bs", r.setBsHandler).Name = "postStatsSetBS"
 }
 
 func (r *StatsRouter) getStatsHandler(c echo.Context) error {
-	s, err := r.getStats()
-	if err != nil {
-		return err
+	var s []StatEntry
+	bs := c.QueryParam("bs")
+	if bs != "" {
+		stats, err := r.getStats(bs)
+		if err != nil {
+			return err
+		}
+		s = stats
 	}
 	return c.Render(200, "stats.html", map[string]any{
-		"Title":    "Stats",
-		"Subtitle": "Historical stats from saved summaries",
-		"Stats":    s,
+		"Title":          "Stats",
+		"Subtitle":       "Historical stats from saved summaries",
+		"Stats":          s,
+		"BrewingSystems": r.InfoProvider.GetSystemNames(),
+		"BS":             bs,
 	})
 }
 
@@ -102,4 +114,16 @@ func (r *StatsRouter) deleteStatsHandler(c echo.Context) error {
 		return err
 	}
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getStats"))
+}
+
+func (r *StatsRouter) setBsHandler(c echo.Context) error {
+	var req ReqPostSetBs
+	err := c.Bind(&req)
+	if err != nil {
+		return err
+	}
+	redirect := "getStats"
+	params := url.Values{}
+	params.Add("bs", req.BrewingSystem)
+	return c.Redirect(http.StatusFound, c.Echo().Reverse(redirect)+"?"+params.Encode())
 }

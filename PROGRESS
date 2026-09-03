@@ -1,3 +1,86 @@
 # PLAN
+
+- Add config parameters to define a brewing setup/system (anlage)
+  - name
+  - lower diameter (cm)
+  - upper diameter (cm)
+  - power (optional)
+  - max volume (optional)
+- Add a component (tools/systeminfo)
+  - Gets initialized by the app with the config values
+  - Stores the config values and makes them available to consumers
+  - Makes calculations based on the values (e.g volume)
+  - Gets passed to different components that will need it
+- Expand recipe to include setup
+- Modify existing volume inputs
+  - Change it so the input is height, buy have to option to input volume
+- Add option to select system in recipe import
+  - In own format add it
+  - In external, ask for it in the ui
+    - import buttons open modal
+    - select setup from config
+    - return to after import page
+  - In import logic check for example max volume
+- Add column to stats table and recipes table with the setup id
+  - Split stat page to display statistics per setup
+
 # Done so far
+
+- Add config parameters
+- Add checks
+  - Name, ld, up mandatory
+- Add to config tests
+- Initial component skeleton
+  - Add it in app so its available for routers
+- Add component
+  - Implement volume (L) calculation based on input height (cm)
+  - Implement getters
+- Add component tests
+- Identify existing volume inputs
+  - Before boiling: http://localhost:8080/hopping/start/10
+  - After boiling: http://localhost:8080/hopping/end/10
+  - Pre fermentation (for water) http://localhost:8080/fermentation/pre/10
+  - Preferm (final volume after water) http://localhost:8080/fermentation/pre/water/10?volumeDiff=3.000000&sgDiff=-0.029269
+  - VOlume in the tank http://localhost:8080/secondary_fermentation/pre_bottle/10
+- Add bs to recipe model
+- Add bs to own recipe format
+- Add bs to sql store and migratiions
+- Avoid hardcode default in migrations
+  - Set it manually
+  - Handle missing one in ui, no option to input cm
+- In external, ask for it in the ui
+    - import buttons open new page
+    - select setup from config
+    - return to after import page
+- In import logic check for  max volume
+- Stats table
+  - Modify migrations
+  - Add set method
+
+- Stats UI
+  - Modify method to get a structure that splits by system or multiple arrays
+  - Modify html template to render only a certain bs graphs
+
+- Add docu
+  - How to configure, what the config values mean
+  - Tech doc
+    - New component
+    - Modify db schema
+
+- To migrate prod
+
+```sql
+UPDATE stats SET "brewing_system" = 'brewferm';
+UPDATE stats SET "brewing_system" = 'mini' WHERE "recipe_title" = 'V2l0dGxlIFdpdA==' ;
+```
+
 # ToDo
+
+
+- Fix bug, if a recipe is open and i open stats
+{"level":"error","error":"sql: Scan error on column index 1, name \"evaporation\": converting NULL to float32 is unsupported","time":"2026-08-23T22:24:59+02:00","message":"/stats"}
+
+
+
+
+- - Add data in prod db

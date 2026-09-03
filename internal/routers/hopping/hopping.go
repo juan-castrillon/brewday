@@ -19,6 +19,7 @@ type HoppingRouter struct {
 	TLStore         TimelineStore
 	SummaryStore    SummaryStore
 	Timer           Timer
+	InfoProvider    InfoProvider
 	ingredientCache map[string]ingredientList
 }
 
@@ -116,9 +117,10 @@ func (r *HoppingRouter) getStartHoppingHandler(c echo.Context) error {
 		return err
 	}
 	return c.Render(http.StatusOK, "hopping_start.html", map[string]interface{}{
-		"Title":    "Hopping " + re.Name,
-		"Subtitle": "1. Measure volume before boiling",
-		"RecipeID": id,
+		"Title":        "Hopping " + re.Name,
+		"Subtitle":     "1. Measure volume before boiling",
+		"RecipeID":     id,
+		"EnableHeight": r.InfoProvider.HasSystems() && re.BrewingSystem != "undefined",
 	})
 }
 
@@ -137,11 +139,23 @@ func (r *HoppingRouter) postStartHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = r.addSummaryPreBoilVolume(id, req.InitialVolume, req.Notes)
+	vol := req.InitialVal
+	rp, err := r.Store.Retrieve(id)
+	if err != nil {
+		return err
+	}
+	if req.ValUnits == "cm" && r.InfoProvider.HasSystems() && rp.BrewingSystem != "undefined" {
+		v, err := r.InfoProvider.GetCurrentVol(rp.BrewingSystem, req.InitialVal)
+		if err != nil {
+			return err
+		}
+		vol = v
+	}
+	err = r.addSummaryPreBoilVolume(id, vol, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}
-	err = r.Store.UpdateResult(id, recipe.ResultVolumeBeforeBoil, req.InitialVolume)
+	err = r.Store.UpdateResult(id, recipe.ResultVolumeBeforeBoil, vol)
 	if err != nil {
 		return err
 	}
@@ -303,9 +317,10 @@ func (r *HoppingRouter) getEndHoppingHandler(c echo.Context) error {
 		log.Error().Err(err).Str("id", id).Msg("could not add timeline event")
 	}
 	return c.Render(http.StatusOK, "hopping_end.html", map[string]interface{}{
-		"Title":    "Hopping " + re.Name,
-		"Subtitle": "4. Measure volume after boiling",
-		"RecipeID": id,
+		"Title":        "Hopping " + re.Name,
+		"Subtitle":     "4. Measure volume after boiling",
+		"RecipeID":     id,
+		"EnableHeight": r.InfoProvider.HasSystems() && re.BrewingSystem != "undefined",
 	})
 }
 
@@ -332,15 +347,23 @@ func (r *HoppingRouter) postEndHoppingHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	err = r.addSummaryAfterBoilVolume(id, req.FinalVolume, req.Notes)
+	vol := req.FinalVal
+	if req.ValUnits == "cm" && r.InfoProvider.HasSystems() && re.BrewingSystem != "undefined" {
+		v, err := r.InfoProvider.GetCurrentVol(re.BrewingSystem, req.FinalVal)
+		if err != nil {
+			return err
+		}
+		vol = v
+	}
+	err = r.addSummaryAfterBoilVolume(id, vol, req.Notes)
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add measured volume to summary")
 	}
-	err = r.Store.UpdateResult(id, recipe.ResultHotWortVolume, req.FinalVolume)
+	err = r.Store.UpdateResult(id, recipe.ResultHotWortVolume, vol)
 	if err != nil {
 		return err
 	}
-	evap := tools.CalculateEvaporation(initialVol, req.FinalVolume, re.Hopping.TotalCookingTime)
+	evap := tools.CalculateEvaporation(initialVol, vol, re.Hopping.TotalCookingTime)
 	log.Info().Float32("evaporation", evap).Str("recipe_id", id).Msg("Saving evaporation")
 	err = r.addSummaryEvaporation(id, evap)
 	if err != nil {

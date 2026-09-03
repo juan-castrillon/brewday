@@ -33,17 +33,19 @@ func ptrFloat32(num float32) *float32 {
 func TestGetStats(t *testing.T) {
 	require := require.New(t)
 	type testCase struct {
-		Name     string
-		Store    map[string]*summary.Statistics
-		Expected []StatEntry
-		Error    bool
+		Name          string
+		Store         map[string]*summary.Statistics
+		BrewingSystem string
+		Expected      []StatEntry
+		Error         bool
 	}
 	testCases := []testCase{
 		{
 			Name: "One summaries",
 			Store: map[string]*summary.Statistics{
-				"Test1": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
+				"Test1": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0), BrewingSystem: "system1"},
 			},
+			BrewingSystem: "system1",
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: ptrFloat32(20.5), Efficiency: ptrFloat32(62.3), FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
 			},
@@ -52,12 +54,25 @@ func TestGetStats(t *testing.T) {
 		{
 			Name: "Two summaries",
 			Store: map[string]*summary.Statistics{
-				"Test1": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
-				"Test2": {Evaporation: 16.333, Efficiency: 72.84, FinishedTime: time.Unix(150000, 0)},
+				"Test1": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0), BrewingSystem: "system1"},
+				"Test2": {Evaporation: 16.333, Efficiency: 72.84, FinishedTime: time.Unix(150000, 0), BrewingSystem: "system1"},
 			},
+			BrewingSystem: "system1",
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: ptrFloat32(20.5), Efficiency: ptrFloat32(62.3), FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
 				{RecipeName: "Test2", Evaporation: ptrFloat32(16.333), Efficiency: ptrFloat32(72.84), FinishedTimeString: "1970-01-02", FinishedTimeEpoch: 150000},
+			},
+			Error: false,
+		},
+		{
+			Name: "Two summaries different systems",
+			Store: map[string]*summary.Statistics{
+				"Test1": {Evaporation: 20.5, Efficiency: 62.3, FinishedTime: time.Unix(150, 0), BrewingSystem: "system1"},
+				"Test2": {Evaporation: 16.333, Efficiency: 72.84, FinishedTime: time.Unix(150000, 0), BrewingSystem: "system2"},
+			},
+			BrewingSystem: "system1",
+			Expected: []StatEntry{
+				{RecipeName: "Test1", Evaporation: ptrFloat32(20.5), Efficiency: ptrFloat32(62.3), FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
 			},
 			Error: false,
 		},
@@ -76,8 +91,9 @@ func TestGetStats(t *testing.T) {
 		{
 			Name: "Summary with Efficiency 0",
 			Store: map[string]*summary.Statistics{
-				"Test1": {Evaporation: 20.5, Efficiency: 0, FinishedTime: time.Unix(150, 0)},
+				"Test1": {Evaporation: 20.5, Efficiency: 0, FinishedTime: time.Unix(150, 0), BrewingSystem: "system1"},
 			},
+			BrewingSystem: "system1",
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: ptrFloat32(20.5), Efficiency: nil, FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
 			},
@@ -86,8 +102,9 @@ func TestGetStats(t *testing.T) {
 		{
 			Name: "Summary with Evaporation 0",
 			Store: map[string]*summary.Statistics{
-				"Test1": {Evaporation: 0, Efficiency: 62.3, FinishedTime: time.Unix(150, 0)},
+				"Test1": {Evaporation: 0, Efficiency: 62.3, FinishedTime: time.Unix(150, 0), BrewingSystem: "system1"},
 			},
+			BrewingSystem: "system1",
 			Expected: []StatEntry{
 				{RecipeName: "Test1", Evaporation: nil, Efficiency: ptrFloat32(62.3), FinishedTimeString: "1970-01-01", FinishedTimeEpoch: 150},
 			},
@@ -98,7 +115,7 @@ func TestGetStats(t *testing.T) {
 		t.Run(tc.Name, func(t *testing.T) {
 			mockS := mockStore{store: tc.Store}
 			router := StatsRouter{StatsStore: &mockS}
-			res, err := router.getStats()
+			res, err := router.getStats(tc.BrewingSystem)
 			if tc.Error {
 				require.Error(err)
 			} else {

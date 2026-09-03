@@ -19,6 +19,7 @@ const EnvPrefix = "BREWDAY_"
 var defaultValues = map[string]any{
 	"process.lautern-rest-time-min": 15,
 	"process.refractometer-wcf":     1.00,
+	"brewing-systems":               []BrewingSystemConfig{},
 }
 
 // LoadConfig loads the configuration from the given path.
@@ -108,6 +109,20 @@ func validateConfig(config *Config) error {
 			return fmt.Errorf("invalid notification type %s", config.Notification.Type)
 		}
 	}
+	if len(config.BrewingSystems) > 0 {
+		for _, bs := range config.BrewingSystems {
+			if bs.Name == "" {
+				return fmt.Errorf("Found brewing system with empty name")
+			}
+			if bs.LD == 0 || bs.UD == 0 {
+				return fmt.Errorf("Lower or upper diameter = 0 for brewing system %s", bs.Name)
+			}
+			if bs.MaxHeight == 0 {
+				return fmt.Errorf("Max height = 0 for brewing system %s", bs.Name)
+			}
+		}
+	}
+
 	switch config.Store.StoreType {
 	case "sql":
 		if config.Store.Path == "" {

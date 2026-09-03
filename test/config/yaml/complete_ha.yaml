@@ -12,3 +12,9 @@ notification:
 store:
   type: sql
   path: "./bd.sqlite"
+
+brewing-systems:
+  - name: bs1
+    lower-diameter-cm: 5.1
+    upper-diameter-cm: 5.2
+    max-height-cm: 10

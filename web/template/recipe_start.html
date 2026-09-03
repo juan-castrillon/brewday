@@ -4,6 +4,7 @@
     .square {
         height: 50px;
         width: 50px;
+
         background-color: {{ .SquareColor }};
     }
 </style>
@@ -19,29 +20,31 @@
                         <p><b>Batch Size:</b> {{ .Recipe.BatchSize }} l</p>
                         <p><b>Initial SG:</b> {{ .Recipe.InitialSG }}</p>
                         <p><b>IBU:</b> {{ .Recipe.Bitterness }}</p>
-                        <p><b>Color:</b> {{ .Recipe.ColorEBC }} (EBC)  <div class="square"></div></p>
+                        <p><b>Color:</b> {{ .Recipe.ColorEBC }} (EBC)
+                        <div class="square"></div>
+                        </p>
                     </div>
                 </li>
                 <li>
                     <div class="collapsible-header"><i class="material-icons">local_drink</i>Mash</div>
                     <div class="collapsible-body">
                         <p><b>Malts:</b>
-                            <ul>
-                                {{ range .Recipe.Mashing.Malts }}
-                                <li>{{ .Name }} {{ .Amount }} g</li>
-                                {{ end }}
-                            </ul>
+                        <ul>
+                            {{ range .Recipe.Mashing.Malts }}
+                            <li>{{ .Name }} {{ .Amount }} g</li>
+                            {{ end }}
+                        </ul>
                         </p>
                         <p><b>Water:</b> {{.Recipe.Mashing.MainWaterVolume}} l</p>
                         <p><b>Nachguss:</b> {{.Recipe.Mashing.Nachguss}} l</p>
                         <p><b>Mash Temperature:</b> {{.Recipe.Mashing.MashTemperature}} °C</p>
                         <p><b>Mash Out Temperature:</b> {{.Recipe.Mashing.MashOutTemperature}} °C</p>
                         <p><b>Rasts:</b>
-                            <ul>
-                                {{ range .Recipe.Mashing.Rasts }}
-                                <li>{{ .Temperature }} °C - {{.Duration}} min</li>
-                                {{ end }}
-                            </ul>
+                        <ul>
+                            {{ range .Recipe.Mashing.Rasts }}
+                            <li>{{ .Temperature }} °C - {{.Duration}} min</li>
+                            {{ end }}
+                        </ul>
                         </p>
                     </div>
                 </li>
@@ -49,35 +52,42 @@
                     <div class="collapsible-header"><i class="material-icons">grass</i>Hopping</div>
                     <div class="collapsible-body">
                         <p><b>Hops:</b>
-                            <ul>
-                                {{ range .Recipe.Hopping.Hops }}
-                                <li>{{ .Name }} ({{.Alpha}}%) {{ .Amount }}g - {{.Duration}} min</li>
-                                {{ end }}
-                            </ul>
+                        <ul>
+                            {{ range .Recipe.Hopping.Hops }}
+                            <li>{{ .Name }} ({{.Alpha}}%) {{ .Amount }}g - {{.Duration}} min</li>
+                            {{ end }}
+                        </ul>
                         </p>
                         <p><b>Additionals:</b>
-                            <ul>
-                                {{ range .Recipe.Hopping.AdditionalIngredients }}
-                                <li>{{ .Name }} {{ .Amount }}g - {{.Duration}} min</li>
-                                {{ end }}
-                            </ul>
+                        <ul>
+                            {{ range .Recipe.Hopping.AdditionalIngredients }}
+                            <li>{{ .Name }} {{ .Amount }}g - {{.Duration}} min</li>
+                            {{ end }}
+                        </ul>
                         </p>
                     </div>
                 </li>
                 <li>
                     <div class="collapsible-header"><i class="material-icons">liquor</i>Fermentation</div>
                     <div class="collapsible-body">
-                        <p><b>Yeast: </b> {{.Recipe.Fermentation.Yeast.Name}} - {{.Recipe.Fermentation.Yeast.Amount}}g</p>
+                        <p><b>Yeast: </b> {{.Recipe.Fermentation.Yeast.Name}} - {{.Recipe.Fermentation.Yeast.Amount}}g
+                        </p>
                         <p><b>Fermentation Temperature:</b> {{.Recipe.Fermentation.Temperature}} °C</p>
                         <p><b>Carbonation: </b>{{.Recipe.Fermentation.Carbonation}} g/L</p>
                         <p>
                             <b>Additionals:</b>
-                            <ul>
-                                {{ range .Recipe.Fermentation.AdditionalIngredients }}
-                                <li>{{ .Name }} {{ .Amount }}g - {{.Duration}} min</li>
-                                {{ end }}
-                            </ul>
+                        <ul>
+                            {{ range .Recipe.Fermentation.AdditionalIngredients }}
+                            <li>{{ .Name }} {{ .Amount }}g - {{.Duration}} min</li>
+                            {{ end }}
+                        </ul>
                         </p>
+                    </div>
+                </li>
+                <li>
+                    <div class="collapsible-header"><i class="material-icons">hot_tub</i>Brewing System</div>
+                    <div class="collapsible-body">
+                        <p><b>Brewing system: </b>{{.Recipe.BrewingSystem}}</p>
                     </div>
                 </li>
             </ul>

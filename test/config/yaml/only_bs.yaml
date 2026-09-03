@@ -1,13 +1,3 @@
-app:
-  port: 8080
-
-notification:
-  settings:
-    gotify-url: http://localhost:8080
-
-store:
-  type: memory
-
 brewing-systems:
   - name: bs1
     lower-diameter-cm: 5.1

@@ -79,6 +79,8 @@ type Recipe struct {
 	statusLock sync.Mutex `json:"-"`
 	// ID is the identifier of the recipe. This is populated by the appropriate store and should not be set manually
 	ID string `json:"ID"`
+	// BrewingSystem is the name of the brewing system in which the recipe will be/was made
+	BrewingSystem string `json:"BrewingSystem"`
 	// results is the results of the recipe. This is populated by the appropriate handlers and should not be set manually
 	results RecipeResults `json:"-"`
 	// mainFermSGs is the measured specific gravities during the main fermentation process. This is populated by the appropriate handlers and should not be set manually
