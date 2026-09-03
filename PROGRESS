@@ -61,6 +61,12 @@
   - Modify method to get a structure that splits by system or multiple arrays
   - Modify html template to render only a certain bs graphs
 
+- Add docu
+  - How to configure, what the config values mean
+  - Tech doc
+    - New component
+    - Modify db schema
+
 - To migrate prod
 
 ```sql
@@ -76,9 +82,5 @@ UPDATE stats SET "brewing_system" = 'mini' WHERE "recipe_title" = 'V2l0dGxlIFdpd
 
 
 
-- Add docu
-  - How to configure, what the config values mean
-  - Tech doc
-    - New component
-    - Modify db schema
+
 - - Add data in prod db

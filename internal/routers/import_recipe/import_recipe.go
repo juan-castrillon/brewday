@@ -142,26 +142,28 @@ func (r *ImportRouter) getImportNextHandler(c echo.Context) error {
 	if re == nil {
 		return errors.New("no recipe found")
 	}
-	if re.BrewingSystem == "" {
-		available := r.InfoProvider.GetSystemNames()
-		return c.Render(200, "import_add_bs.html", map[string]interface{}{
-			"Title":          "Add brewing system",
-			"Subtitle":       "No brewing system detected, add one?",
-			"RecipeID":       decodedID,
-			"NextAction":     nextAction,
-			"BrewingSystems": available,
-		})
-	} else if re.BrewingSystem != "undefined" {
-		maxVol, err := r.InfoProvider.GetMaxVol(re.BrewingSystem)
-		if err != nil {
-			return err
-		}
-		if re.BatchSize > maxVol {
-			redirect := "getImport"
-			params := url.Values{}
-			params.Add("recipe", decodedID)
-			params.Add("error", "max_vol_surpassed")
-			return c.Redirect(http.StatusFound, c.Echo().Reverse(redirect)+"?"+params.Encode())
+	if r.InfoProvider.HasSystems() {
+		if re.BrewingSystem == "" {
+			available := r.InfoProvider.GetSystemNames()
+			return c.Render(200, "import_add_bs.html", map[string]interface{}{
+				"Title":          "Add brewing system",
+				"Subtitle":       "No brewing system detected, add one?",
+				"RecipeID":       decodedID,
+				"NextAction":     nextAction,
+				"BrewingSystems": available,
+			})
+		} else if re.BrewingSystem != "undefined" {
+			maxVol, err := r.InfoProvider.GetMaxVol(re.BrewingSystem)
+			if err != nil {
+				return err
+			}
+			if re.BatchSize > maxVol {
+				redirect := "getImport"
+				params := url.Values{}
+				params.Add("recipe", decodedID)
+				params.Add("error", "max_vol_surpassed")
+				return c.Redirect(http.StatusFound, c.Echo().Reverse(redirect)+"?"+params.Encode())
+			}
 		}
 	}
 	id, err = r.Store.Store(re)

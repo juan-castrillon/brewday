@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `brewday` native JSON recipe format
 - Delete functionality including recipes and stats independently
+- `brewing-systems` support to define brewing systems and their measurement to facilitate volume measurements and split statistics
+- `brewing_system` column to `recipes` and `stats` tables in sqlite database. By default all recipes will have `undefined`
 
 ### Changed
 

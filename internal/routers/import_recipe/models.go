@@ -31,5 +31,6 @@ type TimelineStore interface {
 
 type InfoProvider interface {
 	GetSystemNames() []string
+	HasSystems() bool
 	GetMaxVol(systemName string) (float32, error)
 }

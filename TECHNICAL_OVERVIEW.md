@@ -138,6 +138,7 @@ brewday/
 │   │   ├── memory/                 #   In-memory timeline
 │   │   └── sql/                    #   SQLite timeline
 │   ├── tools/                      # Brewing calculations
+|   |   |── system_info/            # Operations based on Brewing system definition (e.g volume from height)
 │   │   ├── color.go                #   EBC → SRM → Hex conversion
 │   │   ├── convert.go              #   SG ↔ Plato, EBC ↔ SRM
 │   │   ├── sugar.go                #   Priming sugar & carbonation
@@ -229,6 +230,7 @@ graph LR
         SummaryStore
         Notifier
         ProcessConfiguration
+        InfoProvider
     end
 
     main.go -->|injects| AppComponents
@@ -243,6 +245,7 @@ graph LR
     App -->|registers| SecondaryFermRouter
     App -->|registers| SummaryRouter
     App -->|registers| RecipesRouter
+    App -->|registers| StatsRouter
 ```
 
 - **Startup flow**: `main.go` loads config → opens DB → creates stores → builds `AppComponents` → calls `NewApp()` → `Initialize()` registers middleware, static files, templates, and routes. Checks for notifications pending for certain routes → `Run()` starts the Echo server.
@@ -498,6 +501,7 @@ erDiagram
         TEXT ferm_temp
         TEXT ferm_additional
         REAL ferm_carbonation
+        TEXT brewing_system
     }
 
     recipe_results {
@@ -587,6 +591,7 @@ erDiagram
         INTEGER finished_epoch
         REAL evaporation
         REAL efficiency
+        TEXT brewing_system
     }
 
     recipes ||--|| recipe_results : "has"
