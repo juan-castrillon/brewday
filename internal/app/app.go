@@ -139,7 +139,8 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore: ss,
 		},
 		&stats.StatsRouter{
-			StatsStore: ss,
+			StatsStore:   ss,
+			InfoProvider: components.InfoProvider,
 		},
 	}
 	a.RegisterStaticFiles()

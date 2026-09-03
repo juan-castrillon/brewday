@@ -57,6 +57,17 @@
   - Modify migrations
   - Add set method
 
+- Stats UI
+  - Modify method to get a structure that splits by system or multiple arrays
+  - Modify html template to render only a certain bs graphs
+
+- To migrate prod
+
+```sql
+UPDATE stats SET "brewing_system" = 'brewferm';
+UPDATE stats SET "brewing_system" = 'mini' WHERE "recipe_title" = 'V2l0dGxlIFdpdA==' ;
+```
+
 # ToDo
 
 
@@ -65,9 +76,6 @@
 
 
 
-- Stats UI
-  - Modify method to get a structure that splits by system or multiple arrays
-  - Modify html template to render more graphs
 - Add docu
   - How to configure, what the config values mean
   - Tech doc

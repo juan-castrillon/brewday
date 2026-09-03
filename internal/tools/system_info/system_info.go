@@ -129,7 +129,7 @@ func (ip *InfoProvider) GetCurrentVol(systemName string, heightCM float32) (floa
 // GetSystemNames returns the names of all available systems
 func (ip *InfoProvider) GetSystemNames() []string {
 	result := []string{}
-	for k, _ := range ip.systems {
+	for k := range ip.systems {
 		result = append(result, k)
 	}
 	return result
