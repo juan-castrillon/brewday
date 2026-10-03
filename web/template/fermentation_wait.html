@@ -22,6 +22,23 @@
                 </button>
             </div>
         </div>
+        <div class="row">
+            <div class="col s12">
+                <button class="waves-effect waves-light btn-large red" type="button" onclick="stop_wait()">Stop
+                    <i class="material-icons right">cancel</i>
+                </button>
+            </div>
+        </div>
     </div>
 </main>
+<script>
+async function stop_wait() {
+  url = '{{ reverse "getFermentationStop" .RecipeID }}'
+  try {
+      const response = await axios.get(url);
+  } catch (error) {
+      console.error("Error stopping:", error);
+  }
+}
+</script>
 {{ template "footer" . }}
