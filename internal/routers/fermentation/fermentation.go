@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -154,6 +155,7 @@ func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group)
 	fermentation.GET("/main/:recipe_id", r.getMainFermentationHandler).Name = "getMainFermentation"
 	fermentation.POST("/main/:recipe_id", r.postMainFermentationHandler).Name = "postMainFermentation"
 	fermentation.POST("/main/correct_sg/:recipe_id", r.postCorrectSGHandler).Name = "postCorrectSG"
+	fermentation.GET("/main/stop/:recipe_id", r.stopMainFermentationHandler).Name = "getFermentationStop"
 }
 
 // getPreFermentationHandler returns the handler for the pre fermentation page
@@ -425,19 +427,42 @@ func (r *FermentationRouter) postMainFermentationStartHandler(c echo.Context) er
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getMainFermentation", id))
 }
 
+// stopMainFermentationHandler handles the get requests for stopping the main fermentation wait
+func (r *FermentationRouter) stopMainFermentationHandler(c echo.Context) error {
+	id := c.Param("recipe_id")
+	if id == "" {
+		return common.ErrNoRecipeIDProvided
+	}
+	now := time.Now()
+	err := r.Store.AddDate(id, &now, notificationNamePattern+"0")
+	if err != nil {
+		return err
+	}
+	redirect := "getMainFermentation"
+	params := url.Values{}
+	params.Add("stop", "true")
+	return c.Redirect(http.StatusFound, c.Echo().Reverse(redirect, id)+"?"+params.Encode())
+}
+
 // getMainFermentationHandler returns the handler for the main fermentation page
 func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
 	}
-	minDate, err := r.Store.RetrieveDates(id, notificationNamePattern+"0")
-	if err != nil {
-		return err
+	stop := c.QueryParam("stop")
+	var missing time.Duration
+	if stop != "true" {
+		minDate, err := r.Store.RetrieveDates(id, notificationNamePattern+"0")
+		if err != nil {
+			return err
+		}
+		missing = time.Until(*minDate[0])
+	} else {
+		missing = 0
 	}
-	missing := time.Until(*minDate[0])
 	if missing > 0 {
-		err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "wait")
+		err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "wait")
 		if err != nil {
 			return err
 		}
@@ -450,7 +475,7 @@ func (r *FermentationRouter) getMainFermentationHandler(c echo.Context) error {
 	} else {
 		// This should ask for the SGs and once user clicks on its stable for me lead to
 		// sugar calculation
-		err = r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "main")
+		err := r.Store.UpdateStatus(id, recipe.RecipeStatusFermenting, "main")
 		if err != nil {
 			return err
 		}

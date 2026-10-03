@@ -22,6 +22,14 @@
                 </button>
             </div>
         </div>
+        <div class="row">
+            <div class="col s12">
+                <a class="waves-effect waves-light btn-large red"
+                   href='{{ reverse "getFermentationStop" .RecipeID }}'>Stop
+                    <i class="material-icons right">cancel</i>
+                </a>
+            </div>
+        </div>
     </div>
 </main>
 {{ template "footer" . }}
