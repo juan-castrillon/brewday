@@ -1,11 +1,11 @@
 # PLAN
 
-- After rest is done, show nachguss amount
 - Add option to input partial water and see how much is missing
 - Add option to input real water given
 
 # Done so far
 
 - Hide reminder in rasts screen
+- After rest is done, show nachguss amount
 
 # ToDo

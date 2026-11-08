@@ -29,7 +29,6 @@
             <div class="col s12 center-align" id="instructions" style="display: none;">
                 <h4>Now proceed with lautern. Remember:</h4>
                 <ul>
-                    <li>Give the bucket a little angle with a book or something</li>
                     <li>Position the einkocher below</li>
                     {{ range $hop := .Hops }}
                     {{ if $hop.Vorderwuerze }}
@@ -37,7 +36,7 @@
                     {{ end }}
                     {{ end }}
                     <li>First couple of liters go back in until its clearer</li>
-                    <li>Once done, start with the nachguss</li>
+                    <li>Once done, start with the nachguss ({{.Nachguss}} L)</li>
                 </ul>
             </div>
         </div>

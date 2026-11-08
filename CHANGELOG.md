@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Show nachguss amount in the lautern screen
+
 ### Removed
 
 - Nachguss reminder in the rast screens

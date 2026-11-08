@@ -69,6 +69,7 @@ func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 		"Title":            "Mash " + re.Name,
 		"Subtitle":         "Läutern",
 		"RecipeID":         id,
+		"Nachguss":         re.Mashing.Nachguss,
 		"MashOutTemp":      re.Mashing.MashOutTemperature,
 		"Hops":             re.Hopping.Hops,
 		"RestTime":         r.LauternRestTime,
