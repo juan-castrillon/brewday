@@ -8,7 +8,7 @@
             </div>
             <br>
         </div>
-        <div class="row">
+        <div class="row" id="mash_out">
             <div class="col s12 center-align">
                 <h4>1. Transfer the mash to the bucket at {{.MashOutTemp}} °C</h4>
             </div>
@@ -16,7 +16,7 @@
                 <a class="waves-effect waves-light btn" id="start">Done?</a>
             </div>
         </div>
-        <div class="row">
+        <div class="row" id="ruhe_command">
             <div class="col s12 center-align" id="ruhe" style="display: none;">
                 <h4>2. Let the mash rest for {{.RestTime}} minutes</h4>
                 <h4 id="time" style="display: none;">00:00</h4>
@@ -38,6 +38,31 @@
                     <li>First couple of liters go back in until its clearer</li>
                     <li>Once done, start with the nachguss ({{.Nachguss}} L)</li>
                 </ul>
+            </div>
+        </div>
+        <div class="row center-align" id="show_partial_input" style="display: none;">
+            <div class="col s12">
+                <button type="button" class="btn-small waves-effect waves-light orange"
+                    onclick="partial()">
+                Show partial nachguss input helper
+                <i class="material-icons left">remove_red_eye</i>
+                </button>
+            </div>
+        </div>
+        <div class="row" id="partial_input" style="display: none;">
+            <div class="card-panel center-align col s2">
+                <h4 id="current">{{.Nachguss}} L</h4>
+            </div>
+            <div class="input-field col s8">
+                <input id="amount" type="number" step="any"
+                    onkeydown="if (event.key === 'Enter') subtract()">
+                <label for="amount">Nachguss used (L)</label>
+            </div>
+            <div class="col s2">
+                <button type="button" class="btn-large waves-effect waves-light orange"
+                    onclick="subtract()">
+                Subtract
+                </button>
             </div>
         </div>
         <div class="row">
@@ -69,11 +94,29 @@
     let url = '{{ reverse "getLauternTimestamp" .RecipeID }}';
     let stopUrl = '{{ reverse "postLauternStopTimer" .RecipeID }}';
     let durationUrl = '{{ reverse "getLauternDuration" .RecipeID }}';
+    let current = '{{.Nachguss}}';
+    function partial() {
+      show("partial_input");
+      hide("show_partial_input");
+    }
+    function subtract() {
+      const input  = document.getElementById('amount');
+      const amount = parseFloat(input.value);
+      if (Number.isNaN(amount)) return;
+      current = Math.round((current - amount) * 1e10) / 1e10;
+      document.getElementById('current').textContent = current + ' L';
+      input.value = '';
+      M.updateTextFields();
+      input.focus();
+    }
     function done(realDur) {
         const timerElement = document.getElementById("time");
         timerElement.textContent = "Done!";
         show("instructions");
+        show("show_partial_input");
         show("notes_form");
+        hide("ruhe_command");
+        hide("mash_out");
         realDuration = document.getElementById("real_duration");
         realDuration.value = realDur;
     }
