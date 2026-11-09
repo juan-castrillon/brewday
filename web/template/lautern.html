@@ -79,6 +79,20 @@
                         <input type="text" value="{{.Nachguss}}" id="real_nachguss" name="real_nachguss">
                         <label for="real_nachguss">Real Amount (L)</label>
                     </div>
+                    {{ range $i, $hop := .Hops }}
+                    {{ if $hop.Vorderwuerze }}
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">local_drink</i>
+                        <input type="text" id="vdw-amount-{{$i}}" name="amount" value="{{$hop.Amount}}">
+                        <label for="vdw-amount-{{$i}}">{{ $hop.Name }} (VDW) Real Amount (g)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <i class="material-icons prefix">local_drink</i>
+                        <input type="text" id="vdw-alpha-{{$i}}" name="alpha" value="{{$hop.Alpha}}">
+                        <label for="vdw-alpha-{{$i}}">{{ $hop.Name }} (VDW) Alpha</label>
+                    </div>
+                    {{ end }}
+                    {{ end }}
                     <div class="input-field col s12">
                         <i class="material-icons prefix">edit_note</i>
                         <textarea id="notes1" class="materialize-textarea" name="notes"></textarea>
