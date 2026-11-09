@@ -67,6 +67,7 @@ func TestPrint(t *testing.T) {
 				LauternInfo: &summary.LauternInfo{
 					Notes:    "lautern info 1\nlautern info 2",
 					Duration: 90,
+					Amount:   5.2,
 				},
 				HoppingInfo: &summary.HoppingInfo{
 					VolBeforeBoil: &summary.VolMeasurement{Volume: 13.10, Notes: "notes4"},
@@ -137,6 +138,7 @@ The following summary was generated on %s
 ## Lautern
 
 Duration: 90.00 min
+Nachguss Amount: 5.20 L
 
 lautern info 1
 lautern info 2

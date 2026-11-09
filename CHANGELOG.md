@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Show nachguss amount in the lautern screen
 - Add frontend helper to input partial nachguss and see how much is missing
+- Add field to input real nachguss
+
 
 ### Removed
 

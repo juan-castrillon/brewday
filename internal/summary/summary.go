@@ -35,6 +35,7 @@ type MashRastInfo struct {
 type LauternInfo struct {
 	Notes    string
 	Duration float32
+	Amount   float32
 }
 
 type HoppingInfo struct {

@@ -390,13 +390,14 @@ func TestAddLauternNotes(t *testing.T) {
 		num := strconv.Itoa(i)
 		require.NoError(store.AddSummary(num, "t"+num))
 	}
-	getSt, err := db.Prepare(`SELECT lautern_info, lautern_duration FROM summaries WHERE recipe_id = ?`)
+	getSt, err := db.Prepare(`SELECT lautern_info, lautern_duration, lautern_amount FROM summaries WHERE recipe_id = ?`)
 	require.NoError(err)
 	testCases := []struct {
 		Name     string
 		RecipeID string
 		Notes    string
 		Duration float32
+		Amount   float32
 		SkipRead bool
 		Error    bool
 	}{
@@ -404,6 +405,7 @@ func TestAddLauternNotes(t *testing.T) {
 			Name:     "Normal case",
 			RecipeID: "1",
 			Duration: 90,
+			Amount:   10,
 			Notes:    "notes1",
 			Error:    false,
 		},
@@ -411,6 +413,15 @@ func TestAddLauternNotes(t *testing.T) {
 			Name:     "Duration 0",
 			RecipeID: "1",
 			Duration: 0,
+			Amount:   10,
+			Notes:    "notes1",
+			Error:    false,
+		},
+		{
+			Name:     "Amount 0",
+			RecipeID: "1",
+			Duration: 90,
+			Amount:   0,
 			Notes:    "notes1",
 			Error:    false,
 		},
@@ -418,6 +429,7 @@ func TestAddLauternNotes(t *testing.T) {
 			Name:     "Empty RecipeID",
 			RecipeID: "",
 			Duration: 90,
+			Amount:   10,
 			Notes:    "Some notes",
 			Error:    true,
 		},
@@ -425,6 +437,7 @@ func TestAddLauternNotes(t *testing.T) {
 			Name:     "Empty Notes",
 			RecipeID: "2",
 			Duration: 90,
+			Amount:   10,
 			Notes:    "",
 			Error:    false,
 		},
@@ -433,6 +446,7 @@ func TestAddLauternNotes(t *testing.T) {
 			RecipeID: "3; DROP TABLE summaries;",
 			Notes:    "Some notes",
 			Duration: 90,
+			Amount:   10,
 			Error:    false,
 			SkipRead: true,
 		},
@@ -441,6 +455,7 @@ func TestAddLauternNotes(t *testing.T) {
 			RecipeID: "3",
 			Notes:    "Some notes; DROP TABLE summaries;",
 			Duration: 90,
+			Amount:   10,
 			Error:    false,
 		},
 		{
@@ -448,23 +463,25 @@ func TestAddLauternNotes(t *testing.T) {
 			RecipeID: "999",
 			Notes:    "Some notes",
 			Duration: 90,
+			Amount:   10,
 			Error:    false,
 			SkipRead: true,
 		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			err = store.AddLauternNotes(tc.RecipeID, tc.Notes, tc.Duration)
+			err = store.AddLauternNotes(tc.RecipeID, tc.Notes, tc.Duration, tc.Amount)
 			if tc.Error {
 				require.Error(err)
 			} else {
 				require.NoError(err)
 				if !tc.SkipRead {
 					var notes string
-					var dur float32
-					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&notes, &dur))
+					var dur, amount float32
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&notes, &dur, &amount))
 					require.Equal(tc.Notes, notes)
 					require.InDelta(tc.Duration, dur, 0.001)
+					require.InDelta(tc.Amount, amount, 0.001)
 				}
 			}
 		})
@@ -2013,7 +2030,7 @@ func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStor
 			return err
 		}
 	}
-	err = store.AddLauternNotes(id, summ.LauternInfo.Notes, summ.LauternInfo.Duration)
+	err = store.AddLauternNotes(id, summ.LauternInfo.Notes, summ.LauternInfo.Duration, summ.LauternInfo.Amount)
 	if err != nil {
 		return err
 	}
