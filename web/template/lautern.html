@@ -42,10 +42,9 @@
         </div>
         <div class="row center-align" id="show_partial_input" style="display: none;">
             <div class="col s12">
-                <button type="button" class="btn-small waves-effect waves-light orange"
-                    onclick="partial()">
-                Show partial nachguss input helper
-                <i class="material-icons left">remove_red_eye</i>
+                <button type="button" class="btn-small waves-effect waves-light orange" onclick="partial()">
+                    Show partial nachguss input helper
+                    <i class="material-icons left">remove_red_eye</i>
                 </button>
             </div>
         </div>
@@ -54,14 +53,12 @@
                 <h4 id="current">{{.Nachguss}} L</h4>
             </div>
             <div class="input-field col s8">
-                <input id="amount" type="number" step="any"
-                    onkeydown="if (event.key === 'Enter') subtract()">
+                <input id="amount" type="number" step="any" onkeydown="if (event.key === 'Enter') subtract()">
                 <label for="amount">Nachguss used (L)</label>
             </div>
             <div class="col s2">
-                <button type="button" class="btn-large waves-effect waves-light orange"
-                    onclick="subtract()">
-                Subtract
+                <button type="button" class="btn-large waves-effect waves-light orange" onclick="subtract()">
+                    Subtract
                 </button>
             </div>
         </div>
@@ -82,14 +79,15 @@
                     {{ range $i, $hop := .Hops }}
                     {{ if $hop.Vorderwuerze }}
                     <div class="input-field col s12">
-                        <i class="material-icons prefix">local_drink</i>
-                        <input type="text" id="vdw-amount-{{$i}}" name="amount" value="{{$hop.Amount}}">
-                        <label for="vdw-amount-{{$i}}">{{ $hop.Name }} (VDW) Real Amount (g)</label>
+                        <input type="hidden" name="hop_name" value="{{$hop.Name}}">
+                        <i class="material-icons prefix">fitness_center</i>
+                        <input type="text" id="vdw-amount-{{$i}}" name="hop_amount" value="{{$hop.Amount}}">
+                        <label for="vdw-amount-{{$i}}">{{ $hop.Name }} Real Amount (g)</label>
                     </div>
                     <div class="input-field col s12">
-                        <i class="material-icons prefix">local_drink</i>
-                        <input type="text" id="vdw-alpha-{{$i}}" name="alpha" value="{{$hop.Alpha}}">
-                        <label for="vdw-alpha-{{$i}}">{{ $hop.Name }} (VDW) Alpha</label>
+                        <i class="material-icons prefix">colorize</i>
+                        <input type="text" id="vdw-alpha-{{$i}}" name="hop_alpha" value="{{$hop.Alpha}}">
+                        <label for="vdw-alpha-{{$i}}">{{ $hop.Name }} Alpha</label>
                     </div>
                     {{ end }}
                     {{ end }}
@@ -115,18 +113,18 @@
     let durationUrl = '{{ reverse "getLauternDuration" .RecipeID }}';
     let current = '{{.Nachguss}}';
     function partial() {
-      show("partial_input");
-      hide("show_partial_input");
+        show("partial_input");
+        hide("show_partial_input");
     }
     function subtract() {
-      const input  = document.getElementById('amount');
-      const amount = parseFloat(input.value);
-      if (Number.isNaN(amount)) return;
-      current = Math.round((current - amount) * 1e10) / 1e10;
-      document.getElementById('current').textContent = current + ' L';
-      input.value = '';
-      M.updateTextFields();
-      input.focus();
+        const input = document.getElementById('amount');
+        const amount = parseFloat(input.value);
+        if (Number.isNaN(amount)) return;
+        current = Math.round((current - amount) * 1e10) / 1e10;
+        document.getElementById('current').textContent = current + ' L';
+        input.value = '';
+        M.updateTextFields();
+        input.focus();
     }
     function done(realDur) {
         const timerElement = document.getElementById("time");

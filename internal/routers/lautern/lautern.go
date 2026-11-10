@@ -43,6 +43,14 @@ func (r *LauternRouter) addSummaryLauternNotes(id, notes string, duration, amoun
 	return nil
 }
 
+// addSummaryHopping adds a hopping to the summary and notes related to it
+func (r *LauternRouter) addSummaryHopping(id string, name string, amount float32, alpha float32) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddHopping(id, name, amount, alpha, 0, "VDW")
+	}
+	return nil
+}
+
 // getLauternHandler is the handler for the lautern page
 func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
@@ -96,6 +104,12 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 	err = r.addSummaryLauternNotes(id, req.Notes, req.RealDuration, req.RealAmount)
 	if err != nil {
 		log.Error().Err(err).Str("id", id).Msg("Failed to add lautern notes to summary")
+	}
+	for i, hop := range req.VDWHopNames {
+		err = r.addSummaryHopping(id, hop, req.VDWHopAmounts[i], req.VDWHopAlphas[i])
+		if err != nil {
+			log.Error().Err(err).Str("id", id).Str("hop", hop).Msg("Failed to add VDW notes to summary")
+		}
 	}
 	return c.Redirect(302, c.Echo().Reverse("getStartHopping", id))
 }
