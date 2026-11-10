@@ -35,11 +35,16 @@ type TimelineStore interface {
 // SummaryStore represents a component that stores summaries
 type SummaryStore interface {
 	// AddLauternNotes adds lautern notes to the summary
-	AddLauternNotes(id, notes string, duration float32) error
+	AddLauternNotes(id, notes string, duration, amount float32) error
+	AddHopping(id string, name string, amount float32, alpha float32, duration float32, notes string) error
 }
 
 // ReqPostLautern represents the request body for the postLauternHandler
 type ReqPostLautern struct {
-	Notes        string  `json:"notes" form:"notes"`
-	RealDuration float32 `json:"real_duration" form:"real_duration"`
+	Notes         string    `json:"notes" form:"notes"`
+	RealDuration  float32   `json:"real_duration" form:"real_duration"`
+	RealAmount    float32   `json:"real_nachguss" form:"real_nachguss"`
+	VDWHopNames   []string  `json:"hop_names" form:"hop_name"`
+	VDWHopAmounts []float32 `json:"hop_amounts" form:"hop_amount"`
+	VDWHopAlphas  []float32 `json:"hop_alphas" form:"hop_alpha"`
 }

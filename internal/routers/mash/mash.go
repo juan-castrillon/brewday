@@ -122,7 +122,6 @@ func (r *MashRouter) getRastsHandler(c echo.Context) error {
 		"NextRast":             nextRastNum,
 		"MissingRasts":         missing,
 		"MissingRastsDuration": missingDuration,
-		"Nachguss":             re.Mashing.Nachguss,
 		"RecipeID":             id,
 		"StartClickedOnce":     started,
 		"Stopped":              stopped,

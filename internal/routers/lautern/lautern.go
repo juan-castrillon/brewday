@@ -36,9 +36,17 @@ func (r *LauternRouter) addTimelineEvent(id, message string) error {
 }
 
 // addSummaryLauternNotes adds lautern notes to the summary
-func (r *LauternRouter) addSummaryLauternNotes(id, notes string, duration float32) error {
+func (r *LauternRouter) addSummaryLauternNotes(id, notes string, duration, amount float32) error {
 	if r.SummaryStore != nil {
-		return r.SummaryStore.AddLauternNotes(id, notes, duration)
+		return r.SummaryStore.AddLauternNotes(id, notes, duration, amount)
+	}
+	return nil
+}
+
+// addSummaryHopping adds a hopping to the summary and notes related to it
+func (r *LauternRouter) addSummaryHopping(id string, name string, amount float32, alpha float32) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddHopping(id, name, amount, alpha, 0, "VDW")
 	}
 	return nil
 }
@@ -69,6 +77,7 @@ func (r *LauternRouter) getLauternHandler(c echo.Context) error {
 		"Title":            "Mash " + re.Name,
 		"Subtitle":         "Läutern",
 		"RecipeID":         id,
+		"Nachguss":         re.Mashing.Nachguss,
 		"MashOutTemp":      re.Mashing.MashOutTemperature,
 		"Hops":             re.Hopping.Hops,
 		"RestTime":         r.LauternRestTime,
@@ -92,9 +101,15 @@ func (r *LauternRouter) postLauternHandler(c echo.Context) error {
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
-	err = r.addSummaryLauternNotes(id, req.Notes, req.RealDuration)
+	err = r.addSummaryLauternNotes(id, req.Notes, req.RealDuration, req.RealAmount)
 	if err != nil {
 		log.Error().Err(err).Str("id", id).Msg("Failed to add lautern notes to summary")
+	}
+	for i, hop := range req.VDWHopNames {
+		err = r.addSummaryHopping(id, hop, req.VDWHopAmounts[i], req.VDWHopAlphas[i])
+		if err != nil {
+			log.Error().Err(err).Str("id", id).Str("hop", hop).Msg("Failed to add VDW notes to summary")
+		}
 	}
 	return c.Redirect(302, c.Echo().Reverse("getStartHopping", id))
 }
