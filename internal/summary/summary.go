@@ -1,6 +1,8 @@
 package summary
 
-import "time"
+import (
+	"time"
+)
 
 type Summary struct {
 	Title string

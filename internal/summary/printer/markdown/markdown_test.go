@@ -28,7 +28,7 @@ func TestPrint(t *testing.T) {
 	require := require.New(t)
 	testCases := []struct {
 		Name     string
-		Summ     *summary.Summary
+		RS       *RecipeSummary
 		Timeline []string
 		Expected string
 		Error    bool
@@ -40,86 +40,88 @@ func TestPrint(t *testing.T) {
 				"2024-02-14T07:39:28.454239024Z@Finished Einmaischen",
 				"2024-02-14T07:39:31.412846385Z@Started Rast 0",
 			},
-			Summ: &summary.Summary{
-				Title:          "My Title",
-				GenerationDate: "date",
-				MashingInfo: &summary.MashingInfo{
-					MashingTemperature: 57,
-					MashingNotes:       "notes",
-					RastInfos: []*summary.MashRastInfo{
-						{
-							Temperature: 63,
-							Time:        30,
-							Notes:       "notes1",
+			RS: &RecipeSummary{
+				RealData: &summary.Summary{
+					Title:          "My Title",
+					GenerationDate: "date",
+					MashingInfo: &summary.MashingInfo{
+						MashingTemperature: 57,
+						MashingNotes:       "notes",
+						RastInfos: []*summary.MashRastInfo{
+							{
+								Temperature: 63,
+								Time:        30,
+								Notes:       "notes1",
+							},
+							{
+								Temperature: 72,
+								Time:        40,
+								Notes:       "notes2",
+							},
+							{
+								Temperature: 78,
+								Time:        15,
+								Notes:       "notes3",
+							},
 						},
-						{
-							Temperature: 72,
-							Time:        40,
-							Notes:       "notes2",
+					},
+					LauternInfo: &summary.LauternInfo{
+						Notes:    "lautern info 1\nlautern info 2",
+						Duration: 90,
+						Amount:   5.2,
+					},
+					HoppingInfo: &summary.HoppingInfo{
+						VolBeforeBoil: &summary.VolMeasurement{Volume: 13.10, Notes: "notes4"},
+						HopInfos: []*summary.HopInfo{
+							{Name: "Karamellsirup", Grams: 450.00, Alpha: 0.00, Time: 60.00, TimeUnit: "minutes", Notes: "notes5"},
+							{Name: "Hallertauer Tradition", Grams: 15.00, Alpha: 5.50, Time: 60.00, TimeUnit: "minutes", Notes: "notes6"},
+							{Name: "Saazer", Grams: 16.00, Alpha: 3.60, Time: 20.00, TimeUnit: "minutes", Notes: "notes7"},
+							{Name: "Koriander", Grams: 4.00, Alpha: 0.00, Time: 10.00, TimeUnit: "minutes", Notes: "notes8"},
 						},
-						{
-							Temperature: 78,
-							Time:        15,
-							Notes:       "notes3",
+						VolAfterBoil: &summary.VolMeasurement{Volume: 8.70, Notes: "notes9"},
+					},
+					CoolingInfo: &summary.CoolingInfo{
+						Temperature: 20.00,
+						Time:        20.00,
+						Notes:       "notes10",
+					},
+					PreFermentationInfos: []*summary.PreFermentationInfo{
+						{Volume: 7.70, SG: 1.098, Notes: "notes11"},
+						{Volume: 12.90, SG: 1.054, Notes: "notes12"},
+					},
+					YeastInfo: &summary.YeastInfo{
+						Temperature: "20.00",
+						Notes:       "notes13",
+					},
+					MainFermentationInfo: &summary.MainFermentationInfo{
+						SGs: []*summary.SGMeasurement{
+							{SG: 1.013, Date: "2024-03-22", Final: false, Notes: "notes14"},
+							{SG: 1.011, Date: "2024-03-23", Final: false, Notes: "notes15"},
+							{SG: 1.011, Date: "2024-03-24", Final: true, Notes: "notes16"},
+						},
+						Alcohol: 5.64,
+						DryHopInfo: []*summary.HopInfo{
+							{Name: "Citra", Grams: 3.00, Alpha: 13.70, Time: 5.00, TimeUnit: "days", Notes: "notes17"},
+							{Name: "Solero", Grams: 4.00, Alpha: 3.70, Time: 2.00, TimeUnit: "days", Notes: "notes18"},
 						},
 					},
-				},
-				LauternInfo: &summary.LauternInfo{
-					Notes:    "lautern info 1\nlautern info 2",
-					Duration: 90,
-					Amount:   5.2,
-				},
-				HoppingInfo: &summary.HoppingInfo{
-					VolBeforeBoil: &summary.VolMeasurement{Volume: 13.10, Notes: "notes4"},
-					HopInfos: []*summary.HopInfo{
-						{Name: "Karamellsirup", Grams: 450.00, Alpha: 0.00, Time: 60.00, TimeUnit: "minutes", Notes: "notes5"},
-						{Name: "Hallertauer Tradition", Grams: 15.00, Alpha: 5.50, Time: 60.00, TimeUnit: "minutes", Notes: "notes6"},
-						{Name: "Saazer", Grams: 16.00, Alpha: 3.60, Time: 20.00, TimeUnit: "minutes", Notes: "notes7"},
-						{Name: "Koriander", Grams: 4.00, Alpha: 0.00, Time: 10.00, TimeUnit: "minutes", Notes: "notes8"},
+					BottlingInfo: &summary.BottlingInfo{
+						PreBottleVolume: 8.80,
+						Carbonation:     5.52,
+						SugarAmount:     70.00,
+						SugarType:       "glucose",
+						Temperature:     20.00,
+						Water:           0.5,
+						Alcohol:         5.86,
+						VolumeBottled:   10.00,
+						Time:            90,
+						Notes:           "notes19",
 					},
-					VolAfterBoil: &summary.VolMeasurement{Volume: 8.70, Notes: "notes9"},
-				},
-				CoolingInfo: &summary.CoolingInfo{
-					Temperature: 20.00,
-					Time:        20.00,
-					Notes:       "notes10",
-				},
-				PreFermentationInfos: []*summary.PreFermentationInfo{
-					{Volume: 7.70, SG: 1.098, Notes: "notes11"},
-					{Volume: 12.90, SG: 1.054, Notes: "notes12"},
-				},
-				YeastInfo: &summary.YeastInfo{
-					Temperature: "20.00",
-					Notes:       "notes13",
-				},
-				MainFermentationInfo: &summary.MainFermentationInfo{
-					SGs: []*summary.SGMeasurement{
-						{SG: 1.013, Date: "2024-03-22", Final: false, Notes: "notes14"},
-						{SG: 1.011, Date: "2024-03-23", Final: false, Notes: "notes15"},
-						{SG: 1.011, Date: "2024-03-24", Final: true, Notes: "notes16"},
+					SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{Days: 5, Notes: "notes20"},
+					Statistics: &summary.Statistics{
+						Evaporation: 25.19,
+						Efficiency:  49.11,
 					},
-					Alcohol: 5.64,
-					DryHopInfo: []*summary.HopInfo{
-						{Name: "Citra", Grams: 3.00, Alpha: 13.70, Time: 5.00, TimeUnit: "days", Notes: "notes17"},
-						{Name: "Solero", Grams: 4.00, Alpha: 3.70, Time: 2.00, TimeUnit: "days", Notes: "notes18"},
-					},
-				},
-				BottlingInfo: &summary.BottlingInfo{
-					PreBottleVolume: 8.80,
-					Carbonation:     5.52,
-					SugarAmount:     70.00,
-					SugarType:       "glucose",
-					Temperature:     20.00,
-					Water:           0.5,
-					Alcohol:         5.86,
-					VolumeBottled:   10.00,
-					Time:            90,
-					Notes:           "notes19",
-				},
-				SecondaryFermentationInfo: &summary.SecondaryFermentationInfo{Days: 5, Notes: "notes20"},
-				Statistics: &summary.Statistics{
-					Evaporation: 25.19,
-					Efficiency:  49.11,
 				},
 			},
 			Expected: `# My Title
@@ -231,12 +233,12 @@ Timestamp | Event
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			p := &MarkdownPrinter{}
-			actual, err := p.Print(tc.Summ, tc.Timeline)
+			actual, err := p.Print(tc.RS.RealData, tc.RS.OriginalRecipe, tc.Timeline)
 			if tc.Error {
 				require.Error(err)
 			} else {
 				require.NoError(err)
-				exp := fmt.Sprintf(tc.Expected, tc.Summ.GenerationDate)
+				exp := fmt.Sprintf(tc.Expected, tc.RS.RealData.GenerationDate)
 				require.Equal(exp, actual)
 			}
 		})

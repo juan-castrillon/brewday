@@ -1,6 +1,7 @@
 package summary
 
 import (
+	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 	"brewday/internal/summary"
 	"brewday/internal/summary/printer/markdown"
@@ -13,6 +14,7 @@ import (
 
 type SummaryRouter struct {
 	SummaryStore SummaryStore
+	RecipeStore  RecipeStore
 	TLStore      TimelineStore
 }
 
@@ -43,7 +45,7 @@ func (r *SummaryRouter) getTimeline(id string) ([]string, error) {
 }
 
 // printSummary instanciates the correct summary printer based on the format and prints the summary as a string
-func (r *SummaryRouter) printSummary(format string, summ *summary.Summary, tl []string) (string, error) {
+func (r *SummaryRouter) printSummary(format string, summ *summary.Summary, rec *recipe.Recipe, tl []string) (string, error) {
 	var p SummaryPrinter
 	switch format {
 	case "markdown":
@@ -51,7 +53,7 @@ func (r *SummaryRouter) printSummary(format string, summ *summary.Summary, tl []
 	default:
 		return "", errors.New("could not find suitable printer for format " + format)
 	}
-	return p.Print(summ, tl)
+	return p.Print(summ, rec, tl)
 }
 
 // RegisterRoutes registers the routes for the summary router
@@ -65,6 +67,10 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	id := c.Param("recipe_id")
 	if id == "" {
 		return common.ErrNoRecipeIDProvided
+	}
+	rec, err := r.RecipeStore.Retrieve(id)
+	if err != nil {
+		return err
 	}
 	tl, err := r.getTimeline(id)
 	if err != nil {
@@ -81,7 +87,7 @@ func (r *SummaryRouter) getSummaryHandler(c echo.Context) error {
 	}
 	ext := r.getExtension(format)
 	fileName := id + "." + ext
-	content, err := r.printSummary(format, summ, tl)
+	content, err := r.printSummary(format, summ, rec, tl)
 	if err != nil {
 		return err
 	}

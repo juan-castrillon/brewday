@@ -132,6 +132,7 @@ func (a *App) Initialize(components *AppComponents) error {
 		&summary.SummaryRouter{
 			SummaryStore: ss,
 			TLStore:      a.TLStore,
+			RecipeStore:  a.recipeStore,
 		},
 		&recipes.RecipesRouter{
 			Store:        a.recipeStore,
