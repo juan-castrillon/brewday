@@ -1,4 +1,4 @@
-package markdown
+package tpl
 
 import (
 	"brewday/internal/recipe"
@@ -18,10 +18,10 @@ type RecipeSummary struct {
 	OriginalRecipe *recipe.Recipe
 }
 
-type MarkdownPrinter struct {
+type TemplatePrinter struct {
 }
 
-func (m *MarkdownPrinter) Print(s *summary.Summary, r *recipe.Recipe, timeline []string) (string, error) {
+func (m *TemplatePrinter) Print(s *summary.Summary, r *recipe.Recipe, timeline []string) (string, error) {
 	t, err := template.New("md.tmpl").Funcs(template.FuncMap{
 		"SplitString": func(st, sep string) []string {
 			return strings.Split(st, sep)

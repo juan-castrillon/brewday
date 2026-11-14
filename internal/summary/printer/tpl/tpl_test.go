@@ -1,4 +1,4 @@
-package markdown
+package tpl
 
 import (
 	"brewday/internal/summary"
@@ -232,7 +232,7 @@ Timestamp | Event
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			p := &MarkdownPrinter{}
+			p := &TemplatePrinter{}
 			actual, err := p.Print(tc.RS.RealData, tc.RS.OriginalRecipe, tc.Timeline)
 			if tc.Error {
 				require.Error(err)

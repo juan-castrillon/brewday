@@ -4,7 +4,7 @@ import (
 	"brewday/internal/recipe"
 	"brewday/internal/routers/common"
 	"brewday/internal/summary"
-	"brewday/internal/summary/printer/markdown"
+	"brewday/internal/summary/printer/tpl"
 	"errors"
 	"fmt"
 	"strings"
@@ -49,7 +49,7 @@ func (r *SummaryRouter) printSummary(format string, summ *summary.Summary, rec *
 	var p SummaryPrinter
 	switch format {
 	case "markdown":
-		p = &markdown.MarkdownPrinter{}
+		p = &tpl.TemplatePrinter{}
 	default:
 		return "", errors.New("could not find suitable printer for format " + format)
 	}
