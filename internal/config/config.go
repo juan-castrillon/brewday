@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -20,6 +21,7 @@ var defaultValues = map[string]any{
 	"process.lautern-rest-time-min": 15,
 	"process.refractometer-wcf":     1.00,
 	"brewing-systems":               []BrewingSystemConfig{},
+	"summary-templates":             []SummaryTemplateConfig{},
 }
 
 // LoadConfig loads the configuration from the given path.
@@ -119,6 +121,18 @@ func validateConfig(config *Config) error {
 			}
 			if bs.MaxHeight == 0 {
 				return fmt.Errorf("Max height = 0 for brewing system %s", bs.Name)
+			}
+		}
+	}
+	if len(config.SummaryTemplates) > 0 {
+		for _, st := range config.SummaryTemplates {
+			if st.Name == "" {
+				return fmt.Errorf("Summary template with empty name")
+			}
+			if st.Path == "" {
+				return fmt.Errorf("Summary template with empty path")
+			} else if _, err := os.Stat(st.Path); err != nil {
+				return fmt.Errorf("Error reading template %s path: %s", st.Name, err.Error())
 			}
 		}
 	}

@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add frontend helper to input partial nachguss and see how much is missing
 - Add field to input real nachguss
 - Add VDW Hops to summary and add input fields to take notes on them
+- Add Original Recipe to summary
+- Add configuration option to input templates for the summary (`summary-templates`)
 
 
 ### Removed

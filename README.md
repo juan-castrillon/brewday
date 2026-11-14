@@ -69,6 +69,8 @@ The application port is required and the app will not start if it is not provide
 
 Brewing systems are completely optional. If at least one is set up, the import wizard will give the option to set a system for the recipe and the measurements can then be used to input height instead of volume when measuring. It will also register the system in the stats. If at least one system is declared, only `power-watts` is optional. Diameters are always internal and for the height measure  (from the inside bottom) to the highest point of the pot's rim, the spot where liquid would spill out if you kept filling it.
 
+Summary templates allows to declare own templates for generating the summary at the end. More info about creating the templates can be read in `docs/SUMMARY_TEMPLATE.md`. This is an optional parameter and can be skipped in which case a default template will be used. Each template requires a name and a path to the template file and optionally a file format to add to the generated summary. The `name` will be used to show the template as an option in the UI.
+
 To pass a configuration file, the application must be run with the `--config` flag, followed by the path to the configuration file. If no configuration file is provided, the app will attempt to read the configuration from environment variables.
 
 
@@ -104,11 +106,16 @@ brewing-systems:
     lower-diameter-cm: 6.1
     upper-diameter-cm: 6.2
     max-height-cm: 11
+
+summary-templates:
+  - name: markdown
+    file-format: md
+    path: "/test/config/summ_templates/md.tmpl"
 ```
 
 Store can be `sql` or `memory` depending on the need on persistent storage.
 
-The following is an example of the same configuration via environment variables. Note that `brewing-systems` configuration cannot be passed via env variables and **must** be defined in a YAML file:
+The following is an example of the same configuration via environment variables. Note that `brewing-systems` and `summary-template` configuration cannot be passed via env variables and **must** be defined in a YAML file:
 
 ```bash
 export BREWDAY_NOTIFICATION_ENABLED=true

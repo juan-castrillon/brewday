@@ -2,11 +2,12 @@ package config
 
 // Config represents the configuration options for the application.
 type Config struct {
-	Notification   NotificationConfig    `koanf:"notification"`
-	App            AppConfig             `koanf:"app"`
-	Store          StoreConfig           `koanf:"store"`
-	Process        ProcessParameters     `koanf:"process"`
-	BrewingSystems []BrewingSystemConfig `koanf:"brewing-systems"`
+	Notification     NotificationConfig      `koanf:"notification"`
+	App              AppConfig               `koanf:"app"`
+	Store            StoreConfig             `koanf:"store"`
+	Process          ProcessParameters       `koanf:"process"`
+	BrewingSystems   []BrewingSystemConfig   `koanf:"brewing-systems"`
+	SummaryTemplates []SummaryTemplateConfig `koanf:"summary-templates"`
 }
 
 type NotificationSettings struct {
@@ -50,4 +51,11 @@ type BrewingSystemConfig struct {
 	UD        float32 `koanf:"upper-diameter-cm"`
 	Power     int     `koanf:"power-watts"`
 	MaxHeight float32 `koanf:"max-height-cm"`
+}
+
+// SummaryTemplateConfig represents an optional summary template passed by the user
+type SummaryTemplateConfig struct {
+	Name       string `koanf:"name"`
+	Path       string `koanf:"path"`
+	FileFormat string `koanf:"file-format"`
 }

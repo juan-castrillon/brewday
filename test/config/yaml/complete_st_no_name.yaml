@@ -1,0 +1,10 @@
+app:
+  port: 8080
+
+store:
+  type: sql
+  path: "./bd.sqlite"
+
+summary-templates:
+  - file-format: md
+    path: "../../test/config/summ_templates/md.tmpl"

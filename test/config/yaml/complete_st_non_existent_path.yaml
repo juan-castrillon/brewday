@@ -1,0 +1,11 @@
+app:
+  port: 8080
+
+store:
+  type: sql
+  path: "./bd.sqlite"
+
+summary-templates:
+  - name: markdown
+    file-format: md
+    path: "../../test/config/summ_templates/nooo.tmpl"

@@ -1,0 +1,15 @@
+app:
+  port: 8080
+
+store:
+  type: sql
+  path: "./bd.sqlite"
+
+
+summary-templates:
+  - name: markdown
+    file-format: md
+    path: "../../test/config/summ_templates/md.tmpl"
+  - name: yaml
+    file-format: yml
+    path: "../../test/config/summ_templates/yml.tmpl"

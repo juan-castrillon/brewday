@@ -9,5 +9,7 @@
 
 # Done so far
 
+- Changed markdown printer to accept recipe and change its name
+- Add config option (still not used anywhere)
 
 # ToDo
