@@ -41,7 +41,6 @@ func (r *SecondaryFermentationRouter) RegisterRoutes(root *echo.Echo, parent *ec
 	sf.POST("/start/:recipe_id", r.postSecondaryFermentationStartHandler).Name = "postSecondaryFermentationStart"
 	sf.GET("/end/:recipe_id", r.getSecondaryFermentationEndHandler).Name = "getSecondaryFermentationEnd"
 	sf.POST("/end/:recipe_id", r.postSecondaryFermentationEndHandler).Name = "postSecondaryFermentationEnd"
-	root.GET("/end/:recipe_id", r.getEndHandler).Name = "getEnd"
 }
 
 func (r *SecondaryFermentationRouter) getDryHopHandler(c echo.Context) error {
@@ -376,16 +375,7 @@ func (r *SecondaryFermentationRouter) postSecondaryFermentationEndHandler(c echo
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add summary secondary fermentation")
 	}
-	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEnd", id))
-}
-
-// getEndHandler is the handler for the end page
-func (r *SecondaryFermentationRouter) getEndHandler(c echo.Context) error {
-	id := c.Param("recipe_id")
-	if id == "" {
-		return common.ErrNoRecipeIDProvided
-	}
-	err := r.addTimelineEvent(id, "Finished Day")
+	err = r.addTimelineEvent(id, "Finished Day")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
@@ -397,9 +387,5 @@ func (r *SecondaryFermentationRouter) getEndHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	return c.Render(http.StatusOK, "finished_day.html", map[string]interface{}{
-		"Title":    "End Fermentation",
-		"RecipeID": id,
-		"Subtitle": "Congratulations, you've finished the brew!",
-	})
+	return c.Redirect(http.StatusFound, c.Echo().Reverse("getEnd", id))
 }

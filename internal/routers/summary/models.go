@@ -24,5 +24,10 @@ type TimelineStore interface {
 
 // SummaryPrinter represents a component that outputs a summary as a certain document (string)
 type SummaryPrinter interface {
-	Print(s *summary.Summary, r *recipe.Recipe, timeline []string) (string, error)
+	Print(s *summary.Summary, r *recipe.Recipe, timeline []string, templatePath string) (string, error)
+}
+
+type SummaryPrinterConfiguration struct {
+	Path       string
+	FileFormat string
 }

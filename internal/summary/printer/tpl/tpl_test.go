@@ -1,6 +1,7 @@
 package tpl
 
 import (
+	"brewday/internal/recipe"
 	"brewday/internal/summary"
 	"fmt"
 	"testing"
@@ -27,14 +28,16 @@ import (
 func TestPrint(t *testing.T) {
 	require := require.New(t)
 	testCases := []struct {
-		Name     string
-		RS       *RecipeSummary
-		Timeline []string
-		Expected string
-		Error    bool
+		Name         string
+		TemplatePath string
+		RS           *RecipeSummary
+		Timeline     []string
+		Expected     string
+		Error        bool
 	}{
 		{
-			Name: "",
+			Name:         "Default",
+			TemplatePath: "",
 			Timeline: []string{
 				"2024-02-14T07:39:20.732108778Z@Started mashing",
 				"2024-02-14T07:39:28.454239024Z@Finished Einmaischen",
@@ -229,11 +232,33 @@ Timestamp | Event
 `,
 			Error: false,
 		},
+		{
+			Name:         "Reading file from outside",
+			TemplatePath: "../../../../test/config/summ_templates/just_name.md.tmpl",
+			Timeline: []string{
+				"2024-02-14T07:39:20.732108778Z@Started mashing",
+				"2024-02-14T07:39:28.454239024Z@Finished Einmaischen",
+				"2024-02-14T07:39:31.412846385Z@Started Rast 0",
+			},
+			RS: &RecipeSummary{
+				RealData: &summary.Summary{
+					Title: "My Title",
+				},
+				OriginalRecipe: &recipe.Recipe{
+					Name: "My recipe",
+				},
+			},
+			Expected: `My Title
+My recipe
+The following summary was generated on %s
+`,
+			Error: false,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			p := &TemplatePrinter{}
-			actual, err := p.Print(tc.RS.RealData, tc.RS.OriginalRecipe, tc.Timeline)
+			actual, err := p.Print(tc.RS.RealData, tc.RS.OriginalRecipe, tc.Timeline, tc.TemplatePath)
 			if tc.Error {
 				require.Error(err)
 			} else {

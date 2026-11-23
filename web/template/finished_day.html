@@ -16,10 +16,16 @@
                 enctype="multipart/form-data" id="format_form">
                 <div class="row">
                     <div class="input-field">
-                        <select name="format">
-                            <option value="markdown" selected>Markdown</option>
+                        <select name="template_config">9
+                            {{ if eq (len .SummaryTemplateConfigs) 0 }}
+                            <option value="default">Default (Markdown)</option>
+                            {{ else }}
+                            {{ range $n, $stc := .SummaryTemplateConfigs }}
+                            <option value="{{$n}}">{{$n}}</option>
+                            {{ end }}
+                            {{ end }}
                         </select>
-                        <label>Summary Format</label>
+                        <label>Summary Printer</label>
                     </div>
                 </div>
                 <button class="btn waves-effect waves-light" type="submit" name="action">Get Summary

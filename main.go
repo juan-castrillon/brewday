@@ -108,7 +108,7 @@ func main() {
 		components.Notifier = n
 	}
 	// Add process configuration from config
-	components.Config = app.ProcessConfiguration{
+	components.ProcessConfig = app.ProcessConfiguration{
 		LauternRestTimeMin: config.Process.LauternRestTimeMin,
 		RefractometerWCF:   config.Process.RefractometerWCF,
 	}
@@ -127,6 +127,15 @@ func main() {
 		log.Fatal().Err(err).Msg("Error while compiling brewing systems information")
 	}
 	components.InfoProvider = ip
+	summaryConfigs := make([]app.SummaryTemplateConfiguration, len(config.SummaryTemplates))
+	for i, v := range config.SummaryTemplates {
+		summaryConfigs[i] = app.SummaryTemplateConfiguration{
+			Name:       v.Name,
+			Path:       v.Path,
+			FileFormat: v.FileFormat,
+		}
+	}
+	components.SummaryTemplateConfig = summaryConfigs
 	app, err := app.NewApp(staticFS, components)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error while initializing the app")

@@ -42,20 +42,16 @@ type App struct {
 	recipeStore RecipeStore
 }
 
-type ProcessConfiguration struct {
-	LauternRestTimeMin int
-	RefractometerWCF   float32
-}
-
 // AppComponents is the structure that contains the external components of the application
 type AppComponents struct {
-	Renderer     Renderer
-	TL           TimelineStore
-	Notifier     Notifier
-	Store        RecipeStore
-	SummaryStore SummaryStore
-	Config       ProcessConfiguration
-	InfoProvider InfoProvider
+	Renderer              Renderer
+	TL                    TimelineStore
+	Notifier              Notifier
+	Store                 RecipeStore
+	SummaryStore          SummaryStore
+	ProcessConfig         ProcessConfiguration
+	SummaryTemplateConfig []SummaryTemplateConfiguration
+	InfoProvider          InfoProvider
 }
 
 // NewApp creates a new App
@@ -82,6 +78,14 @@ func (a *App) Initialize(components *AppComponents) error {
 	a.notifier = components.Notifier
 	ss := components.SummaryStore
 	timer := common.NewTimer(a.recipeStore, a.TLStore, a.notifier)
+	// Create summary printer config map
+	summaryPrinterConfig := make(map[string]summary.SummaryPrinterConfiguration)
+	for _, c := range components.SummaryTemplateConfig {
+		summaryPrinterConfig[c.Name] = summary.SummaryPrinterConfiguration{
+			Path:       c.Path,
+			FileFormat: c.FileFormat,
+		}
+	}
 	// Register routers
 	a.routers = []common.Router{
 		&import_recipe.ImportRouter{
@@ -101,7 +105,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			TLStore:         a.TLStore,
 			SummaryStore:    ss,
 			Timer:           timer,
-			LauternRestTime: components.Config.LauternRestTimeMin,
+			LauternRestTime: components.ProcessConfig.LauternRestTimeMin,
 		},
 		&hopping.HoppingRouter{
 			Store:        a.recipeStore,
@@ -121,7 +125,7 @@ func (a *App) Initialize(components *AppComponents) error {
 			SummaryStore:     ss,
 			Store:            a.recipeStore,
 			Notifier:         a.notifier,
-			RefractometerWCF: components.Config.RefractometerWCF,
+			RefractometerWCF: components.ProcessConfig.RefractometerWCF,
 		},
 		&secondaryferm.SecondaryFermentationRouter{
 			TLStore:      a.TLStore,
@@ -130,9 +134,10 @@ func (a *App) Initialize(components *AppComponents) error {
 			Notifier:     a.notifier,
 		},
 		&summary.SummaryRouter{
-			SummaryStore: ss,
-			TLStore:      a.TLStore,
-			RecipeStore:  a.recipeStore,
+			SummaryStore:  ss,
+			TLStore:       a.TLStore,
+			RecipeStore:   a.recipeStore,
+			PrinterConfig: summaryPrinterConfig,
 		},
 		&recipes.RecipesRouter{
 			Store:        a.recipeStore,

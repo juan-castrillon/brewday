@@ -118,6 +118,17 @@ type InfoProvider interface {
 	GetCurrentVol(systemName string, heightCM float32) (float32, error)
 }
 
+type ProcessConfiguration struct {
+	LauternRestTimeMin int
+	RefractometerWCF   float32
+}
+
+type SummaryTemplateConfiguration struct {
+	Name       string
+	Path       string
+	FileFormat string
+}
+
 // ReqPostTimelineEvent represents the request body for the postTimelineEvent
 type ReqPostTimelineEvent struct {
 	Message string `json:"message" form:"message"`
