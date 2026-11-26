@@ -1,15 +1,20 @@
 # PLAN
 
 - Expand what can be put into a summary
-    - More statistics
+    - Yeast EVG (sumary data, not stat)
+    - Primary Duration (summary, not stat)
+    - Dryhop duration  (summary, not stat)
+    - Secondary Duration (summary, not stat)
+    - Cooking Duration (stats)
+    - Filtering loss (% y L, stats)
+    - Yeast loss (% y L stats)
+
+# Done so far
+
+- Expand what can be put into a summary
     - Original recipe data
 - Set up the template as a external resource instead of internal
     - This involves changing the structure as renderers are not format defined anymore
     - Idea: In the config add an array of objects to configure available templates and their names
-
-# Done so far
-
-- Changed markdown printer to accept recipe and change its name
-- Add config option (still not used anywhere)
 
 # ToDo
