@@ -112,3 +112,10 @@ func (s *TimelineMemoryStore) GetTimeline(id string) ([]string, error) {
 	}
 	return events, nil
 }
+
+// GetTimestampByTag retrieves a timestamp from from the recipe (id) timeline using a tag
+// This means only tagged events can be retrieved
+func (s *TimelineMemoryStore) GetTimestampByTag(id, tag string) (time.Time, error) {
+	// TODO: Implement, test also what happens if not found
+	return time.Now(), nil
+}

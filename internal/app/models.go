@@ -31,6 +31,8 @@ type TimelineStore interface {
 	AddTimeline(recipeID string) error
 	// DeleteTimeline deletes the timeline for the given recipe id
 	DeleteTimeline(recipeID string) error
+	//GetTimestampByTag returns a timestamp based on a tag
+	GetTimestampByTag(recipeID, tag string) (time.Time, error)
 }
 
 // Notifier is the interface that helps decouple the notifier from the application

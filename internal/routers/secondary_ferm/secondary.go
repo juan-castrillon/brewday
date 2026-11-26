@@ -6,6 +6,7 @@ import (
 	"brewday/internal/tools"
 	"brewday/internal/watcher"
 	"fmt"
+	"math"
 	"net/http"
 	"time"
 
@@ -236,7 +237,7 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 	if err != nil {
 		return err
 	}
-	r.addTimelineEvent(id, "Bottled")
+	r.addTimelineEvent(id, "Bottled", "end_primary_ferm")
 	// Now, we calculate the duration of the dry hops based on the time now minus the time it took to bottle
 	// we assume when bottling starts, dry hopping ends
 	hasDryHops, err := r.Store.RetrieveBoolFlag(id, "has_dry_hops")
@@ -268,6 +269,17 @@ func (r *SecondaryFermentationRouter) postBottleHandler(c echo.Context) error {
 			}
 		}
 	}
+	// Now lets calculate duration of primary fermentation
+	primaryFermStart, err := r.TLStore.GetTimestampByTag(id, "start_primary_ferm")
+	if err != nil {
+		return err
+	}
+	primaryFermEnd, err := r.TLStore.GetTimestampByTag(id, "end_primary_ferm")
+	if err != nil {
+		return err
+	}
+	primaryFermDuration := math.Round(primaryFermEnd.Sub(primaryFermStart).Hours())
+	// TODO: Save this in the summary
 	return c.Redirect(http.StatusFound, c.Echo().Reverse("getSecondaryFermentationStart", id))
 }
 

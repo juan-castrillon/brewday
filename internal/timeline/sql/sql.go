@@ -90,3 +90,10 @@ func (s *TimelinePersistentStore) DeleteTimeline(recipeID string) error {
 func (s *TimelinePersistentStore) Close() error {
 	return s.insertStatement.Close()
 }
+
+// GetTimestampByTag retrieves a timestamp from from the recipe (id) timeline using a tag
+// This means only tagged events can be retrieved
+func (s *TimelinePersistentStore) GetTimestampByTag(recipeID, tag string) (time.Time, error) {
+	// TODO: Implement, test also what happens if not found
+	return time.Now(), nil
+}

@@ -9,6 +9,8 @@ import (
 type TimelineStore interface {
 	// AddEvent adds an event to the timeline
 	AddEvent(id, message string, tag ...string) error
+	//GetTimestampByTag returns a timestamp based on a tag
+	GetTimestampByTag(recipeID, tag string) (time.Time, error)
 }
 
 // SummaryStore represents a component that stores summaries

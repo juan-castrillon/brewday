@@ -94,9 +94,9 @@ func (r *FermentationRouter) sendNotification(message, title string, opts map[st
 }
 
 // addTimelineEvent adds an event to the timeline
-func (r *FermentationRouter) addTimelineEvent(id, message string) error {
+func (r *FermentationRouter) addTimelineEvent(id, message string, tag ...string) error {
 	if r.TLStore != nil {
-		return r.TLStore.AddEvent(id, message)
+		return r.TLStore.AddEvent(id, message, tag...)
 	}
 	return nil
 }
@@ -356,7 +356,7 @@ func (r *FermentationRouter) postFermentationYeastHandler(c echo.Context) error 
 	if err != nil {
 		return err
 	}
-	err = r.addTimelineEvent(id, "Inserted Yeast")
+	err = r.addTimelineEvent(id, "Inserted Yeast", "start_primary_ferm")
 	if err != nil {
 		log.Error().Str("id", id).Err(err).Msg("could not add timeline event")
 	}
