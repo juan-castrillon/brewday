@@ -17,6 +17,7 @@ type BasicTimeline struct {
 type Event struct {
 	Timestamp time.Time
 	Message   string
+	Tag       string
 }
 
 // NewBasicTimeline creates a new BasicTimeline.
@@ -71,17 +72,23 @@ func (s *TimelineMemoryStore) DeleteTimeline(recipeID string) error {
 }
 
 // AddEvent adds an event to the timeline for the given recipe id
-func (s *TimelineMemoryStore) AddEvent(id string, message string) error {
+// The event can be tagged for retrieval using a tag argument (jus the first one will be used)
+func (s *TimelineMemoryStore) AddEvent(id string, message string, tag ...string) error {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	tl, err := s.getTimelineFromStore(id)
 	if err != nil {
 		return err
 	}
+	t := ""
+	if len(tag) > 0 {
+		t = tag[0]
+	}
 	timestamp := time.Now()
 	e := Event{
 		Timestamp: timestamp,
 		Message:   message,
+		Tag:       t,
 	}
 	tl.events = append(tl.events, e)
 	return nil

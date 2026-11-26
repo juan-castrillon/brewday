@@ -547,6 +547,7 @@ erDiagram
     timelines {
         INTEGER id PK
         TEXT event
+        TEXT tag
         INTEGER timestamp_unix
         INTEGER recipe_id FK
     }
@@ -569,6 +570,7 @@ erDiagram
         TEXT yeast_start_temp
         TEXT main_ferm_sgs
         REAL main_ferm_alcohol
+        REAL main_ferm_yeast_attenuation
         TEXT main_ferm_dry_hops
         REAL bottling_pre_bottle_volume
         REAL bottling_carbonation

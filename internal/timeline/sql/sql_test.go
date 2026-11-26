@@ -32,24 +32,32 @@ func TestAddEvent(t *testing.T) {
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
 	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
 	require.NoError(err)
-	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4", "recipe5"})
 	err = dbmigrations.RunMigrations(db, "migrations")
 	require.NoError(err)
 	store, err := NewTimelinePersistentStore(db)
 	require.NoError(err)
 	defer os.Remove(fileName)
-	getSt, err := db.Prepare(`SELECT timestamp_unix, event FROM timelines WHERE recipe_id = ?`)
+	getSt, err := db.Prepare(`SELECT timestamp_unix, event, tag FROM timelines WHERE recipe_id = ?`)
 	require.NoError(err)
 	testCases := []struct {
 		Name     string
 		RecipeID string
 		Event    string
+		Tag      string
 		Error    bool
 	}{
 		{
 			Name:     "Successful add",
 			RecipeID: "1",
 			Event:    "my-event",
+			Error:    false,
+		},
+		{
+			Name:     "Successful add with tag",
+			RecipeID: "5",
+			Event:    "my-event",
+			Tag:      "start",
 			Error:    false,
 		},
 		{
@@ -84,7 +92,7 @@ func TestAddEvent(t *testing.T) {
 		},
 		{
 			Name:     "Non-existing recipeID",
-			RecipeID: "5",
+			RecipeID: "500",
 			Event:    "no-event",
 			Error:    true,
 		},
@@ -92,16 +100,23 @@ func TestAddEvent(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
 			current := time.Now()
-			err := store.AddEvent(tc.RecipeID, tc.Event)
+			var err error
+			if tc.Tag != "" {
+				err = store.AddEvent(tc.RecipeID, tc.Event, tc.Tag)
+			} else {
+				err = store.AddEvent(tc.RecipeID, tc.Event)
+
+			}
 			if tc.Error {
 				require.Error(err)
 			} else {
 				require.NoError(err)
 				var ts int64
-				var event string
-				err = getSt.QueryRow(tc.RecipeID).Scan(&ts, &event)
+				var event, tag string
+				err = getSt.QueryRow(tc.RecipeID).Scan(&ts, &event, &tag)
 				require.NoError(err)
 				require.Equal(tc.Event, event)
+				require.Equal(tc.Tag, tag)
 				require.WithinDuration(current, time.Unix(ts, 0), 1*time.Second)
 			}
 		})

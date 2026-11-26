@@ -24,7 +24,7 @@ type Renderer interface {
 // TimelineStore represents a component that stores timelines
 type TimelineStore interface {
 	// AddEvent adds an event to the timeline
-	AddEvent(id, message string) error
+	AddEvent(id, message string, tag ...string) error
 	// GetTimeline returns a timeline of events
 	GetTimeline(id string) ([]string, error)
 	// AddTimeline adds a timeline to the store

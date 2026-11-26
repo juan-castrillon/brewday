@@ -1,0 +1,2 @@
+ALTER TABLE "timelines"
+ADD COLUMN tag TEXT;

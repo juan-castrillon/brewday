@@ -29,7 +29,7 @@ type Timer interface {
 // TimelineStore represents a component that stores timelines
 type TimelineStore interface {
 	// AddEvent adds an event to the timeline
-	AddEvent(id, message string) error
+	AddEvent(id, message string, tag ...string) error
 }
 
 // SummaryStore represents a component that stores summaries

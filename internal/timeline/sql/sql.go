@@ -15,7 +15,7 @@ type TimelinePersistentStore struct {
 
 // NewTimelinePersistentStore creates a new TimelineStore
 func NewTimelinePersistentStore(db *sql.DB) (*TimelinePersistentStore, error) {
-	is, err := db.Prepare(`INSERT INTO timelines (event, timestamp_unix, recipe_id) VALUES (?, ?, ?)`)
+	is, err := db.Prepare(`INSERT INTO timelines (event, timestamp_unix, tag, recipe_id) VALUES (?, ?, ?, ?)`)
 	if err != nil {
 		return nil, err
 	}
@@ -26,14 +26,18 @@ func NewTimelinePersistentStore(db *sql.DB) (*TimelinePersistentStore, error) {
 }
 
 // AddEvent adds an event to the timeline
-func (s *TimelinePersistentStore) AddEvent(id, message string) error {
+func (s *TimelinePersistentStore) AddEvent(id, message string, tag ...string) error {
 	if message == "" {
 		return errors.New("invalid empty event for timeline")
 	}
 	if id == "" {
 		return errors.New("invalid empty recipe id for adding event")
 	}
-	_, err := s.insertStatement.Exec(message, time.Now().Unix(), id)
+	t := ""
+	if len(tag) > 0 {
+		t = tag[0]
+	}
+	_, err := s.insertStatement.Exec(message, time.Now().Unix(), t, id)
 	return err
 }
 
