@@ -1107,6 +1107,73 @@ func TestAddMainFermentationAlcohol(t *testing.T) {
 	}
 }
 
+func TestAddMainFermentationEVG(t *testing.T) {
+	require := require.New(t)
+	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
+	db, err := sql.Open("sqlite3", "file:"+fileName+"?_foreign_keys=true")
+	require.NoError(err)
+	provisionDB(t, db, []string{"recipe1", "recipe2", "recipe3", "recipe4"})
+	err = dbmigrations.RunMigrations(db, "migrations")
+	require.NoError(err)
+	store, err := NewSummaryPersistentStore(db)
+	require.NoError(err)
+	defer os.Remove(fileName)
+	for i := 1; i <= 3; i++ {
+		num := strconv.Itoa(i)
+		require.NoError(store.AddSummary(num, "t"+num))
+	}
+	getSt, err := db.Prepare(`SELECT main_ferm_yeast_attenuation FROM summaries WHERE recipe_id = ?`)
+	require.NoError(err)
+	testCases := []struct {
+		Name     string
+		RecipeID string
+		EVG      float32
+		SkipRead bool
+		Error    bool
+	}{
+		{
+			Name:     "Valid Inputs",
+			RecipeID: "1",
+			EVG:      80,
+			Error:    false,
+		}, {
+			Name:     "Empty RecipeID",
+			RecipeID: "",
+			EVG:      5.5,
+			Error:    true,
+		},
+		{
+			Name:     "SQL Injection in RecipeID",
+			RecipeID: "123; DROP TABLE summaries;",
+			EVG:      5.5,
+			Error:    false,
+			SkipRead: true,
+		},
+		{
+			Name:     "Non-Existing RecipeID",
+			RecipeID: "999",
+			EVG:      5.5,
+			Error:    false,
+			SkipRead: true,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			err = store.AddMainFermentationEVG(tc.RecipeID, tc.EVG)
+			if tc.Error {
+				require.Error(err)
+			} else {
+				require.NoError(err)
+				if !tc.SkipRead {
+					var evg float32
+					require.NoError(getSt.QueryRow(tc.RecipeID).Scan(&evg))
+					require.InDelta(tc.EVG, evg, 0.001)
+				}
+			}
+		})
+	}
+}
+
 func TestAddPreBottlingVolume(t *testing.T) {
 	require := require.New(t)
 	fileName := strings.ToLower(strings.TrimSpace(t.Name())) + ".sqlite"
@@ -1986,6 +2053,7 @@ func TestGetSummary(t *testing.T) {
 						{Name: "Amarillo", Grams: 20, Alpha: 6.8, Time: 4, TimeUnit: "hours", Notes: "notes 14"},
 						{Name: "Galaxy", Grams: 40, Alpha: 5.8, Time: 3, TimeUnit: "hours", Notes: "notes 15"},
 					},
+					EVG: 80,
 				},
 				BottlingInfo: &summary.BottlingInfo{
 					PreBottleVolume: 12, Carbonation: 5.5, SugarAmount: 100, SugarType: "glucose", Water: 0.5,
@@ -2069,6 +2137,10 @@ func storeSummary(id string, summ *summary.Summary, store *SummaryPersistentStor
 		}
 	}
 	err = store.AddMainFermentationAlcohol(id, summ.MainFermentationInfo.Alcohol)
+	if err != nil {
+		return err
+	}
+	err = store.AddMainFermentationEVG(id, summ.MainFermentationInfo.EVG)
 	if err != nil {
 		return err
 	}

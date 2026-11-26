@@ -16,6 +16,7 @@ type SummaryStore interface {
 	AddPreFermentationVolume(id string, volume float32, sg float32, notes string) error
 	AddYeastStart(id string, temperature, notes string) error
 	AddMainFermentationSGMeasurement(id string, date string, gravity float32, final bool, notes string) error
+	AddMainFermentationEVG(id string, evg float32) error
 	AddMainFermentationAlcohol(id string, alcohol float32) error
 	AddEfficiency(id string, efficiencyPercentage float32) error
 }

@@ -81,6 +81,7 @@ type MainFermentationInfo struct {
 	SGs        []*SGMeasurement
 	Alcohol    float32
 	DryHopInfo []*HopInfo
+	EVG        float32
 }
 
 type SGMeasurement struct {

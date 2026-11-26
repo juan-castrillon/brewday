@@ -38,3 +38,9 @@ func CalculateAlcohol(originalGravity, finalGravity float32) float32 {
 	abw := (0.372 + 0.00357*oe) * (oe - ae)
 	return abw * (1.308e-5 + 3.868e-3*ae + 1.275e-5*ae*ae + 6.3e-8*ae*ae*ae + 1) / 0.7909
 }
+
+// CalculateEVG returns the yeast (apparent) attenuation rate in percentage
+// It takes the original and final (apparent) gravity in SG
+func CalculateEVG(originalGravity, finalGravity float32) float32 {
+	return 100 * ((originalGravity - finalGravity) / (originalGravity - 1))
+}

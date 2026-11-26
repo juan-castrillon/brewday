@@ -185,6 +185,14 @@ func (s *SummaryPersistentStore) AddMainFermentationAlcohol(id string, alcohol f
 	return err
 }
 
+func (s *SummaryPersistentStore) AddMainFermentationEVG(id string, evg float32) error {
+	if id == "" {
+		return errors.New("invalid empty recipe id")
+	}
+	_, err := s.dbClient.Exec(`UPDATE summaries SET main_ferm_yeast_attenuation = ? WHERE recipe_id == ?`, evg, id)
+	return err
+}
+
 func (s *SummaryPersistentStore) AddDryHopStart(id string, name string, amount, alpha float32, notes string) error {
 	if id == "" {
 		return errors.New("invalid empty recipe id")
@@ -330,14 +338,14 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 	}
 	var title string
 	var mash_notes, mash_rasts, lautern_info, hopping_vol_bb_notes, hopping_hops, hopping_vol_ab_notes, cooling_notes, pre_ferm_vols, yeast_start_temp, yeast_start_notes, main_ferm_sgs, main_ferm_dry_hops, bottling_sugar_type, bottling_notes, sec_ferm_notes sql.NullString
-	var mash_temp, hopping_vol_bb, hopping_vol_ab, cooling_temp, cooling_time, main_ferm_alcohol, bottling_pre_bottle_volume, bottling_carbonation, bottling_sugar_amount, bottling_water, bottling_temperature, bottling_alcohol, bottling_volume_bottled, evaporation, efficiency, lautern_duration, lautern_amount, bottling_time_min sql.NullFloat64
+	var mash_temp, hopping_vol_bb, hopping_vol_ab, cooling_temp, cooling_time, main_ferm_alcohol, bottling_pre_bottle_volume, bottling_carbonation, bottling_sugar_amount, bottling_water, bottling_temperature, bottling_alcohol, bottling_volume_bottled, evaporation, efficiency, lautern_duration, lautern_amount, bottling_time_min, main_ferm_yeast_attenuation sql.NullFloat64
 	var sec_ferm_days sql.NullInt32
 	err := s.dbClient.QueryRow(
 		`SELECT title, mash_temp, mash_notes, mash_rasts,
 		lautern_info, lautern_duration, lautern_amount, hopping_vol_bb, hopping_vol_bb_notes, hopping_hops,
 		hopping_vol_ab, hopping_vol_ab_notes, cooling_temp, cooling_time,
 		cooling_notes, pre_ferm_vols, yeast_start_temp, yeast_start_notes,
-		main_ferm_sgs, main_ferm_alcohol, main_ferm_dry_hops, bottling_pre_bottle_volume,
+		main_ferm_sgs, main_ferm_alcohol, main_ferm_yeast_attenuation, main_ferm_dry_hops, bottling_pre_bottle_volume,
 		bottling_carbonation, bottling_sugar_amount, bottling_sugar_type, bottling_water, bottling_temperature,
 		bottling_alcohol, bottling_volume_bottled, bottling_time_min, bottling_notes, sec_ferm_days,
 		sec_ferm_notes FROM summaries WHERE recipe_id == ?`, id).Scan(
@@ -345,7 +353,7 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 		&lautern_info, &lautern_duration, &lautern_amount, &hopping_vol_bb, &hopping_vol_bb_notes, &hopping_hops,
 		&hopping_vol_ab, &hopping_vol_ab_notes, &cooling_temp, &cooling_time,
 		&cooling_notes, &pre_ferm_vols, &yeast_start_temp, &yeast_start_notes,
-		&main_ferm_sgs, &main_ferm_alcohol, &main_ferm_dry_hops, &bottling_pre_bottle_volume,
+		&main_ferm_sgs, &main_ferm_alcohol, &main_ferm_yeast_attenuation, &main_ferm_dry_hops, &bottling_pre_bottle_volume,
 		&bottling_carbonation, &bottling_sugar_amount, &bottling_sugar_type, &bottling_water, &bottling_temperature,
 		&bottling_alcohol, &bottling_volume_bottled, &bottling_time_min, &bottling_notes, &sec_ferm_days,
 		&sec_ferm_notes,
@@ -418,6 +426,7 @@ func (s *SummaryPersistentStore) GetSummary(id string) (*summary.Summary, error)
 			SGs:        sgs,
 			DryHopInfo: dryHopInfos,
 			Alcohol:    s.valueFromNullFloat(main_ferm_alcohol),
+			EVG:        s.valueFromNullFloat(main_ferm_yeast_attenuation),
 		},
 		BottlingInfo: &summary.BottlingInfo{
 			PreBottleVolume: s.valueFromNullFloat(bottling_pre_bottle_volume),

@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add VDW Hops to summary and add input fields to take notes on them
 - Add Original Recipe to summary
 - Add configuration option to input templates for the summary (`summary-templates`)
+- Add new data available for summaries:
+  - Yeast attenuation (Apparent)
 
 
 ### Removed

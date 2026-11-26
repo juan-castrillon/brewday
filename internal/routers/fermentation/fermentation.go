@@ -141,6 +141,14 @@ func (r *FermentationRouter) addSummaryAlcoholMainFermentation(id string, alcoho
 	return nil
 }
 
+// AddMainFermentationEVG adds the EVG after the main fermentation to the summary
+func (r *FermentationRouter) addSummaryEVG(id string, evg float32) error {
+	if r.SummaryStore != nil {
+		return r.SummaryStore.AddMainFermentationEVG(id, evg)
+	}
+	return nil
+}
+
 // registerRoutes registers the routes for the fermentation router
 func (r *FermentationRouter) RegisterRoutes(root *echo.Echo, parent *echo.Group) {
 	fermentation := parent.Group("/fermentation")
@@ -537,6 +545,11 @@ func (r *FermentationRouter) postMainFermentationHandler(c echo.Context) error {
 		err = r.addSummaryAlcoholMainFermentation(id, alc)
 		if err != nil {
 			log.Error().Str("id", id).Err(err).Msg("could not add alcohol to summary")
+		}
+		evg := tools.CalculateEVG(og, req.SG)
+		err = r.addSummaryEVG(id, evg)
+		if err != nil {
+			return err
 		}
 		return c.Redirect(http.StatusFound, c.Echo().Reverse("getDryHop", id))
 	}
