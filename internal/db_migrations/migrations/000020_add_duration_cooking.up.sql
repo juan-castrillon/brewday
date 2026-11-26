@@ -1,0 +1,2 @@
+ALTER TABLE "stats"
+ADD COLUMN duration_cooking REAL NOT NULL DEFAULT 0;

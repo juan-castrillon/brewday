@@ -1,0 +1,5 @@
+ALTER TABLE "stats"
+ADD COLUMN yeast_loss_perc REAL NOT NULL DEFAULT 0;
+
+ALTER TABLE "stats"
+ADD COLUMN yeast_loss_l REAL NOT NULL DEFAULT 0;
