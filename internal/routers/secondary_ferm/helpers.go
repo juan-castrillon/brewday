@@ -11,9 +11,9 @@ import (
 )
 
 // addTimelineEvent adds a timeline event if the timeline store is available
-func (r *SecondaryFermentationRouter) addTimelineEvent(id, message string) error {
+func (r *SecondaryFermentationRouter) addTimelineEvent(id, message string, tag ...string) error {
 	if r.TLStore != nil {
-		return r.TLStore.AddEvent(id, message)
+		return r.TLStore.AddEvent(id, message, tag...)
 	}
 	return nil
 }
