@@ -133,7 +133,7 @@ brewday/
 │   │   ├── summary.go              #   Summary data model
 │   │   ├── memory/                 #   In-memory summary store
 │   │   ├── sql/                    #   SQLite summary store
-│   │   └── printer/markdown/       #   Markdown summary printer (go:embed template)
+│   │   └── printer/tpl/       #    Summary printer (based on given templates or an embedded go:embed template)
 │   ├── timeline/                   # Timeline event persistence
 │   │   ├── memory/                 #   In-memory timeline
 │   │   └── sql/                    #   SQLite timeline
