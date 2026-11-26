@@ -18,10 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add new data available for summaries:
   - Yeast attenuation (Apparent)
 
-
 ### Removed
 
 - Nachguss reminder in the rast screens
+- Past data from db migrations
 
 ## [3.1.1] - 2026-10-31 
 
